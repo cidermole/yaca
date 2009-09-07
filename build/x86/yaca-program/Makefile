@@ -2,7 +2,7 @@
 # add all objects to build here...
 #
 OBJS = ihex.o config.o network.o
-SRCDIR = ../../../src/x86/yaca-flash
+SRCDIR = ../../../src/x86/yaca-program
 
 #
 # project library settings
@@ -23,11 +23,11 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-flash
+	rm ../../bin/yaca-program
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)
-	cp $(EXE) ../../bin/yaca-flash
+	cp $(EXE) ../../bin/yaca-program
 
 %.o: $(SRCDIR)/%.cpp
 	$(CC) -c -o $@ $< $(INCDIRS) $(CFLAGS)
