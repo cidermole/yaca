@@ -16,6 +16,8 @@ void init_yaca_path() {
 	}
 	data = fread(yaca_path, 1, 1024 - 1, f);
 	yaca_path[data] = '\0';
+	if(data && yaca_path[data - 1] == '\n')
+		yaca_path[data - 1] = '\0';
 }
 
 #endif /* YACA_PATH_H */

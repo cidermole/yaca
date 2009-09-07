@@ -20,7 +20,6 @@ int main(int argc, char **argv) {
 		printf("Too few arguments. Usage: %s <tid> <hex file>\n", argv[0]);
 		return 0;
 	}
-	
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
 	load_conf(config_file);

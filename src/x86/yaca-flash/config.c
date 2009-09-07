@@ -49,6 +49,11 @@ void load_conf(const char *file) {
 	conf.flash_size = 8192;
 	conf.page_size = 64;
 	conf.boot_size = 2048;
+	
+	if(!f) {
+		fprintf(stderr, "can't open config file \"%s\"\n", file);
+		return;
+	}
 
 	while(_readline(buffer, LINE_BUFFER, f)) {
 		if(buffer[0] == '#' || !strlen(buffer)) // skip #comments and empty lines
