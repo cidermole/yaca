@@ -1,4 +1,4 @@
 #!/bin/bash
-/home/david/Code/svn-yaca/yaca-x86/ycflash/trunk/build/main a.hex
+../../../build/bin/yaca-flash a.hex
 echo booting app...
-/home/david/Code/svn-yaca/yaca-x86/ycflash/branches/yctr/build/main 1 0 0E
+../../../build/bin/yaca-tr 1 0 0E
