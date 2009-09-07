@@ -13,6 +13,7 @@ typedef struct {
 	char server[LINE_BUFFER];
 	int port;
 	int eeprom_size;
+	int canid_table_begin;
 } conf_t;
 
 extern conf_t conf;

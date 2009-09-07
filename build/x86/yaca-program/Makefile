@@ -1,7 +1,7 @@
 #
 # add all objects to build here...
 #
-OBJS = ihex.o config.o network.o
+OBJS = ihex.o config.o network.o XmlTree.o
 SRCDIR = ../../../src/x86/yaca-program
 
 #

@@ -30,6 +30,8 @@ void process_key(const char *key, const char *val) {
 		conf.port = atoi(val);
 	} else if(compare(key, "eeprom_size")) {
 		conf.eeprom_size = atoi(val);
+	} else if(compare(key, "canid_table_begin")) {
+		conf.canid_table_begin = atoi(val);
 	}
 }
 
@@ -43,6 +45,7 @@ void load_conf(const char *file) {
 	strcpy(conf.server, "192.168.1.1");
 	conf.port = 1222;
 	conf.eeprom_size = 512;
+	conf.canid_table_begin = 7;
 	
 	if(!f) {
 		fprintf(stderr, "can't open config file \"%s\"\n", file);
