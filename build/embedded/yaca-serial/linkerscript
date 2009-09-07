@@ -1,9 +1,10 @@
+/* .biosram section in SRAM 0 - 20 */
 /* Default linker script, for normal executables */
 OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")
 OUTPUT_ARCH(avr:2)
 MEMORY
 {
-  text      (rx)   : ORIGIN = 0, LENGTH = 8K
+  text      (rx)   : ORIGIN = 6144, LENGTH = 8K
   data      (rw!x) : ORIGIN = 0x800060, LENGTH = 0xffa0
   eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 64K
   fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K
@@ -72,8 +73,27 @@ SECTIONS
   /* Internal text space or external memory.  */
   .text :
   {
+/*    __vector_1 = -0x17fe ; */ /* INT0 */
+/*    __vector_2 = -0x17fc ; */ /* FIXME XXX modified for INT1 */
+    __vector_3 = -0x17fa ;
+    __vector_4 = -0x17f8 ;
+    __vector_5 = -0x17f6 ;
+/*    __vector_6 = -0x17f4 ; */ /* T1 comp a */
+    __vector_7 = -0x17f2 ;
+    __vector_8 = -0x17f0 ;
+    __vector_9 = -0x17ee ;
+    __vector_10 = -0x17ec ;
+    __vector_11 = -0x17ea ;
+    __vector_12 = -0x17e8 ;
+    __vector_13 = -0x17e6 ;
+    __vector_14 = -0x17e4 ;
+    __vector_15 = -0x17e2 ;
+    __vector_16 = -0x17e0 ;
+    __vector_17 = -0x17de ;
+    __vector_18 = -0x17dc ;
     *(.vectors)
     KEEP(*(.vectors))
+    *(.biostrampolines)
     /* For data that needs to reside in the lower 64k of progmem.  */
     *(.progmem.gcc*)
     *(.progmem*)
@@ -120,6 +140,7 @@ SECTIONS
     KEEP (*(.init8))
     *(.init9)  /* Call main().  */
     KEEP (*(.init9))
+/*    *(.biostrampolines) */ /* WAS HERE - David */
     *(.text)
     . = ALIGN(2);
     *(.text.*)
@@ -148,9 +169,10 @@ SECTIONS
   }  > text
   .data	  : AT (ADDR (.text) + SIZEOF (.text))
   {
-     PROVIDE (__data_start = .) ;
-/*    *(.biosram)
-    . = __data_start + 200 ;*/
+     PROVIDE (__data_start = .) ; /* David: was below . = __david_bbq -> check if this messes up sth */
+     __david_bbq = . ;
+    *(.biosram)
+    . = __david_bbq + 20 ;
     *(.data)
     *(.data*)
     *(.rodata)  /* We need to include .rodata here if gcc is used */

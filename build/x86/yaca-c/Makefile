@@ -24,6 +24,9 @@ clean:
 	rm -f $(EXE)
 	rm -f *.o
 
+mrproper: clean
+	rm ../../bin/yaca-c
+
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)
 	cp $(EXE) ../../bin/yaca-c

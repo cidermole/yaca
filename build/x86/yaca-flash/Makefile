@@ -22,6 +22,9 @@ clean:
 	rm -f $(EXE)
 	rm -f *.o
 
+mrproper: clean
+	rm ../../bin/yaca-flash
+
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).c $(OBJS)
 	cp $(EXE) ../../bin/yaca-flash
