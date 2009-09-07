@@ -1,0 +1,97 @@
+D bauen: musik anlage
+
+
+SW switch
+RG "regulator"
+
+Outdoor
+^^^^^^^
+SW Pool fest ein/aus/dyn.
+RG Stunden pro Tag (oder auto nach Temp?)
+INFO Pool-Temperatur
+INFO Pool-pH
+
+Moni
+^^^^
+
+SW Lampe
+SW Stehlampe1
+SW Regallampe
+SW (Einbauregal) (B-Melder)
+
+David
+^^^^^
+SW Lampe
+SW Nachtkastl Lampe
+RG [Musik Lautstärke]
+
+Tom
+^^^
+SW Lampe
+SW Regal Beleuchtung
+SW Regal Lampe
+SW Kasten Beleuchtung
+
+Bad OG
+^^^^^^
+SW Lampe
+SW Spiegellampe
+
+Klo OG
+^^^^^^
+SW Lampe
+
+Dachboden
+^^^^^^^^^
+SW Lampe
+SW Licht hinterm Bett
+SW (Schreibtischlampe)
+
+Vorzimmer OG
+^^^^^^^^^^^^
+SW Lampe
+
+Treppe OG
+^^^^^^^^^
+SW Lampe
+
+Vorzimmer EG
+^^^^^^^^^
+SW Lampe
+SW Spiegellampe
+SW (Außenlampe nach vorne)
+
+Küche
+^^^^^
+SW Lampe 1
+SW Lampe 2
+SW Regallampe Halogen
+SW Regallampe 1 Neon
+RG Dunstabzugshaube
+SW Licht Dunstabzugshaube
+
+Wohnzimmer
+^^^^^^^^^^
+SW Lampe Esstisch
+SW Beleuchtung Gläserschrank
+SW Hintergrundlicht Gläserschrank
+SW Lampe im Eck neben Gläserschrank und Terassentür
+SW Lampe Wohnzimmer
+SW Stehlampe
+RG Temperatur
+
+Vorzimmer 2 EG
+^^^^^^^^^^^^^^
+SW Lampe
+
+Bad EG
+^^^^^^
+SW Lampe
+SW Belüftung
+RG Belüftungsdauer
+
+Schlafzimmer EG
+^^^^^^^^^^^^^^^
+SW Lampe
+SW Regallampen (1+2)
+

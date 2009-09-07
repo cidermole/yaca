@@ -1,0 +1,189 @@
+
+Timer: all functions, low-level like _fct()
+
+
+Pwm(Timer a): use PWM function of Timer a
+
+
+
+libavr++
+
+
+
+
+
+
+
+Lichttaster
+
+button modes:
+linkedlist/array in EEPROM (?)
+each mode has: ptr to linkedlist of targets
+
+
+
+evtl.:
+
+- ADC with local voltage
+
+new address space: shared memory
+
+1.024 SRAM
+  512 EEP
+8.192 ROM
+
+
+Bus Voltage: 24 V (?) maybe 20 V / Laptop Netzteil ?
+
+Pro Etage ein Schaltregler auf 5 V
+
+
+
+MCP2515 config
+^^^^^^^^^^^^^^
+
+8 MHz Quarz
+-> 10 kbit/s ^= BRP 50
+-> 125 kbit/s ^= BRP 4
+
+
+SJW = 1 tq
+Propseg = 2 tq
+PS1 = 9 tq
+PS2 = 4 tq
+
+
+
+
+Priorities
+^^^^^^^^^^
+
+- CAN <-> RS232 interface (buffer and send all CAN messages over RS232, buffer and send all RS232 messages over CAN)
+- CAN Bootloader over TO's (boot-reset vector, init, 5s wait for bootloader start, single page download into SRAM -> bootload)
+- CAN basic application (implement standard table)
+- application(s), memory documented by XML
+- XML to .h compiler for easy & comfortable programming (?)
+- master (denys unauthorized bus access from PC (?))
+- web interface compatible with XML memory docs
+- internet connection
+
+
+
+[C++ USB I/F, XML Server, TCP/IP Socket] <---> [Java application software] <---> [User]
+
+
+
+Standard-Table:
+
+<bool name="Power" memory="ram/rom/eep" offset="0" bit="3">0</data>
+
+
+<enum name="Mode" memory="ram" offset="0">
+  <select value="1">Hallo</select>
+</enum>
+
+
+
+
+<eeprom>
+byte Address
+date PowerOn // first powered
+int Cycles // reset counter
+long Hours // Do not write every hour (100.000 EEPROM cycles -> only 11 Years)!!! Maybe create "power-fail" EDO to backup? -> else every day 1x
+</eeprom>
+long Uptime // Uptime in s
+<eeprom>
+string[8] Location
+</eeprom>
+<rom>
+string[8] Software
+string[8] Hardware
+</rom>
+
+extra attributes:
+- string: length
+- bool: bit
+
+
+<byte name="Address" memory="eep" offset="1">0</data>
+<date name="PowerOn" memory="eep" offset="2">01.01.00</data>
+<int name="Cycles" memory="eep" offset="4">0</data>
+<long name="Hours" memory="eep" offset="6">0</data>
+<string name="Location" length="8" memory="eep" offset="10">"n/a"</data>
+
+<long name="Uptime" memory="ram" offset="0">0</data>
+
+<string name="Software" length="8" memory="rom" offset="0">"(ROM)"</data>
+<string name="Hardware" length="8" memory="rom" offset="8">"(ROM)"</data>
+
+
+
+
+
+Typ/bits
+
+bool/1, string/n, byte/8, int/16, long/32, date/16 (5d+4m+7Y)
+
+string 0-terminated, but max length n -> if no termination, end at field end
+
+... maybe enum(?)
+
+
+29bit
+
+[28-24][23-12][11-0]
+         src   dest
+
+addr: 8bit
+
+
+
+(24. bit r/w (?))
+
+0000 EDO Emergency Data Object
+0001 NSO Node Status Object. no dest, instead type
+0010 NMO Network Management Object (e.g. ping)
+0011 TSO Time Service Object (DCF77 synced time - every minute)
+0100 DO  Data Object
+0101 DOR * Response
+0110 SO  Shared Memory Data Object
+0111 SOR (?)
+1110 BO  Broadcast Object
+1111 TO  Transport Object
+
+
+first 2 bytes: 4 bits ~, 12 bits psmem
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bauteil			Bezugsquelle	EUR
+^^^^^^^			^^^^^^^^^^^^	^^^
+
+Platine			~		0,30
+µA 78L05 SMD		Reichelt	0,12
+ATMEGA 8-16 TQ		Reichelt	1,70
+MCP 2515-I/SO		Reichelt	2,55	// CAN Controller
+PCA 82C251 T		Reichelt	0,98	// CAN Bustreiber
+X7R-G1206 100N x 4	Reichelt	0,24
+SMD 1/4W ???		Reichelt	0,10	// Programmierwiderstand für Bustreiber
+--------------------------------------------
+					5,99
