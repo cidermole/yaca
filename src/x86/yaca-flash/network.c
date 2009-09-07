@@ -39,7 +39,7 @@ int connect_socket(const char* host, int port) {
 	addr.sin_family = AF_INET;
 
 	if(connect(sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
-		fprintf(stderr, "connect() failed\n");
+		fprintf(stderr, "connect(host %s, port %d) failed\n", host, port);
 		return -1;
 	}
 	return sock;
