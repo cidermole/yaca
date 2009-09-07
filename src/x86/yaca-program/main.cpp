@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 	config_fname = argv[2];
 	
 	init_yaca_path();
-	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-program.conf", yaca_path);
+	sprintf(config_file, "%s/src/x86/yaca-program/conf/yaca-program.conf", yaca_path);
 	load_conf(config_file);
 
 	try {
@@ -62,9 +62,9 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	assert(nds.name() == "nds");
-	assert(config.name() == "node-config");
-	tid = strtol(config.attribute("id").c_str(), &p, 0);
+	assert((*nds.begin())->name() == "nds");
+	assert((*config.begin())->name() == "node-config");
+	tid = strtol((*config.begin())->attribute("id").c_str(), &p, 0);
 	if(*p != '\0') {
 		fprintf(stderr, "Error parsing XML file %s: can't convert id attribute of node-config: not numeric\n", config_fname);
 		return 1;
@@ -77,9 +77,9 @@ int main(int argc, char **argv) {
 	
 	memset(eeprom, 0xFF, sizeof(eeprom));
 	
-	for(messages_in = nds.begin(); messages_in != nds.end() && (*messages_in)->name() != "messages-in"; messages_in++);
+	for(messages_in = (*nds.begin())->begin(); messages_in != (*nds.begin())->end() && (*messages_in)->name() != "messages-in"; messages_in++);
 	assert((*messages_in)->name() == "messages-in");
-	for(messages = config.begin(); messages != config.end() && (*messages)->name() != "messages"; messages++);
+	for(messages = (*config.begin())->begin(); messages != (*config.begin())->end() && (*messages)->name() != "messages"; messages++);
 	assert((*messages)->name() == "messages");
 
 	// Build CANid table by resolving messages in the order given in the nds, looking them up in the config
