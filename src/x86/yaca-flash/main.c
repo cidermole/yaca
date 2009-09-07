@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
@@ -15,13 +16,8 @@
 #endif
 #include "ihex.h"
 
-#define TID_BLD_ENTER	0x09
-#define TID_BLD_PAGESEL	0x0B	// Msg#21: Bootloader page select [1: page (2)]
-#define TID_BLD_DATA	0x0C	// Msg#22: Bootloader page data [1: data]			+increment ptr!
-#define TID_BLD_EE_WR	0x0F
-
-#define EE_ERR		4
-#define EE_CRC16	5
+#include "../../embedded/bootloader/msgdefs.h"
+#include "../../embedded/bootloader/eeprom.h"
 
 struct Message {
         uint8_t info;
@@ -62,8 +58,6 @@ char *flash_page(const char *buffer, int page_size, int tid, int sock) {
 	}
 	enter.length = singleBytes;
 	write(sock, &enter, sizeof(enter));
-//	printf("Page %d flashed, waiting for response... ", page++);
-//	fflush(stdout);
 
 	in.id = 0;
 	while(in.id != tid) {
@@ -75,11 +69,7 @@ char *flash_page(const char *buffer, int page_size, int tid, int sock) {
 	if(in.data[0] != 0x0D) {
 		fprintf(stderr, "\nERROR: Protocol error while receiving from programmed node\n");
 		exit(1);
-	} else {
-//		printf("Response OK\n");
 	}
-
-//	sleep(5);
 	return (char *)buffer;
 }
 
@@ -198,19 +188,13 @@ int main(int argc, char **argv) {
 		printf("\n");
 		
 		printf("Rewriting target EEPROM (clearing error flags, setting CRC = 0x%04X)...\n", crc);
-		_target_eeprom_write(tid, sock, EE_CRC16, crc & 0xFF);
-		_target_eeprom_write(tid, sock, EE_CRC16 + 1, crc >> 8);
-		_target_eeprom_write(tid, sock, EE_ERR, 0);
+		_target_eeprom_write(tid, sock, ((uint16_t) EE_CRC16), crc & 0xFF);
+		_target_eeprom_write(tid, sock, ((uint16_t) EE_CRC16) + 1, crc >> 8);
+		_target_eeprom_write(tid, sock, ((uint16_t) EE_ERR), 0);
 		
-		printf("Done. Terminating in 1 s... (noob flush)\n");
+		printf("Done. Terminating in 1 s...\n"); // TODO: some better flush?
 		sleep(1);
-
-/*		FILE *f = fopen("out.bin", "wb");
-		fwrite(buffer, 1, size, f);
-		fclose(f);*/
 	}
-
-	// do sth
 
 #ifdef _WIN32
 	closesocket(sock);
