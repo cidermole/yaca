@@ -1,7 +1,7 @@
 #
 # add all objects to build here...
 #
-OBJS = ihex.o
+OBJS = ihex.o config.o network.o
 SRCDIR = ../../../src/x86/yaca-flash
 
 #
@@ -11,7 +11,7 @@ EXE = main
 #INCDIRS +=
 #CFLAGS +=
 
-CC = gcc
+CC = g++
 
 #########################################################################
 #########################################################################

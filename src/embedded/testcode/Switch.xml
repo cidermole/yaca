@@ -42,7 +42,7 @@
 		</msg>
 	</messages-out>
 	<eeprom>
-		<setting address="10" name="statusid1" type="int32"/>
-		<setting address="14" name="statusid2" type="int32"/>
+		<setting address="508" name="statusid1" type="int32"/>
+		<setting address="504" name="statusid2" type="int32"/>
 	</eeprom>
 </nds>

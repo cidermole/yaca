@@ -10,10 +10,11 @@
 #endif
 
 typedef struct {
+	char server[LINE_BUFFER];
 	int port;
-	char device[LINE_BUFFER];
-	int baud;
-	int debug;
+	int flash_size;
+	int page_size;
+	int boot_size;
 } conf_t;
 
 extern conf_t conf;
