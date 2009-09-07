@@ -106,25 +106,25 @@ void mcp2515_init() {
 	mcp2515_wrreg(CANCTRL, CLOCK_PRESCALER_MAGIC); // set device to normal mode
 //	mcp2515_wrreg(CANCTRL, 0x40 | CLOCK_PRESCALER_MAGIC); // set device to loopback mode
 
-#ifndef YACA_INT1
-	MCUCR &= ~((1 << ISC01) | (1 << ISC00)); // Set INT0 to active low
-#else
+#ifdef YACA_INT1
 	MCUCR &= ~((1 << ISC11) | (1 << ISC10)); // Set INT1 to active low
+#else
+	MCUCR &= ~((1 << ISC01) | (1 << ISC00)); // Set INT0 to active low
 #endif
 	mcp2515_set_int(1); // enable INT0 (note: need yet to set global I-flag)
 }
 
 void mcp2515_set_int(uint8_t val) {
-#ifndef YACA_INT1
-	if(val)
-		GICR |= (1 << INT0);
-	else
-		GICR &= ~(1 << INT0);
-#else
+#ifdef YACA_INT1
 	if(val)
 		GICR |= (1 << INT1);
 	else
 		GICR &= ~(1 << INT1);
+#else
+	if(val)
+		GICR |= (1 << INT0);
+	else
+		GICR &= ~(1 << INT0);
 #endif
 }
 

@@ -10,12 +10,12 @@
  * This is needed because otherwise, the ISR wouldn't have a clue whether the SPI is busy in the app
  * Previously, this was implemented by setting a variable, but that had no speed advantage whatsoever
  */
-#ifndef YACA_INT1
-#define spi_reserve() GICR &= ~(1 << INT0)
-#define spi_free() GICR |= (1 << INT0)
-#else
+#ifdef YACA_INT1
 #define spi_reserve() GICR &= ~(1 << INT1)
 #define spi_free() GICR |= (1 << INT1)
+#else
+#define spi_reserve() GICR &= ~(1 << INT0)
+#define spi_free() GICR |= (1 << INT0)
 #endif
 
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
@@ -158,10 +158,10 @@ uint8_t _read_frame(Message* f, uint8_t read_cmd) {
 	return 1;
 }
 
-#ifndef YACA_INT1
-ISR(INT0_vect) {
-#else
+#ifdef YACA_INT1
 ISR(INT1_vect) {
+#else
+ISR(INT0_vect) {
 #endif
 	uint8_t status;
 	Message msg;
