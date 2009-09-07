@@ -1,0 +1,10 @@
+yaca-gw
+=======
+yaca-gw (for YACA Gateway) is a program running on a Linksys wrt54-gl router, 
+which is connected to a circuit with an ATmega MCU via UART (serial link).
+yaca-gw provides a kind of proxying socket connections to the CAN bus.
+
+This program needs to be compiled with an OpenWRT cross-compiler, which occupies
+around 1.8 GB space. Out of this reason, the cross-compiler is not included.
+The 'main' executable provided here is precompiled for OpenWRT, which saves you
+from having to download and install it just for using yaca.

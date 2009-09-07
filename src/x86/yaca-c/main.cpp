@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define TEMPLATE_PATH "/home/david/Code/yaca/src/x86/yaca-c/templates"
+
 void run() {
 	/*
 	 * Bootstrap: Create export headers out of object exports, with the ability
@@ -134,10 +136,10 @@ int main(int argc, char** argv) {
 
 	Globals::setStr("tmpfile", "/tmp/yacac1"); // TODO: add PID here, below too
 	Globals::setStr("tmpfile2", "/tmp/yacac2");
-	Globals::setStr("sizeofTemplate", "/home/david/Code/svn-yaca/yaca-x86/yacac/trunk/sizeof.tpl");
-	Globals::setStr("MsgNormalTemplate", "/home/david/Code/svn-yaca/yaca-x86/yacac/trunk/msg-normal.tpl");
-	Globals::setStr("MsgBootTemplate", "/home/david/Code/svn-yaca/yaca-x86/yacac/trunk/msg-bootstrap.tpl");
-	Globals::setStr("outTemplate", "/home/david/Code/svn-yaca/yaca-x86/yacac/trunk/out.tpl");
+	Globals::setStr("sizeofTemplate", TEMPLATE_PATH "/sizeof.tpl");
+	Globals::setStr("MsgNormalTemplate", TEMPLATE_PATH "/msg-normal.tpl");
+	Globals::setStr("MsgBootTemplate", TEMPLATE_PATH "/msg-bootstrap.tpl");
+	Globals::setStr("outTemplate", TEMPLATE_PATH "/out.tpl");
 	Globals::setStr("messageHeader", "Messages.h");
 	Globals::setStr("mcu", "atmega8");
 	Globals::setStr("compilerOptions", "");
