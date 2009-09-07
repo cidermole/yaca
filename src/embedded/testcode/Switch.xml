@@ -1,0 +1,48 @@
+<nds>
+	<messages-in>
+		<msg name="SetStatus">
+			<param>
+				unsigned char
+			</param>
+			<param>
+				unsigned char
+			</param>
+			<param>
+				unsigned int
+			</param>
+			<param>
+				unsigned char
+			</param>
+		</msg>
+		<msg name="LightStatus">
+			<param>
+				unsigned char
+			</param>
+		</msg>
+	</messages-in>
+	<messages-out>
+		<msg name="Status">
+			<param>
+				unsigned char
+			</param>
+		</msg>
+		<msg name="SetStatus">
+			<param>
+				unsigned char
+			</param>
+			<param>
+				unsigned char
+			</param>
+			<param>
+				unsigned int
+			</param>
+			<param>
+				unsigned char
+			</param>
+		</msg>
+	</messages-out>
+	<eeprom>
+		<setting address="10" name="statusid1" type="int32"/>
+		<setting address="14" name="statusid2" type="int32"/>
+	</eeprom>
+</nds>

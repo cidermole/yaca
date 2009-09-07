@@ -1,0 +1,11 @@
++ Message.cpp - createSendCode(): rjmp _pack
+
+- someone set Message packstyle
+
+- packstyle: somehow fetch from somewhere (so that you don't need to pass it
+  to prepare_msg() or whatever thats called omg)
+
+- flash and eep tables
+
+- Trampolines: lib of jumps in app section to bootloader section, jumps from
+  bootloader section (fixed addresses) to the functions
