@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "ihex.h"
 #include "config.h"
@@ -33,7 +34,7 @@ void debug_print_eeprom(int *eeprom, int size) {
 
 int main(int argc, char **argv) {
 	int sock = -1;
-	char config_file[1024], *p, *nds_file, *config_file;
+	char config_file[1024], *p, *nds_fname, *config_fname;
 	XmlTree nds, config;
 	int tid = -1, i;
 	
@@ -41,23 +42,23 @@ int main(int argc, char **argv) {
 		printf("Too few arguments. Usage: %s <nds xml> <config xml> [-new]\n", argv[0]);
 		return 0;
 	}
-	nds_file = argv[1];
-	config_file = argv[2];
+	nds_fname = argv[1];
+	config_fname = argv[2];
 	
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-program.conf", yaca_path);
 	load_conf(config_file);
 
 	try {
-		nds.read(nds_file);
+		nds.read(nds_fname);
 	} catch(XmlError err) {
-		fprintf(stderr, "Error parsing XML file %s: XmlTree error %d (%s)\n", nds_file, err.code, err.desc);
+		fprintf(stderr, "Error parsing XML file %s: XmlTree error %d (%s)\n", nds_fname, err.code, err.desc);
 		return 1;
 	}
 	try {
-		config.read(config_file);
+		config.read(config_fname);
 	} catch(XmlError err) {
-		fprintf(stderr, "Error parsing XML file %s: XmlTree error %d (%s)\n", config_file, err.code, err.desc);
+		fprintf(stderr, "Error parsing XML file %s: XmlTree error %d (%s)\n", config_fname, err.code, err.desc);
 		return 1;
 	}
 
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
 	assert(config.name() == "node-config");
 	tid = strtol(config.attribute("id").c_str(), &p, 0);
 	if(*p != '\0') {
-		fprintf(stderr, "Error parsing XML file %s: can't convert id attribute of node-config: not numeric\n", config_file);
+		fprintf(stderr, "Error parsing XML file %s: can't convert id attribute of node-config: not numeric\n", config_fname);
 		return 1;
 	}
 
@@ -74,32 +75,32 @@ int main(int argc, char **argv) {
 	int eeprom[conf.eeprom_size], i_eep = conf.canid_table_begin;
 	list<XmlTree *>::iterator msg_nds, msg_conf, messages_in, messages, child;
 	
-	memset(eeprom_buf, 0xFF, sizeof(eeprom_buf));
+	memset(eeprom, 0xFF, sizeof(eeprom));
 	
-	for(messages_in = nds.begin(); messages_in != nds.end() && messages_in->name() != "messages-in"; messages_in++);
-	assert(messages_in->name() == "messages-in");
-	for(messages = config.begin(); messages != config.end() && messages->name() != "messages"; messages++);
-	assert(messages->name() == "messages");
+	for(messages_in = nds.begin(); messages_in != nds.end() && (*messages_in)->name() != "messages-in"; messages_in++);
+	assert((*messages_in)->name() == "messages-in");
+	for(messages = config.begin(); messages != config.end() && (*messages)->name() != "messages"; messages++);
+	assert((*messages)->name() == "messages");
 
 	// Build CANid table by resolving messages in the order given in the nds, looking them up in the config
 	// See src/embedded/libyaca/dispatch.c for details on eeprom structure: [2][CANid][CANid][1][CANid][3][CANid][CANid][CANid]
 	//
-	for(msg_nds = messages_in->begin(); msg_nds != messages_in->end(); msg_nds++) {
-		assert(msg_nds->name() == "msg");
+	for(msg_nds = (*messages_in)->begin(); msg_nds != (*messages_in)->end(); msg_nds++) {
+		assert((*msg_nds)->name() == "msg");
 		// Find a message id definition in the config
-		for(msg_conf = messages->begin(); msg_conf != messages->end() && msg_conf->attribute("name") != msg_nds->attribute("name"); msg_conf++);
+		for(msg_conf = (*messages)->begin(); msg_conf != (*messages)->end() && (*msg_conf)->attribute("name") != (*msg_nds)->attribute("name"); msg_conf++);
 		
-		if(msg_conf->attribute("name") == msg_nds->attribute("name")) {
+		if((*msg_conf)->attribute("name") == (*msg_nds)->attribute("name")) {
 			// Writing the number of CANids -> [2][CANid][CANid]
 			assert(i_eep < conf.eeprom_size);
-			eeprom[i_eep++] = msg_conf->size();
+			eeprom[i_eep++] = (*msg_conf)->size();
 			
 			// Write all CANids of a message definition from the config to EEPROM
-			for(child = msg_conf->begin(); child != msg_conf->end(); child++) {
-				assert(child->name() == "id");
-				i = strtol(child->text().c_str(), &p, 0);
+			for(child = (*msg_conf)->begin(); child != (*msg_conf)->end(); child++) {
+				assert((*child)->name() == "id");
+				i = strtol((*child)->text().c_str(), &p, 0);
 				if(*p != '\0') {
-					fprintf(stderr, "Error parsing XML file %s: can't convert text of <id> tag: not numeric\n", config_file);
+					fprintf(stderr, "Error parsing XML file %s: can't convert text of <id> tag: not numeric\n", config_fname);
 					return 1;
 				}
 				assert(i_eep + 4 <= conf.eeprom_size);
@@ -108,6 +109,11 @@ int main(int argc, char **argv) {
 				eeprom[i_eep++] = (i >> (8 * 2)) & 0xff;
 				eeprom[i_eep++] = (i >> (8 * 3)) & 0xff;
 			}
+		} else {
+			// Writing the number of CANids -> [0] [2][CANid][CANid] ...
+			// no message definitions found in config
+			assert(i_eep < conf.eeprom_size);
+			eeprom[i_eep++] = 0;
 		}
 	}
 	
