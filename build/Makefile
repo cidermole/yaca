@@ -1,4 +1,5 @@
 all: aembedded ax86
+	echo $(flags)
 
 clean:
 	cd embedded; make clean

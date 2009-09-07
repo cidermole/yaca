@@ -168,7 +168,7 @@ void bootApp() {
 	TIMSK = 0;
 	// move interrupts to app section XXX the app needs to enable INT0 and jump to our implementation of INT0
 	GICR = (1 << IVCE);
-	GICR = (0 << IVSEL); //| (1 << INT1);
+	GICR = (0 << IVSEL); //| (1 << INT0);
 	mcp2515_set_int(1); // re-enable the external interrupt cleared by the lines above
 	
 	// the app only needs to enable interrupts
