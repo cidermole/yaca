@@ -47,7 +47,7 @@ int connect_socket(const char* host, int port) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void write_message(int sock, int id, int length, char d0, char d1, char d2, char d3, char d4, char d5, char d6, char d7) {
+void write_message(int sock, unsigned int id, int length, char d0, char d1, char d2, char d3, char d4, char d5, char d6, char d7) {
 		struct Message msg;
 		
 		memset(&msg, 0, sizeof(msg));

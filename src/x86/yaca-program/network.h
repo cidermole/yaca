@@ -13,7 +13,7 @@ struct Message {
 
 int connect_socket(const char *host, int port);
 
-void write_message(int sock, int id, int length = 0, char d0 = 0, char d1 = 0, char d2 = 0, char d3 = 0, char d4 = 0, char d5 = 0, char d6 = 0, char d7 = 0);
+void write_message(int sock, unsigned int id, int length = 0, char d0 = 0, char d1 = 0, char d2 = 0, char d3 = 0, char d4 = 0, char d5 = 0, char d6 = 0, char d7 = 0);
 
 int read_message(int sock, struct Message *buffer);
 

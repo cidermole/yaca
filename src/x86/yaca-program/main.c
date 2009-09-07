@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 	char config_file[1024];
 	
 	if(argc < 3) {
-		printf("Too few arguments. Usage: %s <tid> <nds xml> <data xml>\n", argv[0]);
+		printf("Too few arguments. Usage: %s <nds xml> <data xml> [-new]\n", argv[0]);
 		return 0;
 	}
 	init_yaca_path();
@@ -26,11 +26,15 @@ int main(int argc, char **argv) {
 	if((sock = connect_socket(conf.server, conf.port)) == -1)
 		return 1;
 
-	int tid = atoi(argv[1]);
+//	int tid = atoi(argv[1]);
+	int tid; // TODO
 	int _eeprom_size = conf.eeprom_size;
 
 	char buffer[10 * 1024];
 	int size, i;
+	
+	if(argc == 4 && !strncmp(argv[3], "-new", strlen("-new"))
+		tid = 0x1FFFFFFF;
 
 	if(size = ihex_parse(buffer, sizeof(buffer), argv[2])) {
 		if(size > _d_eeprom_size) {
