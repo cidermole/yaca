@@ -104,7 +104,7 @@ void run() {
 int main(int argc, char** argv) {
 	string nodeName, param, es, cmd, configFile;
 	int verbose = 0, i;
-	bool newMode = false;
+	bool newMode = false, cleanMode = false;
 	Globals global;
 	Source source;
 
@@ -114,7 +114,8 @@ int main(int argc, char** argv) {
 		cout << "yaca-c usage: %s <node name> [options]" << endl
 			<< "Options include:" << endl << endl
 			<< "-v    Increase verbosity level, can be used several times" << endl
-			<< "-new <config xml>: Programs a new node" << endl;
+			<< "-new <config xml>: Programs a new node" << endl
+			<< "-clean" << endl;
 		return 0;
 	}
 	for(i = 2; i < argc; i++) {
@@ -126,7 +127,9 @@ int main(int argc, char** argv) {
 			newMode = true;
 			configFile = argv[i + 1];
 			i++;
-		} else
+		} else if(param == "-clean")
+			cleanMode = true;
+		else
 			cerr << "Warning: unknown option \"" << param << "\"" << endl;
 	}
 	if(verbose >= 1) {
@@ -156,41 +159,57 @@ int main(int argc, char** argv) {
 	Globals::setInt("verbose", verbose);
 	Globals::setStr("nodeName", nodeName);
 
-	try {
-		run();
+	if(!cleanMode) {
+		try {
+			run();
 
-		cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
-		if(verbose > 1)
-			cout << "Info: running command \"" << cmd << "\"" << endl;
-		if(system(cmd.c_str()))
-			throw "Linking failed";
-		cmd = es + "avr-objcopy -O ihex -R .eeprom " + nodeName + "-app.o " + nodeName + "-app.hex";
-		if(verbose > 1)
-			cout << "Info: running command \"" << cmd << "\"" << endl;
-		if(system(cmd.c_str()))
-			throw "Object copying failed";
+			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
+			if(verbose > 1)
+				cout << "Info: running command \"" << cmd << "\"" << endl;
+			if(system(cmd.c_str()))
+				throw "Linking failed";
+			cmd = es + "avr-objcopy -O ihex -R .eeprom " + nodeName + "-app.o " + nodeName + "-app.hex";
+			if(verbose > 1)
+				cout << "Info: running command \"" << cmd << "\"" << endl;
+			if(system(cmd.c_str()))
+				throw "Object copying failed";
 			
-		// TODO: make option to flash from here
+			// TODO: make option to flash from here
 		
-		if(newMode) {
-			cmd = es + yaca_path + "/build/bin/yaca-hexmerge " + yaca_path + "/build/embedded/bootloader/bootloader.hex " + nodeName + "-app.hex " + nodeName + "-full.hex";
-			if(verbose > 1)
-				cout << "Info: running command \"" << cmd << "\"" << endl;
-			if(system(cmd.c_str()))
-				throw "Hex merge failed";
-			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-app.hex -crc` " + configFile + ".eep";
-			if(verbose > 1)
-				cout << "Info: running command \"" << cmd << "\"" << endl;
-			if(system(cmd.c_str()))
-				throw "yaca-program failed";
+			if(newMode) {
+				cmd = es + yaca_path + "/build/bin/yaca-hexmerge " + yaca_path + "/build/embedded/bootloader/bootloader.hex " + nodeName + "-app.hex " + nodeName + "-full.hex";
+				if(verbose > 1)
+					cout << "Info: running command \"" << cmd << "\"" << endl;
+				if(system(cmd.c_str()))
+					throw "Hex merge failed";
+				cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-app.hex -crc` " + nodeName + "-app.eep";
+				if(verbose > 1)
+					cout << "Info: running command \"" << cmd << "\"" << endl;
+				if(system(cmd.c_str()))
+					throw "yaca-program failed";
 
-			// TODO: flash stuff (avrdude)
+				// TODO: flash stuff (avrdude)
+			}
+		} catch(const char* err) {
+			cerr << "Error: " << err << endl;
+			if(!verbose)
+				cerr << "Clueless? Try verbose mode - you can even issue -v multiple times." << endl;
 		}
-	} catch(const char* err) {
-		cerr << "Error: " << err << endl;
-		if(!verbose)
-			cerr << "Clueless? Try verbose mode - you can even issue -v multiple times." << endl;
 	}
+	
+	if(verbose)
+		cout << "Info: cleaning up" << endl;
+	system((es + "rm -f R" + nodeName + ".*").c_str());
+	system((es + "rm -f " + nodeName + "*.o").c_str());
+	system("rm -f ftable.*");
+	
+	if(cleanMode) {
+		system((es + "rm -f " + nodeName + "-app.hex").c_str());
+		system((es + "rm -f " + nodeName + "-full.hex").c_str());
+		system((es + "rm -f " + nodeName + "-app.eep").c_str());
+		system((es + "rm -f " + nodeName + ".nds").c_str());
+	}
+	
 
 /*	source.setFile(nodeName + ".C");
 
