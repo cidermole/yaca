@@ -21,12 +21,12 @@ int main(int argc, char **argv) {
 		printf("Too few arguments. Usage: %s <tid> <hex file> [-crc]\n", argv[0]);
 		return 0;
 	}
-	if(argc == 4 && !strncmp(argv[2], "-crc", strlen("-crc")))
+	if(argc == 4 && !strncmp(argv[3], "-crc", strlen("-crc")))
 		crc_only = true;
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
 	load_conf(config_file);
-	if((sock = connect_socket(conf.server, conf.port)) == -1)
+	if(!crc_only && (sock = connect_socket(conf.server, conf.port)) == -1)
 		return 1;
 
 	int tid = atoi(argv[1]);
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		for(i = 0; i < _d_app_pages * d_page_size; i++)
 			crc = crc16_update(crc, buffer[i]);
 		if(crc_only) {
-			printf("%d", (unsigned int) crc);
+			printf("0x%04X", (unsigned int) crc);
 			return 0;
 		}
 		

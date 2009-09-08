@@ -126,6 +126,7 @@ int main(int argc, char** argv) {
 			assert(i + 1 < argc);
 			newMode = true;
 			configFile = argv[i + 1];
+			i++;
 		} else
 			cerr << "Warning: unknown option \"" << param << "\"" << endl;
 	}
@@ -160,22 +161,34 @@ int main(int argc, char** argv) {
 	try {
 		run();
 
-		cmd = es + "avr-gcc -o " + nodeName + "-full.o -L" + yaca_path + "/build/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
+		cmd = es + "avr-gcc -o " + nodeName + "-full.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
 		if(verbose > 1)
-			cout << "Running command \"" << cmd << "\"" << endl;
+			cout << "Info: running command \"" << cmd << "\"" << endl;
 		if(system(cmd.c_str()))
 			throw "Linking failed";
 		cmd = es + "avr-objcopy -O ihex -R .eeprom " + nodeName + "-full.o " + nodeName + "-full.hex";
 		if(verbose > 1)
-			cout << "Running command \"" << cmd << "\"" << endl;
+			cout << "Info: running command \"" << cmd << "\"" << endl;
 		if(system(cmd.c_str()))
 			throw "Object copying failed";
 			
 		// TODO: make option to flash from here
 		
 		if(newMode) {
-			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " + nodeName + ".eep";
-			// TODO: run yaca-program, flash stuff
+			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " + configFile + ".eep 2>" + Globals::getStr("tmpfile");
+			if(verbose > 1)
+				cout << "Info: running command \"" << cmd << "\"" << endl;
+			if(system(cmd.c_str())) {
+				cmd = "yaca-program failed. Passing through output:\n";
+				ifstream ifs(Globals::getStr("tmpfile").c_str());
+				while(getline(ifs, es))
+					cmd += es + "\n";
+				es = "";
+				ifs.close();
+				throw cmd.c_str();
+			}
+
+			// TODO: flash stuff (avrdude)
 		}
 	} catch(const char* err) {
 		cerr << "Error: " << err << endl;
