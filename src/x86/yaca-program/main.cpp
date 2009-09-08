@@ -223,8 +223,30 @@ int main(int argc, char **argv) {
 	if(argc == 6) {
 		ihex_write(eeprom, conf.eeprom_size, argv[5]);
 	} else {
-		// TODO: program
+		int realsize = get_real_eeprom_bytes(eeprom, conf.eeprom_size), realc = 0, realp = 0, curp;
+		
+		if((sock = connect_socket(conf.server, conf.port)) == -1)
+			return 1;
+		
+		for(i = 0; i < 49; i++)
+			printf(" ");
+		printf("v\n");
+		
+		for(i = 0; i < conf.eeprom_size; i++) {
+			if(eeprom[i] != -1) {
+				target_eeprom_write(tid, sock, i, eeprom[i]);
+				realc++;
+				curp = 50 * realc / realsize;
+				for(; curp > realp; realp++) {
+					printf("#");
+					fflush(stdout);
+				}
+			}
+		}
+		printf("\n");
 	}
+	
+	// TODO: verify eeprom (will only work in app mode)
 
 	if(argc != 6) {	
 		printf("Done. Terminating in 1 s...\n"); // TODO: some better flush?

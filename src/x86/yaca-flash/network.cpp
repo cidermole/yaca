@@ -144,5 +144,6 @@ void target_eeprom_write(uint32_t id, int sock, uint16_t addr, uint8_t data) {
 	msg.id = id;
 	
 	write(sock, &msg, sizeof(msg));
+	usleep(10 * 1000);
 }
 
