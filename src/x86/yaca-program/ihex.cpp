@@ -16,10 +16,10 @@ int ihex_write(int *buffer, int bufsize, const char *file) {
 		fprintf(f, ":%02X%04X00", ROW_WIDTH, i * ROW_WIDTH);
 		checksum = ROW_WIDTH + (((i * ROW_WIDTH) >> 8) & 0xff) + ((i * ROW_WIDTH) & 0xff);
 		for(j = 0; j < ROW_WIDTH; j++) {
-			printf(" %02X", buffer[i * ROW_WIDTH + j] & 0xff);
+			fprintf(f, "%02X", buffer[i * ROW_WIDTH + j] & 0xff);
 			checksum += buffer[i * ROW_WIDTH + j] & 0xff;
 		}
-		printf("%02X\n", ((checksum ^ 0xff) + 1) & 0xff);
+		fprintf(f, "%02X\n", ((checksum ^ 0xff) + 1) & 0xff);
 	}
 	fprintf(f, ":00000001FF");
 	fclose(f);
