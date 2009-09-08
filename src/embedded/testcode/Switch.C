@@ -22,22 +22,20 @@ void _pack_n_go();
 void _take_off(Message *m);
 }
 
-extern "C" {
-	void init(void) {
-		Message m;
-		
-		DDRD |= (1 << PD4);
-		
-		m.id = 7;
-		m.rtr = 0;
-		m.length = 2;
-		m.info = 0;
-		m.data[0] = 0xF0;
-		m.data[1] = 0x55;
+void init() {
+	Message m;
 	
-		while(yc_transmit(&m) == 2)
-			_delay_us(100);
-	}
+	DDRD |= (1 << PD4);
+	
+	m.id = 7;
+	m.rtr = 0;
+	m.length = 2;
+	m.info = 0;
+	m.data[0] = 0xF0;
+	m.data[1] = 0x55;
+
+	while(yc_transmit(&m) == 2)
+		_delay_us(100);
 }
 
 void DM(SetStatus(uint8_t a, uint8_t b, uint16_t c, uint8_t d)) {

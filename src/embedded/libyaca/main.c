@@ -12,7 +12,7 @@ void __attribute__ ((naked, signal, __INTR_ATTRS)) INT1_vect(void);
 #else
 void __attribute__ ((naked, signal, __INTR_ATTRS)) INT0_vect(void);
 #endif
-void __attribute__ ((weak)) init(void);
+void __attribute__ ((weak)) _Z4initv(void);
 
 extern fpt_t fpt[] PROGMEM;
 extern uint8_t fpt_size PROGMEM;
@@ -34,8 +34,8 @@ void INT0_vect(void) {
 int main() {
 	Message in;
 
-	if(init)
-		init();
+	if(_Z4initv)
+		_Z4initv();
 
 	sei();
 

@@ -10,7 +10,6 @@
 
 using namespace std;
 
-#define TEMPLATE_PATH "/home/david/Code/yaca/src/x86/yaca-c/templates"
 
 void run() {
 	/*
@@ -156,7 +155,6 @@ int main(int argc, char** argv) {
 	Globals::setStr("compilerOptions", "");
 	Globals::setInt("verbose", verbose);
 	Globals::setStr("nodeName", nodeName);
-	Globals::setStr("canSendFunc", "CanSend");
 
 	try {
 		run();
