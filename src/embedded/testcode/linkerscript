@@ -80,11 +80,7 @@ SECTIONS
     yc_poll_receive = 0x182c ;
     yc_receive = 0x182e ;
     yc_get_error = 0x1830 ;
-/*    yc_dispatch = 0x1832 ; */
-/*    _pack_n_go = 0x1834 ; */
-/*    yc_prepare = 0x1836 ; */ /* old one, see below */
-/*    _Z10yc_preparem = 0x1836 ; */
-    yc_close = 0x1838 ;
+    yc_close = 0x1832 ;
     __bld_int0 = 0x1802 ;
     __bld_int1 = 0x1804 ;
     *(.vectors)

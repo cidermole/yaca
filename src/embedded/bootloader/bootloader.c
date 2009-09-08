@@ -25,7 +25,7 @@ void _error(uint8_t ec) {
 	while(1);
 }
 
-int main() {
+int __attribute__((noreturn)) main() {
 	Message msg;
 	uint8_t state = 0;
 	uint8_t nextState = 0;
@@ -55,6 +55,10 @@ int main() {
 	((uint16_t *)(&tempid))[0] = eeprom_read_word(EE_TEMPID);
 	((uint16_t *)(&tempid))[1] = eeprom_read_word(EE_TEMPID + 1); // save ~100 bytes
 
+	// If the Power-on Reset Flag is not set, we came from the app
+	if(!(MCUCSR & (1 << PORF)))
+		goto _from_app;
+
 	// Main state machine
 	while(1) {
 		switch(state) {
@@ -72,6 +76,7 @@ int main() {
 
 			if(receiveValidateTempidMsg(&msg)) {
 				if(msg.data[0] == TID_BLD_ENTER) {
+_from_app:
 					state = 1;
 				}
 			}
