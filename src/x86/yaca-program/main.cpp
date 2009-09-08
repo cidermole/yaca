@@ -119,6 +119,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	assert(nds.size());
+	assert(config.size());
 	assert((*nds.begin())->name() == "nds");
 	assert((*config.begin())->name() == "node-config");
 	tid = strtol((*config.begin())->attribute("id").c_str(), &p, 0);

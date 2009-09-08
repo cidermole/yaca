@@ -96,7 +96,7 @@ void XmlTree::read(const char *filename) {
 }
 
 bool my_strncmp(const char *s1, const char *s2) {
-	if(s1 == NULL || s2 == NULL)
+	if(s1 == NULL || s2 == NULL || *s1 == '\0' || *s2 == '\0')
 		return false;
 	
 	return !strncmp(s1, s2, strlen(s2));
@@ -140,7 +140,7 @@ void XmlTree::_process(list<pair<char *, int> >::iterator& it, list<pair<char *,
 		it++;
 	}
 	
-	for(; it != end && !my_strncmp(&it->first[1], tagname); it++) {
+	for(; it != end && !my_strncmp(&it->first[1], m_name.c_str()); it++) {
 		th_assert(it->first[0] != '/', 1000, "closing tag before opening tag");
 		XmlTree *child = new XmlTree();
 		th_assert(child != NULL, 20, "out of memory");
@@ -149,7 +149,7 @@ void XmlTree::_process(list<pair<char *, int> >::iterator& it, list<pair<char *,
 		if(it == end)
 			break;
 	}
-	th_assert(my_strncmp(&it->first[1], tagname) || root, 1001, "no closing tag");
+	th_assert(my_strncmp(&it->first[1], m_name.c_str()) || root, 1001, "no closing tag");
 }
 
 void XmlTree::_process_attributes(char *buf, int len) {
