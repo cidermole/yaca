@@ -102,7 +102,7 @@ void run() {
 }
 
 int main(int argc, char** argv) {
-	string nodeName, param, es, cmd;
+	string nodeName, param, es, cmd, configFile;
 	int verbose = 0, i;
 	bool newMode = false;
 	Globals global;
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 		cout << "yaca-c usage: %s <node name> [options]" << endl
 			<< "Options include:" << endl << endl
 			<< "-v    Increase verbosity level, can be used several times" << endl
-			<< "-new  Programs a new node" << endl;
+			<< "-new <config xml>: Programs a new node" << endl;
 		return 0;
 	}
 	for(i = 2; i < argc; i++) {
@@ -122,7 +122,9 @@ int main(int argc, char** argv) {
 		if(param == "-v")
 			verbose++;
 		else if(param == "-new") {
+			assert(i + 1 < argc);
 			newMode = true;
+			configFile = argv[i + 1];
 		} else
 			cerr << "Warning: unknown option \"" << param << "\"" << endl;
 	}
@@ -171,7 +173,7 @@ int main(int argc, char** argv) {
 		// TODO: make option to flash from here
 		
 		if(newMode) {
-			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + nodeName + ".xml -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " . nodeName . ".eep";
+			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " . nodeName . ".eep";
 			// TODO: run yaca-program, flash stuff
 		}
 	} catch(const char* err) {
