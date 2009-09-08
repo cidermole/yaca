@@ -1,7 +1,10 @@
 #include <avr/eeprom.h>
 #include <util/delay.h>
 #include <inttypes.h>
+
 #include "dispatch.h"
+#include "../bootloader/eeprom.h"
+#include "../bootloader/msgdefs.h"
 
 /*
 
@@ -40,8 +43,17 @@ void yc_dispatch(Message* m, uint8_t* eep_idtable, void** flash_fps, uint8_t* fl
 	uint8_t* pFlash = (uint8_t*)flash_fps;
 	uint8_t count, i, packstyle, flags;
 	void (*fp)();
-	uint32_t id;
+	uint32_t id, tid;
 	uint32_t m_id = m->id;
+
+	eeprom_read_block(&tid, EE_TEMPID, sizeof(tid));
+	if(m_id == tid) {
+		if(m->data[0] == TID_BLD_ENTER) {
+			MCUCSR &= ~(1 << PORF); // Clear Power-On Reset Flag: tell bootloader that we came from app (no need for another TID_BLD_ENTER)
+			__bld_reset();
+		}
+		return;
+	}
 
 	packstyle = pgm_read_byte(pFlash++);
 	flags = pgm_read_byte(pFlash++);

@@ -15,14 +15,16 @@
 int main(int argc, char **argv) {
 	int sock = 0;
 	char config_file[1024];
-	bool crc_only = false;
+	bool crc_only = false, app = false;
 	
 	if(argc < 3) {
-		printf("Too few arguments. Usage: %s <tid> <hex file> [-crc]\n", argv[0]);
+		printf("Too few arguments. Usage: %s <tid> <hex file> [-crc|-app]\n", argv[0]);
 		return 0;
 	}
 	if(argc == 4 && !strncmp(argv[3], "-crc", strlen("-crc")))
 		crc_only = true;
+	if(argc == 4 && !strncmp(argv[3], "-app", strlen("-app")))
+		app = true;
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
 	load_conf(config_file);
@@ -59,6 +61,10 @@ int main(int argc, char **argv) {
 		}
 		
 		write_message(sock, tid, 1, TID_BLD_ENTER);
+		if(app) {
+			printf("-app given, waiting for application to enter bootloader...\n");
+			delay_us(1000 * 1000);
+		}
 		write_message(sock, tid, 3, TID_BLD_PAGESEL, 0, 0);
 
 		for(i = 0; i < 49; i++)

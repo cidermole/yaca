@@ -81,6 +81,7 @@ SECTIONS
     yc_receive = 0x182e ;
     yc_get_error = 0x1830 ;
     yc_close = 0x1832 ;
+	__bld_reset = 0x1800 ;
     __bld_int0 = 0x1802 ;
     __bld_int1 = 0x1804 ;
     *(.vectors)
