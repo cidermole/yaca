@@ -9,3 +9,4 @@
 -> "Enter bootloader message" into libyaca
 -> "Read eeprom message" into libyaca
 -> libyaca: call init _Z4initv
+-> fuses: enter them into makefile (??)

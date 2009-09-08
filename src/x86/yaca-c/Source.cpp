@@ -64,7 +64,7 @@ void Source::compile() {
 		
 		throw_error("Compiler error on \"" + m_file + "\". Passing through compiler output:" + gccError.str());
 	}
-	magic_unlink(Globals::getStr("tmpfile").c_str());
+	cleanup(Globals::getStr("tmpfile"));
 	m_compiled = true;
 }
 
@@ -312,6 +312,9 @@ list<Message> Source::_getMessages(bool (*checkFct)(string)) {
 }
 
 void Source::cleanup(string file) {
+	if(Globals::getInt("saveTemps"))
+		return;
+	
 	if(magic_unlink(file.c_str())) {
 		if(Globals::getInt("verbose") >= 1)
 			cerr << "Warning: Source::cleanup(): Could not remove temporary file \"" << file << "\"" << endl;

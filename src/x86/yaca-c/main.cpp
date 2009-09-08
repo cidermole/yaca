@@ -104,7 +104,7 @@ void run() {
 int main(int argc, char** argv) {
 	string nodeName, param, es, cmd, configFile;
 	int verbose = 0, i;
-	bool newMode = false, cleanMode = false;
+	bool newMode = false, cleanMode = false, saveTemps = false;
 	Globals global;
 	Source source;
 
@@ -115,7 +115,8 @@ int main(int argc, char** argv) {
 			<< "Options include:" << endl << endl
 			<< "-v    Increase verbosity level, can be used several times" << endl
 			<< "-new <config xml>: Programs a new node" << endl
-			<< "-clean" << endl;
+			<< "-clean" << endl
+			<< "-save-temps" << endl;
 		return 0;
 	}
 	for(i = 2; i < argc; i++) {
@@ -129,6 +130,8 @@ int main(int argc, char** argv) {
 			i++;
 		} else if(param == "-clean")
 			cleanMode = true;
+		else if(param == "-save-temps")
+			saveTemps = true;
 		else
 			cerr << "Warning: unknown option \"" << param << "\"" << endl;
 	}
@@ -155,9 +158,10 @@ int main(int argc, char** argv) {
 	Globals::setStr("outTemplate", es + yaca_path + "/src/x86/yaca-c/templates/out.tpl");
 	Globals::setStr("messageHeader", "Messages.h");
 	Globals::setStr("mcu", "atmega8");
-	Globals::setStr("compilerOptions", "");
+	Globals::setStr("compilerOptions", es + "-I" + yaca_path + "/build/include");
 	Globals::setInt("verbose", verbose);
 	Globals::setStr("nodeName", nodeName);
+	Globals::setInt("saveTemps", saveTemps ? 1 : 0);
 
 	if(!cleanMode) {
 		try {
@@ -199,9 +203,11 @@ int main(int argc, char** argv) {
 	
 	if(verbose)
 		cout << "Info: cleaning up" << endl;
-	system((es + "rm -f R" + nodeName + ".*").c_str());
-	system((es + "rm -f " + nodeName + "*.o").c_str());
-	system("rm -f ftable.*");
+	if(!saveTemps) {
+		system((es + "rm -f R" + nodeName + ".*").c_str());
+		system((es + "rm -f " + nodeName + "*.o").c_str());
+		system("rm -f ftable.*");
+	}
 	
 	if(cleanMode) {
 		system((es + "rm -f " + nodeName + "-app.hex").c_str());

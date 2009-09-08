@@ -117,6 +117,7 @@ void XmlTree::_process(list<pair<char *, int> >::iterator& it, list<pair<char *,
 		ex = it->first[i];
 		it->first[i] = '\0';
 		m_name = tagname;
+		it->first[i] = ex;
 		
 		if(ex == ' ') {
 			// parse attributes
