@@ -159,12 +159,12 @@ int main(int argc, char** argv) {
 	try {
 		run();
 
-		cmd = es + "avr-gcc -o " + nodeName + "-full.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
+		cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
 		if(verbose > 1)
 			cout << "Info: running command \"" << cmd << "\"" << endl;
 		if(system(cmd.c_str()))
 			throw "Linking failed";
-		cmd = es + "avr-objcopy -O ihex -R .eeprom " + nodeName + "-full.o " + nodeName + "-full.hex";
+		cmd = es + "avr-objcopy -O ihex -R .eeprom " + nodeName + "-app.o " + nodeName + "-app.hex";
 		if(verbose > 1)
 			cout << "Info: running command \"" << cmd << "\"" << endl;
 		if(system(cmd.c_str()))
@@ -173,18 +173,16 @@ int main(int argc, char** argv) {
 		// TODO: make option to flash from here
 		
 		if(newMode) {
-			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " + configFile + ".eep 2>" + Globals::getStr("tmpfile");
+			cmd = es + yaca_path + "/build/bin/yaca-hexmerge " + yaca_path + "/build/embedded/bootloader/bootloader.hex " + nodeName + "-app.hex " + nodeName + "-full.hex";
 			if(verbose > 1)
 				cout << "Info: running command \"" << cmd << "\"" << endl;
-			if(system(cmd.c_str())) {
-				cmd = "yaca-program failed. Passing through output:\n";
-				ifstream ifs(Globals::getStr("tmpfile").c_str());
-				while(getline(ifs, es))
-					cmd += es + "\n";
-				es = "";
-				ifs.close();
-				throw cmd.c_str();
-			}
+			if(system(cmd.c_str()))
+				throw "Hex merge failed";
+			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-app.hex -crc` " + configFile + ".eep";
+			if(verbose > 1)
+				cout << "Info: running command \"" << cmd << "\"" << endl;
+			if(system(cmd.c_str()))
+				throw "yaca-program failed";
 
 			// TODO: flash stuff (avrdude)
 		}
