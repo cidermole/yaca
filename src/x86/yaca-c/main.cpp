@@ -5,6 +5,7 @@
 #include "Message.h"
 #include "Globals.h"
 #include "Source.h"
+#include "../yaca-path.h"
 
 using namespace std;
 
@@ -68,7 +69,7 @@ void run() {
 	
 	
 	XmlTree xmlt = Message::createXml(&src);
-	xmlt.write((Globals::getStr("nodeName") + ".xml").c_str());
+	xmlt.write((Globals::getStr("nodeName") + ".nds").c_str());
 	
 /*
 	list<Message> l = src.getExports();
@@ -101,22 +102,28 @@ void run() {
 }
 
 int main(int argc, char** argv) {
-	string nodeName, param, es;
+	string nodeName, param, es, cmd;
 	int verbose = 0, i;
+	bool newMode = false;
 	Globals global;
 	Source source;
 
+	init_yaca_path();
+
 	if(argc < 2) {
-		cout << "yaca bake usage: %s <node name> [options]" << endl
+		cout << "yaca-c usage: %s <node name> [options]" << endl
 			<< "Options include:" << endl << endl
-			<< "-v    Increase verbosity level, can be used several times" << endl;
+			<< "-v    Increase verbosity level, can be used several times" << endl
+			<< "-new  Programs a new node" << endl;
 		return 0;
 	}
 	for(i = 2; i < argc; i++) {
 		param = argv[i];
 		if(param == "-v")
 			verbose++;
-		else
+		else if(param == "-new") {
+			newMode = true;
+		} else
 			cerr << "Warning: unknown option \"" << param << "\"" << endl;
 	}
 	if(verbose >= 1) {
@@ -136,10 +143,10 @@ int main(int argc, char** argv) {
 
 	Globals::setStr("tmpfile", "/tmp/yacac1"); // TODO: add PID here, below too
 	Globals::setStr("tmpfile2", "/tmp/yacac2");
-	Globals::setStr("sizeofTemplate", TEMPLATE_PATH "/sizeof.tpl");
-	Globals::setStr("MsgNormalTemplate", TEMPLATE_PATH "/msg-normal.tpl");
-	Globals::setStr("MsgBootTemplate", TEMPLATE_PATH "/msg-bootstrap.tpl");
-	Globals::setStr("outTemplate", TEMPLATE_PATH "/out.tpl");
+	Globals::setStr("sizeofTemplate", es + yaca_path + "/src/x86/yaca-c/templates/sizeof.tpl");
+	Globals::setStr("MsgNormalTemplate", es + yaca_path + "/src/x86/yaca-c/templates/msg-normal.tpl");
+	Globals::setStr("MsgBootTemplate", es + yaca_path + "/src/x86/yaca-c/templates/msg-bootstrap.tpl");
+	Globals::setStr("outTemplate", es + yaca_path + "/src/x86/yaca-c/templates/out.tpl");
 	Globals::setStr("messageHeader", "Messages.h");
 	Globals::setStr("mcu", "atmega8");
 	Globals::setStr("compilerOptions", "");
@@ -149,6 +156,24 @@ int main(int argc, char** argv) {
 
 	try {
 		run();
+
+		cmd = es + "avr-gcc -o " + nodeName + "-full.o -L" + yaca_path + "/build/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
+		if(verbose > 1)
+			cout << "Running command \"" << cmd << "\"" << endl;
+		if(system(cmd.c_str()))
+			throw "Linking failed";
+		cmd = es + "avr-objcopy -O ihex -R .eeprom " + nodeName + "-full.o " + nodeName + "-full.hex";
+		if(verbose > 1)
+			cout << "Running command \"" << cmd << "\"" << endl;
+		if(system(cmd.c_str()))
+			throw "Object copying failed";
+			
+		// TODO: make option to flash from here
+		
+		if(newMode) {
+			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + nodeName + ".xml -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " . nodeName . ".eep";
+			// TODO: run yaca-program, flash stuff
+		}
 	} catch(const char* err) {
 		cerr << "Error: " << err << endl;
 		if(!verbose)

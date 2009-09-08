@@ -15,11 +15,14 @@
 int main(int argc, char **argv) {
 	int sock = 0;
 	char config_file[1024];
+	bool crc_only = false;
 	
 	if(argc < 3) {
-		printf("Too few arguments. Usage: %s <tid> <hex file>\n", argv[0]);
+		printf("Too few arguments. Usage: %s <tid> <hex file> [-crc]\n", argv[0]);
 		return 0;
 	}
+	if(argc == 4 && !strncmp(argv[2], "-crc", strlen("-crc"))
+		crc_only = true;
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
 	load_conf(config_file);
@@ -40,7 +43,7 @@ int main(int argc, char **argv) {
 	uint16_t crc = 0xFFFF;
 
 	if(size = ihex_parse(buffer, sizeof(buffer), argv[2])) {
-		if(size > _d_app_pages * d_page_size) {
+		if(size > _d_app_pages * d_page_size && !crc_only) {
 			fprintf(stderr, "WARNING: hex file (%d bytes) is larger than MCU flash (%d bytes)\n", size, (_d_app_pages * d_page_size));
 			fprintf(stderr, "Enter 'yes' to force flashing, truncating off the end of the hex file: \n");
 			fflush(stdin);
@@ -50,6 +53,10 @@ int main(int argc, char **argv) {
 		}
 		for(i = 0; i < _d_app_pages * d_page_size; i++)
 			crc = crc16_update(crc, buffer[i]);
+		if(crc_only) {
+			printf("%d", (unsigned int) crc);
+			return 0;
+		}
 		
 		write_message(sock, tid, 1, TID_BLD_ENTER);
 		write_message(sock, tid, 3, TID_BLD_PAGESEL, 0, 0);
