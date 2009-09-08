@@ -47,6 +47,7 @@ public:
 	
 	std::list<XmlTree *>::iterator begin() { return m_children.begin(); }
 	std::list<XmlTree *>::iterator end() { return m_children.end(); }
+	size_t size() { return m_children.size(); }
 	void append(XmlTree *child) { m_children.push_back(child); }
 	
 	std::string name() { return m_name; }

@@ -26,7 +26,7 @@ mrproper: clean
 	rm ../../bin/yaca-program
 
 $(EXE):	$(OBJS)
-	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)
+	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS)
 	cp $(EXE) ../../bin/yaca-program
 
 %.o: $(SRCDIR)/%.cpp

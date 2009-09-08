@@ -22,7 +22,7 @@ void debug_print_eeprom(int *eeprom, int size) {
 	
 	printf("Dumping %d bytes of EEPROM:\n", size);
 	for(i = 0; i < size / ROW_WIDTH; i++) {
-		printf("%03X:", i);
+		printf("%03X:", i * ROW_WIDTH);
 		for(j = 0; j < ROW_WIDTH; j++)
 			if(eeprom[i * ROW_WIDTH + j] == -1)
 				printf(" xx");
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 		// Find a message id definition in the config
 		for(msg_conf = (*messages)->begin(); msg_conf != (*messages)->end() && (*msg_conf)->attribute("name") != (*msg_nds)->attribute("name"); msg_conf++);
 		
-		if((*msg_conf)->attribute("name") == (*msg_nds)->attribute("name")) {
+		if(msg_conf != (*messages)->end() && (*msg_conf)->attribute("name") == (*msg_nds)->attribute("name")) {
 			// Writing the number of CANids -> [2][CANid][CANid]
 			assert(i_eep < conf.eeprom_size);
 			eeprom[i_eep++] = (*msg_conf)->size();
@@ -98,7 +98,9 @@ int main(int argc, char **argv) {
 			// Write all CANids of a message definition from the config to EEPROM
 			for(child = (*msg_conf)->begin(); child != (*msg_conf)->end(); child++) {
 				assert((*child)->name() == "id");
+				string s = (*child)->text();
 				i = strtol((*child)->text().c_str(), &p, 0);
+				printf("prog: \"%s\"\n", s.c_str());
 				if(*p != '\0') {
 					fprintf(stderr, "Error parsing XML file %s: can't convert text of <id> tag: not numeric\n", config_fname);
 					return 1;

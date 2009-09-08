@@ -125,12 +125,12 @@ void XmlTree::_process(list<pair<char *, int> >::iterator& it, list<pair<char *,
 		}
 		// parse text
 		if(j + 1 < it->second) {
-			ex = it->first[it->second - 1];
-			it->first[it->second - 1] = '\0';
+			// XXX: overrun for +1 byte, need the buffer to catch this
+			ex = it->first[it->second];
+			it->first[it->second] = '\0';
 			txt = &it->first[j + 1];
 			m_text = txt;
-			it->first[it->second - 1] = ex;
-			
+			it->first[it->second] = ex;
 			m_text = _trim(m_text);
 		}
 		
@@ -221,6 +221,13 @@ int XmlTree::_read(char **buffer, const char *filename) {
 		
 		ifs.read(&buf[used], total - used);
 	}
+	// Always have more buffer than needed (will over-access for min. +1 byte)
+	if(used == total) {
+		total *= 2;
+		buf = (char *) realloc(buf, total);
+		gt_assert(buf != NULL, 23, "out of memory", assert_failed);
+	}
+	
 	used += ifs.gcount();
 	buf[used] = '\0';
 	ifs.close();
