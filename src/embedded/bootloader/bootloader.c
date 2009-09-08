@@ -14,6 +14,8 @@ volatile uint16_t _time = 0;
 uint32_t tempid;
 uint8_t err_code;
 
+void mcp2515_set_int(uint8_t);
+
 void _error(uint8_t ec) {
 	cli();
 	uint8_t temp;

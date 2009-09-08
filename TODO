@@ -6,8 +6,8 @@
 	800	1k	node ids (tid)
 	1k	2k	multimedia (MSB set)
 
--> "Enter bootloader message" into libyaca
 -> "Read eeprom message" into libyaca
+O> "Enter bootloader message" into libyaca
 O> libyaca: call init _Z4initv
 
 LONG-TERM

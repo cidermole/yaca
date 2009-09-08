@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 		write_message(sock, tid, 1, TID_BLD_ENTER);
 		if(app) {
 			printf("-app given, waiting for application to enter bootloader...\n");
-			delay_us(1000 * 1000);
+			usleep(1000 * 1000);
 		}
 		write_message(sock, tid, 3, TID_BLD_PAGESEL, 0, 0);
 

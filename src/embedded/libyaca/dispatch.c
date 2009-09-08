@@ -6,6 +6,8 @@
 #include "../bootloader/eeprom.h"
 #include "../bootloader/msgdefs.h"
 
+void __bld_reset(void);
+
 /*
 
 EEPROM: [2][CANid][CANid][1][CANid][3][CANid][CANid][CANid]
