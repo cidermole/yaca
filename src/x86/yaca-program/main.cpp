@@ -16,6 +16,60 @@
 using namespace std;
 
 
+int get_real_eeprom_bytes(int *eeprom, int size) {
+	int i, b = 0;
+	
+	for(i = 0; i < size; i++)
+		if(eeprom[i] != -1)
+			b++;
+	
+	return b;
+}
+
+bool set_config(int *eeprom, int size, string type, int addr, XmlTree *setting, const char *xmlfile) {
+	long long i;
+	char *p;
+	
+	assert(addr >= 0);
+	
+	if(type == "int32") {
+		i = strtoul(setting->attribute("value").c_str(), &p, 0);
+		if(*p != '\0') {
+			fprintf(stderr, "Error parsing XML file %s: setting value \"%s\" can't be converted\n", xmlfile, setting->attribute("value").c_str());
+			return false;
+		}
+		assert(addr + 4 <= size);
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 0)) & 0xff;
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 1)) & 0xff;
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 2)) & 0xff;
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 3)) & 0xff;
+		
+	} else if(type == "int16") {
+		i = strtoul(setting->attribute("value").c_str(), &p, 0);
+		if(*p != '\0') {
+			fprintf(stderr, "Error parsing XML file %s: setting value \"%s\" can't be converted\n", xmlfile, setting->attribute("value").c_str());
+			return false;
+		}
+		assert(addr + 2 <= size);
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 0)) & 0xff;
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 1)) & 0xff;
+
+	} else if(type == "int8") {
+		i = strtoul(setting->attribute("value").c_str(), &p, 0);
+		if(*p != '\0') {
+			fprintf(stderr, "Error parsing XML file %s: setting value \"%s\" can't be converted\n", xmlfile, setting->attribute("value").c_str());
+			return false;
+		}
+		assert(addr + 1 <= size);
+		assert(eeprom[addr] == -1); eeprom[addr++] = (i >> (8 * 0)) & 0xff;
+
+	} else {
+		fprintf(stderr, "Error parsing XML file %s: no such setting type \"%s\"\n", xmlfile, type.c_str());
+		return false;
+	}
+	return true;
+}
+
 #define ROW_WIDTH 16
 void debug_print_eeprom(int *eeprom, int size) {
 	int i, j;
@@ -39,7 +93,10 @@ int main(int argc, char **argv) {
 	int tid = -1, i;
 	
 	if(argc < 3) {
-		printf("Too few arguments. Usage: %s <nds xml> <config xml> [-new]\n", argv[0]);
+		printf("Too few arguments. Usage: %s <nds xml> <config xml> [-new <crc> <output hex file>]\n", argv[0]);
+		return 0;
+	} else if(argc > 3 && argc < 6) {
+		printf("Too few arguments. Usage with more params: %s <nds xml> <config xml> -new <crc> <output hex file>\n", argv[0]);
 		return 0;
 	}
 	nds_fname = argv[1];
@@ -72,8 +129,9 @@ int main(int argc, char **argv) {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int eeprom[conf.eeprom_size], i_eep = conf.canid_table_begin;
-	list<XmlTree *>::iterator msg_nds, msg_conf, messages_in, messages, child;
+	int eeprom[conf.eeprom_size], i_eep = conf.canid_table_begin, addr;
+	list<XmlTree *>::iterator msg_nds, msg_conf, messages_in, messages, xeeprom, setting, settings, child;
+	string type;
 	
 	memset(eeprom, 0xFF, sizeof(eeprom));
 	
@@ -98,9 +156,7 @@ int main(int argc, char **argv) {
 			// Write all CANids of a message definition from the config to EEPROM
 			for(child = (*msg_conf)->begin(); child != (*msg_conf)->end(); child++) {
 				assert((*child)->name() == "id");
-				string s = (*child)->text();
 				i = strtol((*child)->text().c_str(), &p, 0);
-				printf("prog: \"%s\"\n", s.c_str());
 				if(*p != '\0') {
 					fprintf(stderr, "Error parsing XML file %s: can't convert text of <id> tag: not numeric\n", config_fname);
 					return 1;
@@ -119,62 +175,61 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-	debug_print_eeprom(eeprom, conf.eeprom_size);
+	// Reset error status variable in eeprom
+	eeprom[(unsigned int) EE_ERR] = 0;
 	
-	// TODO: single config values
+	if(argc == 6) {
+		i = strtol(argv[4], &p, 0);
+		if(*p != '\0') {
+			fprintf(stderr, "Error converting CRC \"%s\" to a number\n", argv[4]);
+			return 1;
+		}
+		eeprom[((unsigned int) EE_CRC16) + 0] = (i >> (8 * 0)) & 0xff;
+		eeprom[((unsigned int) EE_CRC16) + 1] = (i >> (8 * 1)) & 0xff;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	/*
-	// only if not writing to ihex
-	if((sock = connect_socket(conf.server, conf.port)) == -1)
-		return 1;
+		eeprom[((unsigned int) EE_TEMPID) + 0] = (tid >> (8 * 0)) & 0xff;
+		eeprom[((unsigned int) EE_TEMPID) + 1] = (tid >> (8 * 1)) & 0xff;
+		eeprom[((unsigned int) EE_TEMPID) + 2] = (tid >> (8 * 2)) & 0xff;
+		eeprom[((unsigned int) EE_TEMPID) + 3] = (tid >> (8 * 3)) & 0xff;
+	}
 	
-	if(argc == 4 && !strncmp(argv[3], "-new", strlen("-new"))
-		tid = 0x1FFFFFFF;
-	// TODO: don't sed tid to ffff, which is bullshit (extra work, you need to connect the programmer and single can), need to create intel hex for avrdude
-	*/
-
-/*
-	if(size = ihex_parse(buffer, sizeof(buffer), argv[2])) {
-		if(size > _d_eeprom_size) {
-			fprintf(stderr, "WARNING: hex file (%d bytes) is larger than MCU eeprom (%d bytes)\n", size, _eeprom_size);
-			fprintf(stderr, "Enter 'yes' to force writing, truncating off the end of the hex file: \n");
-			fflush(stdin);
-			scanf("%3s", str);
-			if(strncmp(str, "yes", 3))
+	// Single config variables
+	for(xeeprom = (*nds.begin())->begin(); xeeprom != (*nds.begin())->end() && (*xeeprom)->name() != "eeprom"; xeeprom++);
+	assert((*xeeprom)->name() == "eeprom");
+	for(settings = (*config.begin())->begin(); settings != (*config.begin())->end() && (*settings)->name() != "settings"; settings++);
+	assert((*settings)->name() == "settings");
+	
+	for(setting = (*xeeprom)->begin(); setting != (*xeeprom)->end(); setting++) {
+		assert((*setting)->name() == "setting");
+		type = (*setting)->attribute("type");
+		addr = strtol((*setting)->attribute("address").c_str(), &p, 0);
+		if(*p != '\0') {
+			fprintf(stderr, "Error parsing XML file %s: can't convert address of <setting> tag: not numeric\n", nds_fname);
+			return 1;
+		}
+		// Match config
+		for(child = (*settings)->begin(); child != (*settings)->end() && (*child)->attribute("name") != (*setting)->attribute("name"); child++);
+		if(child != (*settings)->end() && (*child)->attribute("name") == (*setting)->attribute("name")) {
+			if(!set_config(eeprom, conf.eeprom_size, type, addr, (*child), config_fname))
 				return 1;
 		}
-		
-		// TODO
-		write_message(sock, tid, 1, TID_BLD_ENTER);
-		write_message(sock, tid, 3, TID_BLD_PAGESEL, 0, 0);
-
-		for(i = 0; i < 49; i++)
-			printf(" ");
-		printf("v\n");
-
-		for(i = 0, lastcount = 0; i < _d_app_pages; i++) {
-			current = target_flash_page(current, d_page_size, tid, sock);
-			if((i * 50) / _d_app_pages > lastcount) {
-				for(j = lastcount; j < (i * 50) / _d_app_pages; j++) {
-					printf("#");
-					fflush(stdout);
-				}
-				lastcount = (i * 50) / _d_app_pages;
-			}
-		}
-		printf("\n");
-		
-		printf("Rewriting target EEPROM (clearing error flags, setting CRC = 0x%04X)...\n", crc);
-		target_eeprom_write(tid, sock, ((int) EE_CRC16), crc & 0xFF);
-		target_eeprom_write(tid, sock, ((int) EE_CRC16) + 1, crc >> 8);
-		target_eeprom_write(tid, sock, ((int) EE_ERR), 0);
-		
-
-	}*/
+	}
 	
-	printf("Done. Terminating in 1 s...\n"); // TODO: some better flush?
-	sleep(1);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	//debug_print_eeprom(eeprom, conf.eeprom_size);
+	
+	if(argc == 6) {
+		ihex_write(eeprom, conf.eeprom_size, argv[5]);
+	} else {
+		// TODO: program
+	}
+
+	if(argc != 6) {	
+		printf("Done. Terminating in 1 s...\n"); // TODO: some better flush?
+		sleep(1);
+	}
 
 	if(sock != -1)
 #ifdef _WIN32

@@ -2,6 +2,30 @@
 #include <stdio.h>
 #include <string.h>
 
+
+int ihex_write(int *buffer, int bufsize, const char *file) {
+	FILE *f = fopen(file, "w");
+	int i, j, checksum;
+	
+	if(!f) {
+		fprintf(stderr, "ihex: error: failed to open file %s\n", file);
+		return 0;
+	}
+
+	for(i = 0; i < bufsize / ROW_WIDTH; i++) {
+		fprintf(f, ":%02X%04X00", ROW_WIDTH, i * ROW_WIDTH);
+		checksum = ROW_WIDTH + (((i * ROW_WIDTH) >> 8) & 0xff) + ((i * ROW_WIDTH) & 0xff);
+		for(j = 0; j < ROW_WIDTH; j++) {
+			printf(" %02X", buffer[i * ROW_WIDTH + j] & 0xff);
+			checksum += buffer[i * ROW_WIDTH + j] & 0xff;
+		}
+		printf("%02X\n", ((checksum ^ 0xff) + 1) & 0xff);
+	}
+	fprintf(f, ":00000001FF");
+	fclose(f);
+	return 1;
+}
+
 int ihex_parse(char *buffer, int bufsize, const char *file) {
 	FILE *f = fopen(file, "r");
 	char *addr, *highest_addr = buffer;

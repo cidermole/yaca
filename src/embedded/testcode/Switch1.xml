@@ -6,6 +6,7 @@
 		</message>
 	</messages>
 	<settings>
-		<setting name="statusid1" value="2"/>
+		<setting name="statusid1" value="-2"/>
+		<setting name="statusid2" value="12"/>
 	</settings>
 </node-config>
