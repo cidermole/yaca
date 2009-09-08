@@ -1,4 +1,5 @@
 #include <iostream>
+#include <assert.h>
 #include <fstream>
 #include "Template.h"
 #include "Utils.h"
@@ -173,7 +174,7 @@ int main(int argc, char** argv) {
 		// TODO: make option to flash from here
 		
 		if(newMode) {
-			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " . nodeName . ".eep";
+			cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-full.hex -crc` " + nodeName + ".eep";
 			// TODO: run yaca-program, flash stuff
 		}
 	} catch(const char* err) {

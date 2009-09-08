@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 		printf("Too few arguments. Usage: %s <tid> <hex file> [-crc]\n", argv[0]);
 		return 0;
 	}
-	if(argc == 4 && !strncmp(argv[2], "-crc", strlen("-crc"))
+	if(argc == 4 && !strncmp(argv[2], "-crc", strlen("-crc")))
 		crc_only = true;
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
