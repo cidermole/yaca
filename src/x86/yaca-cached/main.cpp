@@ -151,12 +151,6 @@ int main(int argc, char **argv) {
 			read_message(fifo_read, &message);
 			if(buffer.used(message.id)) {
 				buffer.get(&message, message.id);
-				message.rtr = 0;
-				message.info = 0; // reply
-				if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) != -1) {
-					write(fifo_write, &message, sizeof(Message));
-					close(fifo_write);
-				}
 			} else {
 				// no status info available, query to CAN
 				message.rtr = 1;
@@ -166,7 +160,12 @@ int main(int argc, char **argv) {
 					read_message(sock, &message);
 					handle_message(write_pipe, &buffer, &message);
 				}
-				buffer.set(message.id, &message);
+			}
+			message.rtr = 0;
+			message.info = 0; // reply
+			if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) != -1) {
+				write(fifo_write, &message, sizeof(Message));
+				close(fifo_write);
 			}
 
 		}
