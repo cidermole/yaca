@@ -75,12 +75,10 @@ void handle_message(string& write_pipe, Buffer *buffer, Message *message) {
 	if(!message->rtr) {
 		buffer->set(message->id, message);
 		message->info = 1; // auto-info of state change
-		printf("reply %d\n", message->id);
-		if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) == -1) {
-			fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
-			return 1;
+		if((fifo_write = open(write_pipe.c_str(), O_NONBLOCK, O_WRONLY)) != -1) {
+			write(fifo_write, message, sizeof(Message));
+			close(fifo_write);
 		}
-		write(fifo_write, message, sizeof(Message));
 	}
 }
 
@@ -150,17 +148,14 @@ int main(int argc, char **argv) {
 		if(FD_ISSET(fifo_read, &fds)) {
 			// incoming data from fifo, this is a query
 			read_message(fifo_read, &message);
-			printf("query %d\n", message.id);
 			if(buffer.used(message.id)) {
 				buffer.get(&message, message.id);
 				message.rtr = 0;
 				message.info = 0; // reply
-				printf("reply %d\n", message.id);
-				if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) == -1) {
-					fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
-					return 1;
+				if((fifo_write = open(write_pipe.c_str(), O_NONBLOCK, O_WRONLY)) != -1) {
+					write(fifo_write, &message, sizeof(Message));
+					close(fifo_write);
 				}
-				write(fifo_write, &message, sizeof(Message));
 			} else {
 				// no status info available, query to CAN
 				message.rtr = 1;
@@ -177,7 +172,6 @@ int main(int argc, char **argv) {
 	}
 	
 	close(fifo_read);
-	close(fifo_write);
 	close(sock);
 	return 0;
 }
