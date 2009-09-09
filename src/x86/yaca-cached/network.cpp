@@ -56,12 +56,23 @@ int read_message(int sock, struct Message *buffer) {
 	memcpy(buffer, buf, sizeof(struct Message));
 	*/
 	
+	fd_set fds;
+	struct timeval timeout = {1, 0};
+	
+	FD_ZERO(&fds);
+	FD_SET(sock, &fds);
+	select(sock + 1, &fds, NULL, NULL, &timeout);
+	if(!FD_ISSET(sock, &fds))
+		return 0;
+	
 	while(sum < sizeof(struct Message)) {
 		if((rv = read(sock, buffer, sizeof(struct Message))) > 0)
 			sum += rv;
 		else break;
 		//if(rv == 0)
 		//	return 0;
+		if(sum < sizeof(struct Message))
+			printf("**read_message problem**");
 	}
 
 	//printf("readmessage end\n");

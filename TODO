@@ -11,6 +11,8 @@
 O> "Enter bootloader message" into libyaca
 O> libyaca: call init _Z4initv
 
+-> yaca-cached: if socket to yaca-serial dies, endless loop - fix
+
 LONG-TERM
 ^^^^^^^^^
 -> fuses: enter them into makefile (??)

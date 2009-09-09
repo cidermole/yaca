@@ -68,8 +68,8 @@ struct Buffer {
 };
 
 
-int my_max(int a, int b) {
-	return ((a > b) ? a : b);
+int my_max(int a, int b, int c) {
+	return ((a > b) ? (a > c ? a : c) : (b > c ? b : c));
 }
 
 void handle_message(Buffer *buffer, Message *message) {
@@ -90,7 +90,7 @@ void handle_message(Buffer *buffer, Message *message) {
 // message.info = 0 -> reply to a query
 
 int main(int argc, char **argv) {
-	int sock = 0, qsock = 0, csock = 1, fifo_write = 0, id;
+	int sock = 0, qsock = 0, csock = 0, fifo_write = 0, id;
 	char config_file[1024];
 	string listen_pipe, write_pipe, logfname;
 	size_t pos;
@@ -98,6 +98,7 @@ int main(int argc, char **argv) {
 	Buffer buffer;
 	Message message;
 	struct sockaddr_in server;
+	bool fail;
 	
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-cached/conf/yaca-cached.conf", yaca_path);
@@ -160,34 +161,37 @@ int main(int argc, char **argv) {
 		FD_ZERO(&fds);
 		FD_SET(sock, &fds);
 		FD_SET(qsock, &fds);
-		FD_SET(csock, &fds);
+		if(csock)
+			FD_SET(csock, &fds);
 		
 		printf("\n>");
 		fflush(stdout);
 		
-		select((my_max(sock, qsock)>csock?my_max(sock, qsock):csock) + 1, &fds, NULL, NULL, NULL);
-		printf("select done %d %d %d ", qsock, sock, csock);
+		select(my_max(sock, qsock, csock) + 1, &fds, NULL, NULL, NULL);
+		printf("select done %d %d %d \n", qsock, sock, csock);
 		fflush(stdout);
 		
 		if(FD_ISSET(qsock, &fds)) {
-			printf("qsock");fflush(stdout);
+			printf("qsock\n");fflush(stdout);
 			csock = accept(qsock, (struct sockaddr*)&addr, &addr_len);
 		}
 		if(FD_ISSET(sock, &fds)) {
-			printf("sock");fflush(stdout);
+			printf("sock\n");fflush(stdout);
 			// incoming data from socket, check if the value is buffered and needs to be updated
 			read_message(sock, &message);
 			if(!message.rtr && buffer.used(message.id)) {
-				handle_message(&buffer, &message);
+				//handle_message(&buffer, &message);
+				buffer.set(message.id, &message);
 			}
-			printf("sock done.");
+			printf("sock done.\n");fflush(stdout);
 		}
 		if(FD_ISSET(csock, &fds)) {
-			printf("csock");fflush(stdout);
+			printf("csock\n");fflush(stdout);
 			// incoming data from fifo, this is a query
 			if(!read_message(csock, &message)) {
 				close(csock);
-				printf("0 bytes read, csock closed");
+				csock = 0;
+				printf("0 bytes read, csock closed\n");
 				continue;
 			}
 			if(buffer.used(message.id)) {
@@ -202,28 +206,33 @@ int main(int argc, char **argv) {
 				id = message.id;
 				
 				write(sock, &message, sizeof(Message));
+				printf("\nqueried, now waiting for reply\n"); fflush(stdout);
+				fail = false;
 				while(message.id != id || message.rtr) {
-					read_message(sock, &message);
+					if(!read_message(sock, &message)) {
+						fail = true;
+						break;
+					}
 					handle_message(&buffer, &message);
 				}
-				
+				printf("loop done.\n"); fflush(stdout);
 			}
 			message.rtr = 0;
 			message.info = 0; // reply
 
-			void *vp = &message;
+/*			void *vp = &message;
 			char *p = (char*)vp;
-			for (int i = 0; i<15; i++) printf("%02X ", p[i]);
-
-			write(csock, &message, sizeof(Message));
-
+			for (int i = 0; i<15; i++) printf("%02X ", p[i]);*/
+			if(!fail)
+				write(csock, &message, sizeof(Message));
 		}
 		fflush(stdout);
 	}
 	
 	close(sock);
 	close(qsock);
-	close(csock);
+	if(csock)
+		close(csock);
 	return 0;
 }
 

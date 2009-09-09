@@ -1,13 +1,25 @@
 <?php
 
+class Common {
+	var $socket;
+	
+	function Common() {
+		$this->socket = fsockopen("192.168.1.93", 1111, $errno, $errstr, 2);
+		stream_set_timeout($this->socket, 2);
+	}
+}
+$common = new Common;
+
 class Message {
 	var $info;
 	var $id;
 	var $rtr;
 	var $length;
 	var $data;
+	var $common;
 
-	function Message() {
+	function Message(&$common) {
+		$this->common = &$common;
 		$this->info = 0;
 		$this->id = 0;
 		$this->rtr = 0;
@@ -53,35 +65,28 @@ class Message {
 	function request($id) {
 		$this->id = $id;
 		$this->rtr = 1;
-		
-		$f = fsockopen("192.168.1.93", 1111, $errno, $errstr, 2);
 		$bytes = $this->encode();
-		
-   $mtime = microtime();
-   $mtime = explode(" ",$mtime);
-   $mtime = $mtime[1] + $mtime[0];
-   $starttime = $mtime;
-		
-		fwrite($f, $bytes);
-		$ret = "";
-		$ret .= fgets($f, 15); 
-		
-   $mtime = microtime();
-   $mtime = explode(" ",$mtime);
-   $mtime = $mtime[1] + $mtime[0];
-   $endtime = $mtime;
-   $totaltime = ($endtime - $starttime);
-   echo "Time: ".$totaltime." seconds";
-		
+		fwrite($this->common->socket, $bytes);
+		$ret = fread($this->common->socket, 15);
+		$info = stream_get_meta_data($this->common->socket);
+		if($info['timed_out'])
+			return false;
 		$this->decode($ret);
-		fclose($f);
-
+		return true;
 	}
 }
 
-$msg = new Message;
-$msg->request(3);
+$msg = new Message($common);
+if($msg->request(3))
+	echo "id: " . $msg->id . ", data[0]: " . $msg->data[0];
+else
+	echo "Timeout error.";
 
-echo "id: " . $msg->id . ", data[0]: " . $msg->data[0];
+if($msg->request(3))
+	echo "id: " . $msg->id . ", data[0]: " . $msg->data[0];
+else
+	echo "Timeout error.";
+
+fclose($common->socket);
 
 ?>
