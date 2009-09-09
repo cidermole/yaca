@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 	Message message;
 
 	init_yaca_path();
-	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-cached.conf", yaca_path);
+	sprintf(config_file, "%s/src/x86/yaca-cached/conf/yaca-cached.conf", yaca_path);
 	load_conf(config_file);
 	listen_pipe = conf.listen_pipe;
 	if((pos = listen_pipe.find("$(YACA_PATH)")) != string::npos) {
