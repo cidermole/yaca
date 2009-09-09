@@ -10,7 +10,7 @@
 
 
 // time to wait after power-up before booting app in ms
-#define BLD_TIMEOUT 10000
+#define BLD_TIMEOUT 3000
 
 // page count for Atmega8 = 128
 #define BLD_PAGE_COUNT ((FLASHEND + 1) / SPM_PAGESIZE)
