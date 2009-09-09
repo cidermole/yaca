@@ -73,6 +73,7 @@ void handle_message(int fifo, Buffer *buffer, Message *message) {
 	if(!message->rtr) {
 		buffer->set(message->id, message);
 		message->info = 1; // auto-info of state change
+		printf("reply %d\n", message.id);
 		write(fifo, message, sizeof(Message));
 	}
 }
@@ -147,10 +148,12 @@ int main(int argc, char **argv) {
 		if(FD_ISSET(fifo_read, &fds)) {
 			// incoming data from fifo, this is a query
 			read_message(fifo_read, &message);
+			printf("query %d\n", message.id);
 			if(buffer.used(message.id)) {
 				buffer.get(&message, message.id);
 				message.rtr = 0;
 				message.info = 0; // reply
+				printf("reply %d\n", message.id);
 				write(fifo_write, &message, sizeof(Message));
 			} else {
 				// no status info available, query to CAN
