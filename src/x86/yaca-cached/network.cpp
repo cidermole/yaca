@@ -41,16 +41,62 @@ int connect_socket(const char* host, int port) {
 ////////////////////////////////////////////////////////////////////////////////
 
 int read_message(int sock, struct Message *buffer) {
-	int sum = 0;
 	ssize_t rv = 0;
-
-	while(sum < sizeof(struct Message) && rv != -1) {
-		if((rv = read(sock, buffer, sizeof(struct Message))) != -1)
+	char* buf = new char[sizeof(struct Message)];
+	int sum = 0;
+/*
+	printf("readmessage start\n");
+	while(i < sizeof(struct Message) && rv > 0) {
+		if((rv = read(sock, &buf[i], 1)) != -1) {
+			printf("byte %d : %02X", i, buf[i]);
+			i++;
+		}
+	}
+	
+	memcpy(buffer, buf, sizeof(struct Message));
+	*/
+	
+	while(sum < sizeof(struct Message)) {
+		if((rv = read(sock, buffer, sizeof(struct Message))) > 0)
 			sum += rv;
-		if(rv == 0)
-			return 0;
+		else break;
+		//if(rv == 0)
+		//	return 0;
 	}
 
-	return (rv != -1);
+	//printf("readmessage end\n");
+	return (rv > 0);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int create_host(int port) {
+    int s, c;
+    socklen_t addr_len;
+    struct sockaddr_in addr;
+
+    s = socket(PF_INET, SOCK_STREAM, 0);
+    if (s == -1)
+    {
+        perror("socket() failed");
+        return -1;
+    }
+
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(port);
+    addr.sin_family = AF_INET;
+
+    if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+    {
+        perror("bind() failed");
+        return -2;
+    }
+
+    if (listen(s, 3) == -1)
+    {
+        perror("listen() failed");
+        return -3;
+    }
+
+    return s;
+}

@@ -15,5 +15,7 @@ int connect_socket(const char *host, int port);
 
 int read_message(int sock, struct Message *buffer);
 
+int create_host(int port);
+
 #endif /* NETWORK_H */
 

@@ -7,6 +7,15 @@ class Message {
 	var $length;
 	var $data;
 
+	function Message() {
+		$this->info = 0;
+		$this->id = 0;
+		$this->rtr = 0;
+		$this->length = 0;
+		for($i = 0; $i < 8; $i++)
+			$this->data[$i] = 0;
+	}
+
 	function decode($d) {
 		$bytes = array();
 
@@ -40,20 +49,39 @@ class Message {
 
 		return $bytes;
 	}
+	
+	function request($id) {
+		$this->id = $id;
+		$this->rtr = 1;
+		
+		$f = fsockopen("192.168.1.93", 1111, $errno, $errstr, 2);
+		$bytes = $this->encode();
+		
+   $mtime = microtime();
+   $mtime = explode(" ",$mtime);
+   $mtime = $mtime[1] + $mtime[0];
+   $starttime = $mtime;
+		
+		fwrite($f, $bytes);
+		$ret = "";
+		$ret .= fgets($f, 15); 
+		
+   $mtime = microtime();
+   $mtime = explode(" ",$mtime);
+   $mtime = $mtime[1] + $mtime[0];
+   $endtime = $mtime;
+   $totaltime = ($endtime - $starttime);
+   echo "Time: ".$totaltime." seconds";
+		
+		$this->decode($ret);
+		fclose($f);
+
+	}
 }
 
 $msg = new Message;
+$msg->request(3);
 
-$msg->info = 0;
-$msg->id = 3;
-$msg->rtr = 1;
-$msg->length = 0;
-for($i = 0; $i < 8; $i++)
-	$msg->data[$i] = 0;
-
-$file = fopen("/home/david/Code/yaca/yaca-cached.pipe", "rw");
-fwrite($file, $msg->encode());
-$msg->decode(fread($file, 15));
 echo "id: " . $msg->id . ", data[0]: " . $msg->data[0];
 
 ?>
