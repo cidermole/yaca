@@ -74,11 +74,12 @@ void handle_message(string& write_pipe, Buffer *buffer, Message *message) {
 	
 	if(!message->rtr) {
 		buffer->set(message->id, message);
-		message->info = 1; // auto-info of state change
+/*		message->info = 1; // auto-info of state change
 		if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) != -1) {
 			write(fifo_write, message, sizeof(Message));
 			close(fifo_write);
-		}
+		}*/
+		// pipe opened with O_NONBLOCK does not work, this is disabled for now
 	}
 }
 
