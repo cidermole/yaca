@@ -110,6 +110,7 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "failed to create pipe %s: mkfifo() failed with errno=%d\n", listen_pipe.c_str(), errno);
 		return 1;
 	}
+	chmod(listen_pipe.c_str(), 0666);
 	if((fifo = open(listen_pipe.c_str(), O_RDWR)) == -1) {
 		fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", listen_pipe.c_str(), errno);
 		return 1;
