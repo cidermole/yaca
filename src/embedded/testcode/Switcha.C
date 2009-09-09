@@ -13,7 +13,12 @@ void DM(SetLed(uint8_t a)) {
 		PORTD |= (1 << PD4);
 	else
 		PORTD &= ~(1 << PD4);
-	yc_prepare(0x12345678);
+	yc_prepare(3);
 	yc_send(Switcha, LedStatus(a));
+}
+
+void DR(LedStatus()) {
+	yc_prepare(3);
+	yc_send(Switcha, LedStatus((PORTD & (1 << PD4)) ? 1 : 0));
 }
 

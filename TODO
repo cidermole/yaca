@@ -7,6 +7,7 @@
 	1k	2k	multimedia (MSB set)
 
 -> "Read eeprom message" into libyaca
+-> CHECK: 'info' of Message struct in yaca-serial?
 O> "Enter bootloader message" into libyaca
 O> libyaca: call init _Z4initv
 
