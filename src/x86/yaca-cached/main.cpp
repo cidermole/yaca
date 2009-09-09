@@ -70,7 +70,7 @@ int my_max(int a, int b) {
 }
 
 void handle_message(int fifo, Buffer *buffer, Message *message) {
-	if(!message->rtr && buffer->used(message->id)) {
+	if(!message->rtr) {
 		buffer->set(message->id, message);
 		message->info = 1; // auto-info of state change
 		write(fifo, message, sizeof(Message));
@@ -81,9 +81,9 @@ void handle_message(int fifo, Buffer *buffer, Message *message) {
 // message.info = 0 -> reply to a query
 
 int main(int argc, char **argv) {
-	int sock = 0, fifo = 0, id;
+	int sock = 0, fifo_read = 0, fifo_write = 0, id;
 	char config_file[1024];
-	string listen_pipe, logfname;
+	string listen_pipe, write_pipe, logfname;
 	size_t pos;
 	fd_set fds;
 	Buffer buffer;
@@ -96,6 +96,10 @@ int main(int argc, char **argv) {
 	if((pos = listen_pipe.find("$(YACA_PATH)")) != string::npos) {
 		listen_pipe.replace(pos, strlen("$(YACA_PATH)"), yaca_path);
 	}
+	write_pipe = conf.write_pipe;
+	if((pos = write_pipe.find("$(YACA_PATH)")) != string::npos) {
+		write_pipe.replace(pos, strlen("$(YACA_PATH)"), yaca_path);
+	}
 	logfname = conf.logfile;
 	if((pos = logfname.find("$(YACA_PATH)")) != string::npos) {
 		logfname.replace(pos, strlen("$(YACA_PATH)"), yaca_path);
@@ -106,36 +110,48 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	unlink(listen_pipe.c_str());
+	unlink(write_pipe.c_str());
 	if(mkfifo(listen_pipe.c_str(), 0666) == -1) { // S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH
 		fprintf(stderr, "failed to create pipe %s: mkfifo() failed with errno=%d\n", listen_pipe.c_str(), errno);
 		return 1;
 	}
+	if(mkfifo(write_pipe.c_str(), 0666) == -1) { // S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH
+		fprintf(stderr, "failed to create pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
+		return 1;
+	}
 	chmod(listen_pipe.c_str(), 0666);
-	if((fifo = open(listen_pipe.c_str(), O_RDWR)) == -1) {
+	chmod(write_pipe.c_str(), 0666);
+	if((fifo_read = open(listen_pipe.c_str(), O_RDONLY)) == -1) {
 		fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", listen_pipe.c_str(), errno);
+		return 1;
+	}
+	if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) == -1) {
+		fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
 		return 1;
 	}
 	
 	while(1) {
 		FD_ZERO(&fds);
 		FD_SET(sock, &fds);
-		FD_SET(fifo, &fds);
+		FD_SET(fifo_read, &fds);
 		
-		select(my_max(sock, fifo) + 1, &fds, NULL, NULL, NULL);
+		select(my_max(sock, fifo_read) + 1, &fds, NULL, NULL, NULL);
 		
 		if(FD_ISSET(sock, &fds)) {
 			// incoming data from socket, check if the value is buffered and needs to be updated
 			read_message(sock, &message);
-			handle_message(fifo, &buffer, &message);
+			if(!message->rtr && buffer->used(message->id)) {
+				handle_message(fifo_write, &buffer, &message);
+			}
 		}
-		if(FD_ISSET(fifo, &fds)) {
+		if(FD_ISSET(fifo_read, &fds)) {
 			// incoming data from fifo, this is a query
-			read_message(fifo, &message);
+			read_message(fifo_read, &message);
 			if(buffer.used(message.id)) {
 				buffer.get(&message, message.id);
 				message.rtr = 0;
 				message.info = 0; // reply
-				write(fifo, &message, sizeof(Message));
+				write(fifo_write, &message, sizeof(Message));
 			} else {
 				// no status info available, query to CAN
 				message.rtr = 1;
@@ -143,7 +159,7 @@ int main(int argc, char **argv) {
 				write(sock, &message, sizeof(Message));
 				while(message.id != id || message.rtr) {
 					read_message(sock, &message);
-					handle_message(fifo, &buffer, &message);
+					handle_message(fifo_read, &buffer, &message);
 				}
 				buffer.set(message.id, &message);
 			}
@@ -151,7 +167,8 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-	close(fifo);
+	close(fifo_read);
+	close(fifo_write);
 	close(sock);
 	return 0;
 }
