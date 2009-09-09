@@ -47,6 +47,8 @@ int read_message(int sock, struct Message *buffer) {
 	while(sum < sizeof(struct Message) && rv != -1) {
 		if((rv = read(sock, buffer, sizeof(struct Message))) != -1)
 			sum += rv;
+		if(rv == 0)
+			return 0;
 	}
 
 	return (rv != -1);

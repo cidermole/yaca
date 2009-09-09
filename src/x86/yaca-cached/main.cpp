@@ -148,7 +148,8 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(fifo_read, &fds)) {
 			// incoming data from fifo, this is a query
-			read_message(fifo_read, &message);
+			if(!read_message(fifo_read, &message))
+				continue;
 			if(buffer.used(message.id)) {
 				buffer.get(&message, message.id);
 			} else {
