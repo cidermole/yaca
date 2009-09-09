@@ -69,12 +69,18 @@ int my_max(int a, int b) {
 	return ((a > b) ? a : b);
 }
 
-void handle_message(int fifo, Buffer *buffer, Message *message) {
+void handle_message(string& write_pipe, Buffer *buffer, Message *message) {
+	int fifo_write;
+	
 	if(!message->rtr) {
 		buffer->set(message->id, message);
 		message->info = 1; // auto-info of state change
-		printf("reply %d\n", message.id);
-		write(fifo, message, sizeof(Message));
+		printf("reply %d\n", message->id);
+		if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) == -1) {
+			fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
+			return 1;
+		}
+		write(fifo_write, message, sizeof(Message));
 	}
 }
 
@@ -126,10 +132,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", listen_pipe.c_str(), errno);
 		return 1;
 	}
-	if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) == -1) {
-		fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
-		return 1;
-	}
 	
 	while(1) {
 		FD_ZERO(&fds);
@@ -142,7 +144,7 @@ int main(int argc, char **argv) {
 			// incoming data from socket, check if the value is buffered and needs to be updated
 			read_message(sock, &message);
 			if(!message.rtr && buffer.used(message.id)) {
-				handle_message(fifo_write, &buffer, &message);
+				handle_message(write_pipe, &buffer, &message);
 			}
 		}
 		if(FD_ISSET(fifo_read, &fds)) {
@@ -154,6 +156,10 @@ int main(int argc, char **argv) {
 				message.rtr = 0;
 				message.info = 0; // reply
 				printf("reply %d\n", message.id);
+				if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) == -1) {
+					fprintf(stderr, "failed to open pipe %s: mkfifo() failed with errno=%d\n", write_pipe.c_str(), errno);
+					return 1;
+				}
 				write(fifo_write, &message, sizeof(Message));
 			} else {
 				// no status info available, query to CAN
@@ -162,7 +168,7 @@ int main(int argc, char **argv) {
 				write(sock, &message, sizeof(Message));
 				while(message.id != id || message.rtr) {
 					read_message(sock, &message);
-					handle_message(fifo_read, &buffer, &message);
+					handle_message(write_pipe, &buffer, &message);
 				}
 				buffer.set(message.id, &message);
 			}
