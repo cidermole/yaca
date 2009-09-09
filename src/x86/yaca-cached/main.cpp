@@ -75,7 +75,7 @@ void handle_message(string& write_pipe, Buffer *buffer, Message *message) {
 	if(!message->rtr) {
 		buffer->set(message->id, message);
 		message->info = 1; // auto-info of state change
-		if((fifo_write = open(write_pipe.c_str(), O_NONBLOCK, O_WRONLY)) != -1) {
+		if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) != -1) {
 			write(fifo_write, message, sizeof(Message));
 			close(fifo_write);
 		}
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
 				buffer.get(&message, message.id);
 				message.rtr = 0;
 				message.info = 0; // reply
-				if((fifo_write = open(write_pipe.c_str(), O_NONBLOCK, O_WRONLY)) != -1) {
+				if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) != -1) {
 					write(fifo_write, &message, sizeof(Message));
 					close(fifo_write);
 				}
