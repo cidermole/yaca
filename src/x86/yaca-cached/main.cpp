@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	unlink(listen_pipe.c_str());
-	if(mkfifo(listen_pipe.c_str(), S_IWUSR | S_IRUSR) == -1) {
+	if(mkfifo(listen_pipe.c_str(), 0666) == -1) { // S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH
 		fprintf(stderr, "failed to create pipe %s: mkfifo() failed with errno=%d\n", listen_pipe.c_str(), errno);
 		return 1;
 	}
