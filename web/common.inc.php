@@ -118,6 +118,10 @@ class Message {
 		$this->decode($ret);
 		return true;
 	}
+	
+	function send() {
+		fwrite($this->common->socket, $this->encode());
+	}
 }
 
 ?>
