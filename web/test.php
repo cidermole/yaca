@@ -41,7 +41,7 @@ class Plugin {
 		$this->name = "Plugin";
 		$this->config = $config;
 		$common->addPlugin($this);
-		$common = &$common;
+		$this->common = &$common;
 	}
 	function setId($id) {
 		$this->id = $id;
