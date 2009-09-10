@@ -4,7 +4,7 @@ class Common {
 	var $socket;
 	
 	function Common() {
-		$this->socket = fsockopen("192.168.1.93", 1111, $errno, $errstr, 2);
+		$this->socket = fsockopen("192.168.1.2", 1111, $errno, $errstr, 2);
 		stream_set_timeout($this->socket, 2);
 	}
 }
