@@ -187,44 +187,48 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(csock, &fds)) {
 			printf("csock\n");fflush(stdout);
-			// incoming data from fifo, this is a query
+			// incoming data from fifo
 			if(!read_message(csock, &message)) {
 				close(csock);
 				csock = 0;
 				printf("0 bytes read, csock closed\n");
 				continue;
 			}
-			if(buffer.used(message.id)) {
-				printf(" is ");
-				buffer.get(&message, message.id);
-				printf("in buffer ");
-			} else {
-				printf("not in buffer ");
-			
-				// no status info available, query to CAN
-				message.rtr = 1;
-				id = message.id;
-				
-				write(sock, &message, sizeof(Message));
-				printf("\nqueried, now waiting for reply\n"); fflush(stdout);
-				fail = false;
-				while(message.id != id || message.rtr) {
-					if(!read_message(sock, &message)) {
-						fail = true;
-						break;
+			if(message.rtr) { // this is a query
+				if(buffer.used(message.id)) {
+					printf(" is ");
+					buffer.get(&message, message.id);
+					printf("in buffer ");
+				} else {
+					printf("not in buffer ");
+					
+					// no status info available, query to CAN
+					message.rtr = 1;
+					id = message.id;
+					
+					write(sock, &message, sizeof(Message));
+					printf("\nqueried, now waiting for reply\n"); fflush(stdout);
+					fail = false;
+					while(message.id != id || message.rtr) {
+						if(!read_message(sock, &message)) {
+							fail = true;
+							break;
+						}
+						handle_message(&buffer, &message);
 					}
-					handle_message(&buffer, &message);
+					printf("loop done.\n"); fflush(stdout);
 				}
-				printf("loop done.\n"); fflush(stdout);
-			}
-			message.rtr = 0;
-			message.info = 0; // reply
+				message.rtr = 0;
+				message.info = 0; // reply
 
 /*			void *vp = &message;
 			char *p = (char*)vp;
 			for (int i = 0; i<15; i++) printf("%02X ", p[i]);*/
-			if(!fail)
-				write(csock, &message, sizeof(Message));
+				if(!fail)
+					write(csock, &message, sizeof(Message));
+			} else {
+				write(sock, &message, sizeof(Message));
+			}
 		}
 		fflush(stdout);
 	}
