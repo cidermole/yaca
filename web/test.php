@@ -26,7 +26,7 @@ class Common {
 	}
 	
 	function __destruct() {
-		fclose($common->socket);
+		fclose($this->socket);
 	}
 }
 $common = new Common;
