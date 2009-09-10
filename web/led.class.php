@@ -8,7 +8,7 @@ class Led extends Plugin {
 	
 	function handleRequest() {
 		if($_POST['action_led'.$this->id] == 'send') {
-			$msg = new Message();
+			$msg = new Message($this->common);
 			$msg->id = $this->config['canid_write'];
 			$msg->data[0] = $_POST['set'];
 			$msg->length = 1;
