@@ -2,13 +2,53 @@
 
 class Common {
 	var $socket;
+	var $counters;
+	var $plugins;
 	
-	function Common() {
+	function __construct() {
+		$this->counters = array();
+		$this->plugins = array();
 		$this->socket = fsockopen("192.168.1.2", 1111, $errno, $errstr, 2);
 		stream_set_timeout($this->socket, 2);
 	}
+	
+	function addPlugin(&$plugin) {
+		if(!isset($this->counters[$plugin->name]))
+			$this->counters[$plugin->name] = 0;
+		$plugin->setId($this->counters[$plugin->name]++);
+		$this->plugins[count($this->plugins)] = &$plugin;
+	}
+	
+	function handleRequests() {
+		for($i = 0; $i < count($this->plugins); $i++) {
+			$this->plugins[$i]->handleRequest();
+		}
+	}
+	
+	function __destruct() {
+		fclose($common->socket);
+	}
 }
 $common = new Common;
+
+class Plugin {
+	var $name;
+	var $id;
+	var $common;
+	var $config;
+	
+	function Plugin(&$common, $config) {
+		$this->name = "Plugin";
+		$this->config = $config;
+		$common->addPlugin($this);
+		$common = &$common;
+	}
+	function setId($id) {
+		$this->id = $id;
+	}
+	function handleRequest() {}
+	function render() {}
+}
 
 class Message {
 	var $info;
@@ -76,6 +116,25 @@ class Message {
 	}
 }
 
+class Led extends Plugin {
+	function Led(&$common, $config) {
+		$this->name = "Led";
+		Plugin::Plugin($common, $config);
+	}
+	
+	function handleRequest() {}
+	
+	function render() {
+		$msg = new Message($this->common);
+		if(!$msg->request($this->config['canid_read'])) {
+			echo "{Led: request " . $this->config['canid_read'] . " failed}";
+			return false;
+		}
+		echo "{Led: status of " . $this->config['canid_read'] . " is " . $msg->data[0] . "}";
+		return true;
+	}
+}
+/*
 $msg = new Message($common);
 if($msg->request(3))
 	echo "id: " . $msg->id . ", data[0]: " . $msg->data[0];
@@ -85,8 +144,9 @@ else
 if($msg->request(3))
 	echo "id: " . $msg->id . ", data[0]: " . $msg->data[0];
 else
-	echo "Timeout error.";
+	echo "Timeout error.";*/
 
-fclose($common->socket);
+$led = new Led($common, array('canid_read' => 3));
+$led->render();
 
 ?>
