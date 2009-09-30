@@ -1,0 +1,11 @@
+- yc_prepare() and _pack (calling outbound Message function) are an atomic
+  operation (yc_prepare() stores data in a global variable). If an interrupt
+  tries to transmit a message between yc_prepare() and _pack, the CAN-ID and
+  packstyle will be lost.
+  If it is really needed to transmit out of an INT, it should backup the
+  CAN-ID and the packstyle (global variables in libyaca-bl/dispatch.c).
+
+- The yaca library needs to be linked with a special linker script to place
+  .biosram section somewhere defined. This area must then be left unused by
+  the application, otherwise the communication data will be corrupted (FIFOs
+  etc. are allocated by the bootloader in .biosram section of SRAM)

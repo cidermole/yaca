@@ -1,0 +1,11 @@
+<node-config id="1">
+	<messages>
+		<message name="SetLed">
+			<id>2</id>
+		</message>
+		<message name="LedStatus">
+			<id>3</id>
+		</message>
+	</messages>
+	<settings/>
+</node-config>

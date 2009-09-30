@@ -1,0 +1,14 @@
+O "Omitted Zeros Problem": the bootloader .hex file is too large, but the last few blocks are just 0's. If you remove them, things like global vars are not initialized correctly with 0 (?)...
+	caused by BIOSRAM, this is not a problem as everything is properly initialized in yc_init()
+	
+
+-> Message.info must be 0 prior to transmission
+
+Bootloader
+----------
+-> Timing: booting must neither be too early (eeprom warmup delay) nor too late (bootloader timeout)
+
+Octopus
+-------
+-> When CAN isn't initialized, the outputs are high-Z -> no LED light in optocoupler -> bus dominant transmission...
+-> transmission hangup in USB???

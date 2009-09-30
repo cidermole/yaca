@@ -1,0 +1,41 @@
+UI concept
+----------
+
+-> relevant status messages are cached in the displaying node
+-> on startup (rather: on first need of status info), an RTR is sent
+-> nodes send status messages if their status changes
+
+
+-> write eeprom programmer like indicated in sample_code
+-> implement "jump to bootloader" in libyaca
+-> implement "read eeprom" in libyaca
+
+
+
+- change libyaca to INT0
+- add a mcu type option to compiler, default mega8
+
+
+
+- compile the source file
+- exports like "setLightStatus" get written to xml file, see example below
+- these can be assigned a canid, or a groupid too, by a management tool
+	-> canid block
+- the target canids of functions can be written to eeprom too
+	-> eeprom structure is to be written into an xml file, todo
+
+<nds>
+<!--	<mcu>atmega8</mcu>  -> implies the following -->
+	<boot>
+		<pages>96</pages>
+		<pagesize>64</pagesize>
+	</boot>
+	<exports>
+		<export>
+		<name>setLightStatus</name>
+		<params>
+			<param>unsigned char</param>
+		</params>
+		</export>
+	</exports>
+</nds>

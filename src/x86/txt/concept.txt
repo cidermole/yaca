@@ -1,0 +1,18 @@
+todo PC
+-------
+- ../main Switch --> createRemoteHeader, createSendCode (gen. flash fct ptr), invoke avr-gcc on Switch.C
+
+bootloader
+----------
+has unique CAN ID hardcoded in flash (separete source file generated and linked to bootloader), number should be printed (etched?) on PCB and on "case"
+
+master
+------
+CAN-ID of master communication is 0x00000001 - stored in EEPROM, can be changed
+
+if questioned (RTR master ID), master broadcasts the network ID (serial no. of master - 6 bytes)
+if nodes detect a new network, the current IDs are not used but the master is informed that "new" nodes are on the bus.
+
+the master issues CAN IDs for all incoming messages. outgoing message ids are read from eeprom too (generate config gui possibilities from commented eeprom source file?)
+
+master may synchronize its clock to power grid frequency

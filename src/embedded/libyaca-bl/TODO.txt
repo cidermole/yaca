@@ -1,0 +1,50 @@
+O> take out the byte-modify command from the mcp driver as it is error-prone; correctness first!
+O> comment the init mess of mcp2515 init in mcp2515.
+O> inline _spi_putc() ?? (check how much space is preserved)
+	-> NOINLINE!!!
+O> check if spi_start and spi_stop need to be implemented in asm as to preserve space
+	sbi / cbi
+O> check if spi_reserve needs to have its own function or if it is shorter this way
+	tradeoff would only bring a few bytes
+O> cleanup cwrap_mcp2515.c, no need for cwrap.h, put defines into header file??
+O> check yc_transmit and yc_poll_transmit: they should use 2 instructions each
+	they do
+O> timeout in _frame_transmit?? or check in transmission loops if error occured?
+	why timeout? SPI write will finish anyway. errors -> interrupt
+O> why no biosram in cwrap? (defined out)
+	BIOSRAM again.
+O> mcp2515_init(): delay_us(100); test if this needs to be there
+	nope, app's responsibility.
+
+
+KEEP-IN-MIND
+^^^^^^^^^^^^
+-> delay between spi_stop and spi_start? compiler optimizations?
+
+-> message.info NEEDS TO BE SET TO 0 BEFORE FIRST CALL OF LIBYACA FUNCTION ON IT!!!
+	-> check if anyone used message.info before
+
+
+
+TODO
+^^^^
+-> error interrupt
+
+-> check if this still applies:
+		// the following variable _NEEDS_ to be static. Otherwise, avr-gcc 4.2.2 will try to write it at a wrong address from the ISR :-(
+		static volatile Message BIOSRAM __bld_message;
+
+-> check if this has been done?
+	-> put global vars like fifo in BIOS section, see bootloader linkerscript etc.
+
+
+LAST RESORT
+^^^^^^^^^^^
+-> remove mcp2515_rdstatus(), can be read through registers...
+
+
+NICE TO HAVE
+^^^^^^^^^^^^
+
+
+

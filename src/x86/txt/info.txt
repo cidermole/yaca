@@ -1,0 +1,92 @@
+- deutsches menü
+- sitemap
+
+
+
+ha
+..
+
+
+flash:
+struct a arr[]; [groupmsg, msg]
+                    | \     \_________
+                    v  `---v          \
+ee* ptr -> EEPROM[CANid1, CANid2, 0, CANid3]
+
+if(received_id == master_id) {
+	...
+}
+
+ee* p = ptr;
+for(i=0; i < sizeof(arr)/sizeof(struct a); i++, p++) {
+	while(*p) {
+		canid = read(p);
+		if(canid == received_id) {
+			...
+		}
+	}
+}
+
+void _msg_status_changed(int asdf);
+              |
+              v
+<!-- Filename: switch.xml -->
+<message name="status_changed" size="2">
+	<param name="asdf" type="int" size="2" />
+</message>
+
+
+
+client: master-id is stored in EEPROM
+client power-up (bootloader code): Master-ID RTR, wait 3 sec, if no bootloader enter command received, check app CRC and start app
+on app CRC error: Master-ID (0x ff 00 nn nn nn nn nn nn, where nn = bootloader ID [hardcoded in bootloader flash]) "merror" and then re-check in endless loop (but don't transmit any errors anymore)
+
+(ff -> error, 00 = application crc error ^= no app or bootloader interrupted)
+
+
+master
+	client
+--------------
+
+(.. applies power)
+
+	Master-ID RTR (-> power up) (if client receives, it cancels its own transmission of this) "mpowerup"
+
+(.. waits 2 sec)
+
+[.. wants to enter bootloader]
+
+Master-ID (0x 01 d.c. nn nn nn nn nn nn, where nn = bootloader ID [hardcoded in bootloader flash]) "mboot"
+
+	(.. enters bootloader)
+
+[.. doesn't want to enter bootloader (usually)]
+
+Master-ID (0x 00 d.c. nn nn nn nn nn nn, where nn = network ID [master ID], network ID must not be -1 (is returned from bootloader when no id received)) "mid"
+
+	(bootloader -> app)
+	[.. cached and received network IDs differ]
+	Master-ID (0x 02 d.c. nn nn nn nn nn nn, where nn = bootloader ID) "mnew"
+
+	(.. waits for further actions)
+
+(.. asks user for further actions)
+
+	[.. cached and received network IDs match, or no network ID received (network ID = ff ff ff ff ff ff)]
+	(.. checks app crc, see above)
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+after "mnew":
+
+	(app)
+	(.. waits for further actions)
+
+Master-ID (0x 04 d.c. nn nn nn nn nn nn, where nn = boot-id) "mformat"
+
+	(saves new network ID, "formats" EEPROM (= clears old CANid's))
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+======================================================================================================================================================
+
+Master-ID RTR (0x 03 d.c. nn nn nn nn nn nn, where nn = bootloader ID of target) "mping", reply is without RTR ("mpong")
