@@ -161,9 +161,20 @@ uint8_t yc_get_error();
   \param[in] eep_idtable EEPROM address of CAN-ID table
   \param[in] flash_fps Flash address of function pointer table
   \param[in] flash_count Flash address of uint8_t field containing the function pointer count
+  
+  \sa yc_dispatch_auto(), which is a convenience function from applications
 
 */
 void yc_dispatch(Message* m, uint8_t* eep_idtable, void** flash_fps, uint8_t* flash_count);
+
+/**
+
+  \brief Dispatch a message according to CAN-ID tables
+  
+  This is a convenience function implemented by libyaca, to be called in a custom mainloop implementation.
+
+*/
+void yc_dispatch_auto();
 
 /**
 

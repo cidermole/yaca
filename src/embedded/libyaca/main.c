@@ -31,19 +31,23 @@ void INT0_vect(void) {
 }
 #endif
 
-int main() {
+void yc_dispatch_auto() {
 	Message in;
 
+	if(yc_poll_receive()) {
+		yc_receive(&in);
+		yc_dispatch(&in, EE_IDTABLE, (void **)fpt, (uint8_t *)&fpt_size);
+	}
+}
+
+int main() {
 	if(_Z4initv)
 		_Z4initv();
 
 	sei();
 
 	while(1) {
-		if(yc_poll_receive()) {
-			yc_receive(&in);
-			yc_dispatch(&in, EE_IDTABLE, (void **)fpt, (uint8_t *)&fpt_size);
-		}
+		yc_dispatch_auto();
 	}
 	return 0;
 }
