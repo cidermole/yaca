@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 	char buf[sizeof(struct Message) * 10];
 	char tbuf[100];
 	char *pbuf;
-	struct Message msgbuf_in;
+	struct Message msgbuf_in, temp_msg;
 
 	if(argc < 2) {
 		printf("Usage: %s <config file>\n", argv[0]);
@@ -183,15 +183,24 @@ int main(int argc, char **argv) {
 					pbuf = buf;
 
 					while(len > 0) {
-						tlen = create_protocol_transmit(tbuf, pbuf);
-						pbuf += sizeof(struct Message);
-						len -= sizeof(struct Message);
-						if(conf.debug > 1)
-							put_buffer("Transmitting via UART", tbuf, tlen);
-						write(uart, tbuf, tlen);
-						tcdrain(uart);
-						if(conf.debug > 1)
-							printf("flushed.\n");
+						// TARGET addr: 10 is me, myself and i
+						memcpy(&temp_msg, buf, sizeof(struct Message));
+						if(temp_msg.id == 10) {
+							len -= sizeof(struct Message);
+							printf("DEBUG message received, sending raw data...\n");
+							write(uart, temp_msg.data, temp_msg.length);
+							tcdrain(uart);
+						} else {
+							tlen = create_protocol_transmit(tbuf, pbuf);
+							pbuf += sizeof(struct Message);
+							len -= sizeof(struct Message);
+							if(conf.debug > 1)
+								put_buffer("Transmitting via UART", tbuf, tlen);
+							write(uart, tbuf, tlen);
+							tcdrain(uart);
+							if(conf.debug > 1)
+								printf("flushed.\n");
+						}
 					}
 				} else {
 					fprintf(stderr, "wrong message size received on TCP: %d\n", len);
