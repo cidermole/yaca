@@ -1,14 +1,9 @@
-//#include <avr/io.h>
 #include <util/delay.h>
-//#include <string.h>
 #include <inttypes.h>
 #include <avr/wdt.h>
-//#include <avr/pgmspace.h>
-//#include <stdlib.h>
-#include "uart.h"
 #include <yaca-bl.h>
-//#include <avr/eeprom.h>
 
+#include "uart.h"
 
 /*
 

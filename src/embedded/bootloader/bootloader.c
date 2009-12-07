@@ -10,6 +10,11 @@
 #include "utils.h"
 #include "msgdefs.h"
 
+// make compiler happy
+#ifndef NULL
+#define NULL 0
+#endif
+
 volatile uint16_t _time = 0;
 uint32_t tempid;
 uint8_t err_code;
