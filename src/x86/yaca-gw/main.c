@@ -94,7 +94,11 @@ int main(int argc, char **argv) {
 	char buf[sizeof(struct Message) * 10];
 	char tbuf[100];
 	char *pbuf;
+<<<<<<< HEAD:src/x86/yaca-gw/main.c
 	struct Message msgbuf_in, temp_msg;
+=======
+	struct Message msgbuf_in;
+>>>>>>> d85447ef43edc1c8745fd9135cb6a0c0d5e057b3:src/x86/yaca-gw/main.c
 
 	if(argc < 2) {
 		printf("Usage: %s <config file>\n", argv[0]);
