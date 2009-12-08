@@ -1,6 +1,7 @@
 #include "MainPower.h"
 #include "RMainPower.h"
 #include <avr/io.h>
+#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #ifndef F_CPU
 #define F_CPU 8000000UL
@@ -11,8 +12,8 @@
 
 #define OCR_VAL 200
 
-// PC5: green led
-// PC4: red led
+// PC5: red led
+// PC4: green led
 // PB0: charger: low-freq PWM
 // PB1: PWM for step-up regulator (OC1A)
 
@@ -33,16 +34,17 @@ int main() {
 
 	sei();
 
-    yc_send(MainPower, HelloWorld(10));
+	yc_prepare(21);
+    yc_send(MainPower, HelloWorld(eeprom_read_byte(((uint8_t *) 4))));
 
 	while(1) {
 		if(ac_power) {
-			PORTC |= (1 << PC5); // green on
-			PORTC |= (1 << PC4); // red on
+			PORTC |= (1 << PC4); // green on
+			PORTC |= (1 << PC5); // red on
 		} else {
 			DDRB &= ~(1 << PB0); // stop charging if we're not on AC power
-			PORTC &= ~(1 << PC5); // green off
-			PORTC |= (1 << PC4); // red on
+			PORTC &= ~(1 << PC4); // green off
+			PORTC |= (1 << PC5); // red on
 		}
 		
 		yc_dispatch_auto();
