@@ -65,6 +65,9 @@ int main(int argc, char **argv) {
 	int i, j;
 	char *s = argv[3];
 	struct Message msg;
+	
+	memset(&msg, 0, sizeof(msg));
+	
 	msg.id = id;
 	msg.rtr = rtr;
 	msg.length = length;
