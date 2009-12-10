@@ -61,7 +61,6 @@ void put_buffer(const char *str, const char *buffer, int size) {
 #define CMD_SEND    0x03
 // buffer max size = sizeof(struct Message)
 int create_protocol_transmit(char *tbuffer, char *buffer) {
-//	char out[100];
 	int oi = 0, i;
 	struct Message *msg = (struct Message *)buffer;
 	
@@ -81,7 +80,6 @@ int create_protocol_transmit(char *tbuffer, char *buffer) {
 	tbuffer[oi++] = 0x55; // line end
 	tbuffer[oi++] = 0x00;
 
-//	memcpy(buffer, out, oi);
 	return oi;
 }
 
@@ -92,13 +90,9 @@ int main(int argc, char **argv) {
 	fd_set fds;
 	struct list_type list;
 	char buf[sizeof(struct Message) * 10];
-	char tbuf[100];
+	char tbuf[sizeof(buf) * 2];
 	char *pbuf;
-<<<<<<< HEAD:src/x86/yaca-gw/main.c
 	struct Message msgbuf_in, temp_msg;
-=======
-	struct Message msgbuf_in;
->>>>>>> d85447ef43edc1c8745fd9135cb6a0c0d5e057b3:src/x86/yaca-gw/main.c
 
 	if(argc < 2) {
 		printf("Usage: %s <config file>\n", argv[0]);
@@ -187,14 +181,21 @@ int main(int argc, char **argv) {
 					pbuf = buf;
 
 					while(len > 0) {
+						if(len < sizeof(struct Message)) {
+							fprintf(stderr, "wrong message size received on TCP: %d\n", len);
+							break;
+						}
+						
 						// TARGET addr: 10 is me, myself and i
-						memcpy(&temp_msg, buf, sizeof(struct Message));
+						// TODO: change '10' to something more sensible
+						// TODO: extend to 'start/stop/restart linux'
+/*						memcpy(&temp_msg, buf, sizeof(struct Message));
 						if(temp_msg.id == 10) {
 							len -= sizeof(struct Message);
 							printf("DEBUG message received, sending raw data...\n");
 							write(uart, temp_msg.data, temp_msg.length);
 							tcdrain(uart);
-						} else {
+						} else {*/
 							tlen = create_protocol_transmit(tbuf, pbuf);
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
@@ -204,7 +205,7 @@ int main(int argc, char **argv) {
 							tcdrain(uart);
 							if(conf.debug > 1)
 								printf("flushed.\n");
-						}
+//						}
 					}
 				} else {
 					fprintf(stderr, "wrong message size received on TCP: %d\n", len);
