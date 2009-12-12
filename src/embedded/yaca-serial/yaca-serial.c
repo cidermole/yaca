@@ -98,7 +98,6 @@ uint8_t do_cmd(uint8_t cmd) {
 }
 
 void do_uart(uint8_t c) {
-//	static uint8_t state = 0;
 	static Message msg_out;
 	static uint8_t msg_index = 0;
 	static uint8_t mask = 0;
@@ -166,8 +165,8 @@ int main() {
 			data = uart_getc_nowait();
 			do_uart((uint8_t)data);
 		}
-		if(state == 2) {
-			do_uart(0);
+		if(state == 2) { // if we are waiting for yc_transmit()...
+			do_uart(0); // the state machine needs to run to be able to poll for completion
 		}
 
 		if(yc_poll_receive()) {
