@@ -107,19 +107,18 @@ void do_uart(uint8_t c) {
 			mask = 0;
 		} else if(c == 0x55) {
 			mask = 1;
-			break;
+		} else {
+			if(msg_index >= sizeof(Message)) // XXX why do we need this? (dies after 256 msgs from uart if not here)
+				msg_index = 0;
+			bytewise(msg_out, msg_index) = c;
+			if(++msg_index >= sizeof(Message)) // don't let msg_index overflow
+				msg_index = 0;
 		}
-
-		if(msg_index >= sizeof(Message)) // XXX why do we need this? (dies after 256 msgs from uart if not here)
-			msg_index = 0;
-		bytewise(msg_out, msg_index) = c;
-		if(++msg_index >= sizeof(Message)) // don't let msg_index overflow
-			msg_index = 0;
 		break;
 
 	case 2:
 		_delay_us(100);
-		if(yc_transmit(&msg_out) != PENDING) {
+		if(yc_poll_transmit(&msg_out) != PENDING) {
 			uart_putc(REPLY_TRSUC);
 			state = 0;
 			msg_index = 0;
@@ -146,7 +145,6 @@ int main() {
 	sei();
 
 	while(1) {
-//		if((data = uart_getc_nowait()) != -1) {
 		if(fifo2_read.count && state != 2) {
 			data = uart_getc_nowait();
 			do_uart((uint8_t)data);
