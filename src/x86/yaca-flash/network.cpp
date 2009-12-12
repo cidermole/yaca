@@ -69,10 +69,13 @@ void write_message(int sock, unsigned int id, int length, char d0, char d1, char
 int read_message(int sock, struct Message *buffer) {
 	int sum = 0;
 	ssize_t rv = 0;
+	char *p = (char *) buffer;
 
 	while(sum < sizeof(struct Message) && rv != -1) {
-		if((rv = read(sock, buffer, sizeof(struct Message))) != -1)
+		if((rv = read(sock, p, sizeof(struct Message) - sum)) != -1) {
 			sum += rv;
+			p += rv;
+		}
 	}
 
 	return (rv != -1);
