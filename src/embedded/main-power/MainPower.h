@@ -6,5 +6,6 @@ namespace MainPower {
 	void HDM(LightStatus(uint8_t a));
 	void HDS(Status(uint8_t a));*/
 	void HDS(HelloWorld(uint8_t a));
+	void HDS(PowerStatus(uint8_t ac));
 }
 

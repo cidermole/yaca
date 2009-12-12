@@ -22,6 +22,8 @@ volatile uint16_t ac_status_scaler = 0;
 volatile uint8_t charge_pwm_scaler = 0;
 
 int main() {
+	uint8_t old_ac = 0;
+	
 	DDRC |= (1 << PC5) | (1 << PC4);
 	DDRB |= (1 << PB1) | (1 << PB0);
 	ACSR = (1 << ACBG); // Analog Comp: + is bandgap ref. = 1,23 V
@@ -45,6 +47,12 @@ int main() {
 			DDRB &= ~(1 << PB0); // stop charging if we're not on AC power
 			PORTC &= ~(1 << PC4); // green off
 			PORTC |= (1 << PC5); // red on
+		}
+		
+		if(ac_power != old_ac) {
+			yc_prepare(22);
+			yc_send(MainPower, PowerStatus(ac_power));
+			old_ac = ac_power;
 		}
 		
 		yc_dispatch_auto();
