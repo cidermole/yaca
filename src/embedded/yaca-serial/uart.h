@@ -7,8 +7,8 @@
 
 #define BAUDRATE 9600
 
-#define WRITE_BUFFER 700
-#define WB_TRESHOLD  650
+#define WRITE_BUFFER 400
+#define WB_TRESHOLD  350
 #define READ_BUFFER  100
 #define RB_TRESHOLD  50
 
