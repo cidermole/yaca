@@ -45,6 +45,23 @@ void delay_ms(uint16_t t) {
 		_delay_ms(1);
 }
 
+void uart_put_message(Message *m) {
+	uint8_t i, j;
+	
+	uart_putc(REPLY_DATA);
+	for(i = 0; i < (sizeof(Message) - 8 + m->length); i++) { // rationalize by omitting unused message bytes
+		j = bytewise(*m, i);
+		if(j == 0x55) {
+			uart_putc(0x55);
+			uart_putc(0x01);
+		} else {
+			uart_putc(j);
+		}
+	}
+	uart_putc(0x55);
+	uart_putc(0x00);
+}
+
 uint8_t do_cmd(uint8_t cmd) {
 	switch(cmd) {
 	case CMD_RESTART: // Restart Linux
@@ -132,7 +149,7 @@ void do_uart(uint8_t c) {
 
 int main() {
 	int data;
-	uint8_t i, j, wb_reported = 0, rb_reported = 0;
+	uint8_t wb_reported = 0, rb_reported = 0;
 	Message msg;
 
 	uart_init((uint16_t) (F_CPU / (16.0 * BAUDRATE) - 1));
@@ -155,19 +172,7 @@ int main() {
 
 		if(yc_poll_receive()) {
 			yc_receive(&msg);
-
-			uart_putc(REPLY_DATA);
-			for(i = 0; i < (sizeof(Message) - 8 + msg.length); i++) { // rationalize by omitting unused message bytes
-				j = bytewise(msg, i);
-				if(j == 0x55) {
-					uart_putc(0x55);
-					uart_putc(0x01);
-				} else {
-					uart_putc(j);
-				}
-			}
-			uart_putc(0x55);
-			uart_putc(0x00);
+			uart_put_message(&msg);
 		}
 		
 		if(wb_is_full()) {
