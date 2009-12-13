@@ -8,6 +8,14 @@
 #include "network.h"
 #include "../yaca-path.h"
 
+double uin_convert(int adc) {
+	return ((double) adc) * 110.08 / 10240;
+}
+
+double iin_convert(int adc) {
+	return ((double) adc) * 30.72 / 6545.408;
+}
+
 int main(int argc, char **argv) {
 	int sock = 0;
 	char config_file[1024];
@@ -28,7 +36,7 @@ int main(int argc, char **argv) {
 		if(msg.id != conf.status_canid || msg.rtr)
 			continue;
 		
-		printf("AC status: %d\n", msg.data[0]);
+		printf("AC status: %d  U_in: %03X (%02.2lf V)  I_in: %03X (%1.3lf)\n", msg.data[0], msg.data[1] * 0x100 + msg.data[2], uin_convert(msg.data[1] * 0x100 + msg.data[2]), msg.data[3] * 0x100 + msg.data[4], iin_convert(msg.data[3] * 0x100 + msg.data[4]));
 	}
 
 #ifdef _WIN32
