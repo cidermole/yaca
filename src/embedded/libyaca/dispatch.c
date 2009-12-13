@@ -37,11 +37,9 @@ void _take_off(Message* m) {
 	m->info = 0;
 
 	if(yc_transmit(m) == PENDING) {
-//		_delay_us(100);
-		_delay_ms(1);
+		_delay_us(100);
 		while(yc_poll_transmit(m) == PENDING) // XXX wooot? wtf - why do we need delay?
-//			_delay_us(100);
-			_delay_ms(1);
+			_delay_us(100);
 	}
 }
 
