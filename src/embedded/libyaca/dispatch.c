@@ -7,6 +7,7 @@
 #include "../bootloader/msgdefs.h"
 
 void __bld_reset(void);
+void __attribute__ ((weak)) enter_bootloader_hook(void);
 
 /*
 
@@ -22,6 +23,11 @@ void yc_prepare(uint32_t canid) {
 
 void yc_prepare_ee(uint8_t *pcanid) {
 	eeprom_read_block(&_global_canid, pcanid, sizeof(_global_canid));
+}
+
+void yc_bld_reset() {
+	MCUCSR &= ~(1 << PORF); // Clear Power-On Reset Flag: tell bootloader that we came from app (no need for another TID_BLD_ENTER)
+	__bld_reset();
 }
 
 void _take_off(Message* m) {
@@ -51,8 +57,10 @@ void yc_dispatch(Message* m, uint8_t* eep_idtable, void** flash_fps, uint8_t* fl
 	eeprom_read_block(&tid, EE_TEMPID, sizeof(tid));
 	if(m_id == tid) {
 		if(m->data[0] == TID_BLD_ENTER) {
-			MCUCSR &= ~(1 << PORF); // Clear Power-On Reset Flag: tell bootloader that we came from app (no need for another TID_BLD_ENTER)
-			__bld_reset();
+			if(enter_bootloader_hook)
+				enter_bootloader_hook();
+			else
+				yc_bld_reset();
 		}
 		return;
 	}
