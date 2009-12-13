@@ -10,30 +10,65 @@
 #include <inttypes.h>
 #include <yaca.h>
 
+
 #define OCR_VAL 200
+
 
 #define ADC_U_OUT 0
 #define ADC_I_IN  1
 #define ADC_U_IN  2
-
 #define ADMUX_REF ((1 << REFS1) | (1 << REFS0)) // AREF = 2.56 V
+
+
+#define ST_IDLE    0
+#define ST_BOOST   1
+#define ST_CHARGE  2
+#define ST_CHG_TOP 3
+
+
+#define MILLIAMP_TO_PWM(a) (a * 255 / 100)
 
 // TODO: soft-start (with reduced OCR_VAL) -- blew 2 A fuse without warning :-)
 
 // PC5: red led
 // PC4: green led
-// PB0: charger: low-freq PWM
+
+// PB0: charger: low-freq PWM (const. I on/off, I ~ 100 mA, we are consuming 33 mA with both LEDs)
+// we are charging if we pull PB0 to 0. *do not* set PB0 to 1 (connected to base of transistor)
+
 // PB1: PWM for step-up regulator (OC1A)
 
 volatile uint8_t ac_power = 0, dc_maybe = 0, status_update = 0;
 volatile uint16_t ac_status_scaler = 0;
-volatile uint8_t charge_pwm_scaler = 0;
-
+volatile uint8_t charge_pwm_scaler = 0, charge_pwm = 0;
+uint8_t state = ST_IDLE;
+// PORTABILITY. seconds type 32-bit int overflows after 136 years, seems OK
+uint32_t seconds = 0;
+uint32_t chg_target = 0;
+uint32_t lost_charge = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
 	for(i = 0; i < t; i++)
 		_delay_ms(1);
+}
+
+void red_led(uint8_t i) {
+	if(i)
+		PORTC |= (1 << PC5);
+	else
+		PORTC &= ~(1 << PC5);
+}
+
+void red_led_toggle() {
+	PORTC ^= (1 << PC5);
+}
+
+void green_led(uint8_t i) {
+	if(i)
+		PORTC |= (1 << PC4);
+	else
+		PORTC &= ~(1 << PC4);
 }
 
 uint16_t adc_convert(uint8_t channel) {
@@ -51,7 +86,46 @@ void adc_init() {
 	adc_convert(0); // dummy conversion
 }
 
+void transition_idle() {
+	charge_pwm = MILLIAMP_TO_PWM(35); // we consume 33 mA from battery at all times, 2 mA reserved
+	red_led(0);
+	green_led(1);
+	state = ST_IDLE;
+}
+
+void transition_boost() {
+	charge_pwm = 0; // if boosting, we have no AC - don't waste our own power
+	red_led(1);
+	green_led(0);
+	state = ST_BOOST;
+}
+
+void transition_charge() {
+	charge_pwm = MILLIAMP_TO_PWM(100); // charge with (100 - 33) = 67 mA
+	chg_target = seconds + (lost_charge >> 16) * 459;
+	red_led(1);
+	green_led(1);
+	state = ST_CHARGE;
+}
+
+void transition_chg_top() {
+	// assumption: 10 % of 1900 mAh = 190 mAh, with C/100 (19 mA) over 10 h
+	charge_pwm = MILLIAMP_TO_PWM(52); // our 33 mA + 19 = 52 mA
+	chg_target = seconds + 36000UL; // 10 h * 3600 = 36000 s
+	green_led(1);
+	// red led is blinking
+	state = ST_CHG_TOP;
+}
+
+// recalculate_charge(): we were charging and lost power... recalculate lost_charge
+void recalculate_charge() {
+	lost_charge = (((chg_target - seconds) * 1713) / 3072) * 256;
+}
+
 int main() {
+	uint8_t tenth_count = 0;
+	uint16_t u_in, i_in;
+
 	DDRC |= (1 << PC5) | (1 << PC4);
 	DDRB |= (1 << PB1) | (1 << PB0);
 	ACSR = (1 << ACBG); // Analog Comp: + is bandgap ref. = 1,23 V
@@ -64,21 +138,65 @@ int main() {
 
 	sei();
 	
+	ac_power = 1; // optimism rules!
 	adc_init();
-
+	
+	transition_idle();
+	
 	while(1) {
-		if(ac_power) {
-			PORTC |= (1 << PC4); // green on
-			PORTC |= (1 << PC5); // red on
-		} else {
-			DDRB &= ~(1 << PB0); // stop charging if we're not on AC power
-			PORTC &= ~(1 << PC4); // green off
-			PORTC |= (1 << PC5); // red on
+		switch(state) {
+		case ST_IDLE:
+			if(!ac_power)
+				transition_boost();
+			break;
+
+		case ST_BOOST:
+			if(ac_power) {
+				transition_charge();
+			}
+			break;
+
+		case ST_CHARGE:
+			if(!ac_power) {
+				recalculate_charge();
+				transition_boost();
+				break;
+			}
+			if(seconds > chg_target)
+				transition_chg_top();
+			break;
+
+		case ST_CHG_TOP:
+			if(!ac_power) {
+				transition_boost();
+				break;
+			}
+			if(seconds > chg_target)
+				transition_idle();
+			break;
+
+		default:
+			break;
 		}
 		
 		if(status_update) { // every 100 ms
+			if(++tenth_count == 10) {
+				seconds++;
+				tenth_count = 0;
+				
+				if(state == ST_CHG_TOP) {
+					red_led_toggle();
+				}
+			}
+			
+			u_in = adc_convert(ADC_U_IN);
+			i_in = adc_convert(ADC_I_IN);
+			
+			if(state == ST_BOOST)
+				lost_charge += i_in;
+			
 			yc_prepare(22);
-			yc_send(MainPower, PowerStatus(ac_power, adc_convert(ADC_U_IN), adc_convert(ADC_I_IN)));
+			yc_send(MainPower, PowerStatus(state, u_in, i_in));
 			status_update = 0;
 		}
 		
@@ -107,9 +225,14 @@ ISR(TIMER1_OVF_vect) {
 		TCCR1A &= ~(1 << COM1A1);
 	}
 	
-	if(++charge_pwm_scaler == 0) { // 256 -> every 8.2 ms (122 Hz)
-		if(ac_power)
-			DDRB |= (1 << PB0); // was ^= for PWM
+	if(ac_power) { // software PWM
+		charge_pwm_scaler++;
+		
+		if(charge_pwm_scaler == 0) // 256 -> every 8.2 ms (122 Hz)
+			DDRB |= (1 << PB0);
+		
+		if(charge_pwm_scaler == charge_pwm)
+			DDRB &= ~(1 << PB0);
 	}
 	
 	if(++ac_status_scaler == 3125) { // every 100 ms, update AC status
