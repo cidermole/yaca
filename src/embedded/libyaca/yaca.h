@@ -223,6 +223,16 @@ void yc_close();
 */
 void yc_bld_reset();
 
+/**
+
+  \brief Override this function to use the bootloader enter hook
+  
+  To be able to shut down things (or ignore the message) before entering the bootloader, this hook can be implemented (weak
+  symbol).
+
+*/
+void __attribute__ ((weak)) enter_bootloader_hook(void);
+
 #ifdef __cplusplus
 }
 #endif
