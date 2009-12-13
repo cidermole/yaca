@@ -214,6 +214,15 @@ void yc_prepare_ee(uint8_t *pcanid);
 */
 void yc_close();
 
+/**
+
+  \brief Jump to bootloader
+  
+  Jump to the bootloader reset vector, without actually doing a hardware reset. Used e.g. to enter bootloader from the application.
+
+*/
+void yc_bld_reset();
+
 #ifdef __cplusplus
 }
 #endif
