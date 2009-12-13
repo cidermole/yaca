@@ -108,22 +108,23 @@ void do_uart(uint8_t c) {
 		break;
 
 	case 1: // Command: Send CAN frame
-		if(mask) {
-			if(c == 0x00) { // end of UART message
-				msg_index = 0;
-				if(yc_transmit(&msg_out) == PENDING) {
-					state = 2;
-				} else {
-					uart_putc(REPLY_TRSUC);
-					state = 0;
-				}
-			} else if(c == 0x01) {
-				c = 0x55;
+		if(mask && c == 0x00) {
+			msg_index = 0;
+			if(yc_transmit(&msg_out) == PENDING) {
+				state = 2;
+			} else {
+				uart_putc(REPLY_TRSUC);
+				state = 0;
 			}
 			mask = 0;
-		} else if(c == 0x55) {
+		} else if(!mask && c == 0x55) {
 			mask = 1;
 		} else {
+			if(mask && c == 0x01) {
+				mask = 0;
+				c = 0x55;
+			}
+		
 			if(msg_index >= sizeof(Message)) // XXX why do we need this? (dies after 256 msgs from uart if not here)
 				msg_index = 0;
 			bytewise(msg_out, msg_index) = c;
