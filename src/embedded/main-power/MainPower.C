@@ -60,6 +60,15 @@ int main() {
 	return 0;
 }
 
+void enter_bootloader_hook() {
+	cli();
+	TCCR1A = 0;
+	TCCR1B = 0;
+	TCNT1 = 0;
+	TIMSK = 0;
+	yc_bld_reset();
+}
+
 ISR(TIMER1_OVF_vect) {
 	if(ACSR & (1 << ACO)) {
 		TCCR1A |= (1 << COM1A1);
