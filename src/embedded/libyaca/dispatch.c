@@ -1,4 +1,5 @@
 #include <avr/eeprom.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <inttypes.h>
 
@@ -26,6 +27,7 @@ void yc_prepare_ee(uint8_t *pcanid) {
 }
 
 void yc_bld_reset() {
+	cli();
 	MCUCSR &= ~(1 << PORF); // Clear Power-On Reset Flag: tell bootloader that we came from app (no need for another TID_BLD_ENTER)
 	__bld_reset();
 }
