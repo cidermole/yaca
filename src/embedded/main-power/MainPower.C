@@ -46,6 +46,8 @@ uint8_t state = ST_IDLE;
 uint32_t seconds = 0;
 uint32_t chg_target = 0;
 uint32_t lost_charge = 0;
+uint16_t u_in, i_in;
+
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -124,7 +126,6 @@ void recalculate_charge() {
 
 int main() {
 	uint8_t tenth_count = 0;
-	uint16_t u_in, i_in;
 
 	DDRC |= (1 << PC5) | (1 << PC4);
 	DDRB |= (1 << PB1) | (1 << PB0);
@@ -195,7 +196,7 @@ int main() {
 			if(state == ST_BOOST)
 				lost_charge += i_in;
 			
-			yc_prepare(22);
+			yc_prepare_ee(YC_EE_POWERSTATUS_ID);
 			yc_send(MainPower, PowerStatus(state, u_in, i_in));
 			status_update = 0;
 		}
@@ -203,6 +204,11 @@ int main() {
 		yc_dispatch_auto();
 	}
 	return 0;
+}
+
+void DR(PowerStatus()) {
+	yc_prepare_ee(YC_EE_POWERSTATUS_ID);
+	yc_send(MainPower, PowerStatus(state, u_in, i_in));
 }
 
 void enter_bootloader_hook() {
