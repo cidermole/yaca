@@ -13,12 +13,12 @@ class MainPower extends Plugin {
 	
 	function getVoltage($msg) {
 		$raw_data = $msg->data[1] * 0x100 + $msg->data[2];
-		return number_format($raw_data * 110.08 / 10240, 2, ',');
+		return number_format($raw_data * 110.08 / 10240, 2, ',', '.');
 	}
 	
 	function getCurrent($msg) {
 		$raw_data = $msg->data[3] * 0x100 + $msg->data[4];
-		return number_format($raw_data * 30.72 / 6545.408, 3, ',');
+		return number_format($raw_data * 30.72 / 6545.408, 3, ',', '.');
 	}
 	
 	function handleRequest() {
