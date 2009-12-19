@@ -21,9 +21,20 @@ class MainPower extends Plugin {
 		return number_format($raw_data * 30.72 / 6545.408, 3, ',', '.');
 	}
 	
+	function timeFormat($seconds) {
+		$format = '%02.0n';
+		
+		$days = $seconds > (3600 * 24) ? (floor($seconds / (3600 * 24)) . ' d ') : '';
+		$hours = money_format($format, floor(($seconds % (3600 * 24)) / 3600));
+		$minutes = money_format($format, floor(($seconds % 3600) / 60));
+		$seconds = money_format($format, floor($seconds % 60));
+		
+		return "$days$hours:$minutes:$seconds";
+	}
+	
 	function getTime($msg) {
 		$raw_data = $msg->data[5] * 0x10000 + $msg->data[6] * 0x100 + $msg->data[7];
-		return ($this->getStatus($msg) == 'Boost' ? 'I(t) = ' : 'T = ') . $raw_data;
+		return ($this->getStatus($msg) == 'Boost' ? 'I(t) = ' . $raw_data : 'T = ' . $raw_data . ' (' . $this->timeFormat($raw_data) . ')');
 	}
 	
 	function handleRequest() {
