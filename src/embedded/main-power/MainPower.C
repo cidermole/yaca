@@ -267,6 +267,8 @@ ISR(TIMER1_OVF_vect) {
 		
 		if(charge_pwm_scaler == charge_pwm)
 			DDRB &= ~(1 << PB0);
+	} else {
+		DDRB &= ~(1 << PB0);
 	}
 	
 	if(++ac_status_scaler == 3125) { // every 100 ms, update AC status
