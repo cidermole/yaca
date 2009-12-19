@@ -230,7 +230,7 @@ int main() {
 
 void DM(Charge(uint8_t t_high, uint16_t t)) {
 	transition_charge();
-	chg_target = (t_high << 16) + t;
+	chg_target = (((uint32_t) t_high) << 16) + t;
 }
 
 void DR(PowerStatus()) {
