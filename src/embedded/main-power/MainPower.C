@@ -104,7 +104,11 @@ void transition_boost() {
 
 void transition_charge() {
 	charge_pwm = MILLIAMP_TO_PWM(100); // charge with (100 - 33) = 67 mA
+	yc_prepare(28);
+	yc_send(MainPower, Debug1(lost_charge));
 	chg_target = seconds + (lost_charge >> 16) * 459;
+	yc_prepare(29);
+	yc_send(MainPower, Debug2(chg_target));
 	red_led(1);
 	green_led(1);
 	state = ST_CHARGE;
@@ -122,6 +126,22 @@ void transition_chg_top() {
 // recalculate_charge(): we were charging and lost power... recalculate lost_charge
 void recalculate_charge() {
 	lost_charge = (((chg_target - seconds) * 1713) / 3072) * 256;
+}
+
+void transmit_status() {
+	uint8_t t_high = 0;
+	uint16_t t = 0;
+	
+	if(state == ST_CHARGE || state == ST_CHG_TOP) {
+		t_high = (chg_target - seconds) >> 16;
+		t = (chg_target - seconds) & 0xFFFF;
+	} else if(state == ST_BOOST) {
+		t_high = lost_charge >> 16;
+		t = lost_charge & 0xFFFF;
+	}
+	
+	yc_prepare_ee(YC_EE_POWERSTATUS_ID);
+	yc_send(MainPower, PowerStatus(state, u_in, i_in, t_high, t));
 }
 
 int main() {
@@ -196,8 +216,7 @@ int main() {
 			if(state == ST_BOOST)
 				lost_charge += i_in;
 			
-			yc_prepare_ee(YC_EE_POWERSTATUS_ID);
-			yc_send(MainPower, PowerStatus(state, u_in, i_in));
+			transmit_status();
 			status_update = 0;
 		}
 		
@@ -207,8 +226,7 @@ int main() {
 }
 
 void DR(PowerStatus()) {
-	yc_prepare_ee(YC_EE_POWERSTATUS_ID);
-	yc_send(MainPower, PowerStatus(state, u_in, i_in));
+	transmit_status();
 }
 
 void enter_bootloader_hook() {

@@ -21,6 +21,11 @@ class MainPower extends Plugin {
 		return number_format($raw_data * 30.72 / 6545.408, 3, ',', '.');
 	}
 	
+	function getTime($msg) {
+		$raw_data = $msg->data[5] * 0x10000 + $msg->data[6] * 0x100 + $msg->data[7];
+		return $raw_data;
+	}
+	
 	function handleRequest() {
 	}
 	
@@ -30,7 +35,7 @@ class MainPower extends Plugin {
 			echo "{MainPower: request " . $this->config['canid_powerstatus'] . " failed}";
 			return false;
 		}
-		echo "{MainPower: status = " . $this->getStatus($msg) . ", U = " . $this->getVoltage($msg) . ", I = " . $this->getCurrent($msg) . " }";
+		echo "{MainPower: status = " . $this->getStatus($msg) . ", U = " . $this->getVoltage($msg) . ", I = " . $this->getCurrent($msg) . ", T = " . $this->getTime($msg) . " }";
 		return true;
 	}
 }
