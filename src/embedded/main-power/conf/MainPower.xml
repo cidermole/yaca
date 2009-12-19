@@ -3,6 +3,9 @@
 		<message name="PowerStatus">
 			<id>22</id>
 		</message>
+		<message name="Charge">
+			<id>23</id>
+		</message>
 	</messages>
 	<settings>
 		<setting name="powerstatus_id" value="22"/>

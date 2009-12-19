@@ -47,7 +47,7 @@ uint32_t seconds = 0;
 uint32_t chg_target = 0;
 uint32_t lost_charge = 0;
 uint16_t u_in, i_in;
-
+uint8_t fifths = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -216,13 +216,21 @@ int main() {
 			if(state == ST_BOOST)
 				lost_charge += i_in;
 			
-			transmit_status();
+			if(++fifths == 2) {
+				transmit_status();
+				fifths = 0;
+			}
 			status_update = 0;
 		}
 		
 		yc_dispatch_auto();
 	}
 	return 0;
+}
+
+void DM(Charge(uint8_t t_high, uint16_t t)) {
+	transition_charge();
+	chg_target = (t_high << 16) + t;
 }
 
 void DR(PowerStatus()) {

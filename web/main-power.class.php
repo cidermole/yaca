@@ -27,6 +27,17 @@ class MainPower extends Plugin {
 	}
 	
 	function handleRequest() {
+		if($_POST['action_mainpower'.$this->id] == 'send') {
+			$charge_time = floor($_POST['mah'] * 3600 / 67);
+			
+			$msg = new Message($this->common);
+			$msg->id = $this->config['canid_charge'];
+			$msg->data[0] = $charge_time / 0x10000;
+			$msg->data[1] = ($charge_time / 0x100) % 0x100;
+			$msg->data[2] = $charge_time % 0x100;
+			$msg->length = 3;
+			$msg->send();
+		}
 	}
 	
 	function render() {
@@ -36,6 +47,13 @@ class MainPower extends Plugin {
 			return false;
 		}
 		echo "{MainPower: status = " . $this->getStatus($msg) . ", U = " . $this->getVoltage($msg) . ", I = " . $this->getCurrent($msg) . ", " . $this->getTime($msg) . " }";
+?>
+<form action="index.php" method="post">
+mAh: <input name="mah" />
+<input type="submit" value="Charge" />
+<input type="hidden" name="action_mainpower<?php echo $this->id; ?>" value="send" />
+</form>
+<?php
 		return true;
 	}
 }
