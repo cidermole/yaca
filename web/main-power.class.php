@@ -22,12 +22,12 @@ class MainPower extends Plugin {
 	}
 	
 	function timeFormat($seconds) {
-		$format = '%02.0n';
+		$format = '%02d';
 		
 		$days = $seconds > (3600 * 24) ? (floor($seconds / (3600 * 24)) . ' d ') : '';
-		$hours = money_format($format, floor(($seconds % (3600 * 24)) / 3600));
-		$minutes = money_format($format, floor(($seconds % 3600) / 60));
-		$seconds = money_format($format, floor($seconds % 60));
+		$hours = sprintf($format, floor(($seconds % (3600 * 24)) / 3600));
+		$minutes = sprintf($format, floor(($seconds % 3600) / 60));
+		$seconds = sprintf($format, floor($seconds % 60));
 		
 		return "$days$hours:$minutes:$seconds";
 	}
