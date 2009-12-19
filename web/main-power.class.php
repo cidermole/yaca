@@ -32,9 +32,9 @@ class MainPower extends Plugin {
 			
 			$msg = new Message($this->common);
 			$msg->id = $this->config['canid_charge'];
-			$msg->data[0] = $charge_time / 0x10000;
-			$msg->data[1] = ($charge_time / 0x100) % 0x100;
-			$msg->data[2] = $charge_time % 0x100;
+			$msg->data[0] = floor($charge_time / 0x10000);
+			$msg->data[1] = floor(($charge_time / 0x100) % 0x100);
+			$msg->data[2] = floor($charge_time % 0x100);
 			$msg->length = 3;
 			$msg->send();
 		}
