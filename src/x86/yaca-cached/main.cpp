@@ -154,9 +154,7 @@ int main(int argc, char **argv) {
     }
     
     qsock = s;
-    printf("socket bound %d", qsock);
-
-		
+	
 	while(1) {
 		FD_ZERO(&fds);
 		FD_SET(sock, &fds);
@@ -164,50 +162,35 @@ int main(int argc, char **argv) {
 		if(csock)
 			FD_SET(csock, &fds);
 		
-		printf("\n>");
-		fflush(stdout);
-		
 		select(my_max(sock, qsock, csock) + 1, &fds, NULL, NULL, NULL);
-		printf("select done %d %d %d \n", qsock, sock, csock);
-		fflush(stdout);
 		
 		if(FD_ISSET(qsock, &fds)) {
-			printf("qsock\n");fflush(stdout);
 			csock = accept(qsock, (struct sockaddr*)&addr, &addr_len);
 		}
 		if(FD_ISSET(sock, &fds)) {
-			printf("sock\n");fflush(stdout);
 			// incoming data from socket, check if the value is buffered and needs to be updated
 			read_message(sock, &message);
 			if(!message.rtr && buffer.used(message.id)) {
 				//handle_message(&buffer, &message);
 				buffer.set(message.id, &message);
 			}
-			printf("sock done.\n");fflush(stdout);
 		}
 		if(FD_ISSET(csock, &fds)) {
-			printf("csock\n");fflush(stdout);
 			// incoming data from fifo
 			if(!read_message(csock, &message)) {
 				close(csock);
 				csock = 0;
-				printf("0 bytes read, csock closed\n");
 				continue;
 			}
 			if(message.rtr) { // this is a query
 				if(buffer.used(message.id)) {
-					printf(" is ");
 					buffer.get(&message, message.id);
-					printf("in buffer ");
 				} else {
-					printf("not in buffer ");
-					
 					// no status info available, query to CAN
 					message.rtr = 1;
 					id = message.id;
 					
 					write(sock, &message, sizeof(Message));
-					printf("\nqueried, now waiting for reply\n"); fflush(stdout);
 					fail = false;
 					while(message.id != id || message.rtr) {
 						if(!read_message(sock, &message)) {
@@ -216,21 +199,16 @@ int main(int argc, char **argv) {
 						}
 						handle_message(&buffer, &message);
 					}
-					printf("loop done.\n"); fflush(stdout);
 				}
 				message.rtr = 0;
 				message.info = 0; // reply
 
-/*			void *vp = &message;
-			char *p = (char*)vp;
-			for (int i = 0; i<15; i++) printf("%02X ", p[i]);*/
 				if(!fail)
 					write(csock, &message, sizeof(Message));
 			} else {
 				write(sock, &message, sizeof(Message));
 			}
 		}
-		fflush(stdout);
 	}
 	
 	close(sock);
