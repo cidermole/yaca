@@ -23,7 +23,7 @@ class MainPower extends Plugin {
 	
 	function getTime($msg) {
 		$raw_data = $msg->data[5] * 0x10000 + $msg->data[6] * 0x100 + $msg->data[7];
-		return $raw_data;
+		return (getStatus($msg) == 'Boost' ? 'T = ' : 'I(t) = ') . $raw_data;
 	}
 	
 	function handleRequest() {
@@ -35,7 +35,7 @@ class MainPower extends Plugin {
 			echo "{MainPower: request " . $this->config['canid_powerstatus'] . " failed}";
 			return false;
 		}
-		echo "{MainPower: status = " . $this->getStatus($msg) . ", U = " . $this->getVoltage($msg) . ", I = " . $this->getCurrent($msg) . ", T = " . $this->getTime($msg) . " }";
+		echo "{MainPower: status = " . $this->getStatus($msg) . ", U = " . $this->getVoltage($msg) . ", I = " . $this->getCurrent($msg) . ", " . $this->getTime($msg) . " }";
 		return true;
 	}
 }
