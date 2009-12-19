@@ -12,8 +12,7 @@
 typedef struct {
 	char server[LINE_BUFFER];
 	int port;
-	char listen_pipe[LINE_BUFFER];
-	char write_pipe[LINE_BUFFER];
+	int listen_port;
 	char logfile[LINE_BUFFER];
 } conf_t;
 
