@@ -23,7 +23,7 @@ class MainPower extends Plugin {
 	
 	function getTime($msg) {
 		$raw_data = $msg->data[5] * 0x10000 + $msg->data[6] * 0x100 + $msg->data[7];
-		return (getStatus($msg) == 'Boost' ? 'T = ' : 'I(t) = ') . $raw_data;
+		return ($this->getStatus($msg) == 'Boost' ? 'T = ' : 'I(t) = ') . $raw_data;
 	}
 	
 	function handleRequest() {
