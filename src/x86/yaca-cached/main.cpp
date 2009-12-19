@@ -103,26 +103,11 @@ int main(int argc, char **argv) {
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-cached/conf/yaca-cached.conf", yaca_path);
 	load_conf(config_file);
-	/*
-	listen_pipe = conf.listen_pipe;
-	if((pos = listen_pipe.find("$(YACA_PATH)")) != string::npos) {
-		listen_pipe.replace(pos, strlen("$(YACA_PATH)"), yaca_path);
-	}
-	write_pipe = conf.write_pipe;
-	if((pos = write_pipe.find("$(YACA_PATH)")) != string::npos) {
-		write_pipe.replace(pos, strlen("$(YACA_PATH)"), yaca_path);
-	}
-	logfname = conf.logfile;
-	if((pos = logfname.find("$(YACA_PATH)")) != string::npos) {
-		logfname.replace(pos, strlen("$(YACA_PATH)"), yaca_path);
-	}
-	*/
 	
 	if((sock = connect_socket(conf.server, conf.port)) == -1) {
 		fprintf(stderr, "failed to connect to server %s on port %d\n", conf.server, conf.port);
 		return 1;
 	}
-	
 	
     int s, c;
     socklen_t addr_len;
@@ -136,21 +121,19 @@ int main(int argc, char **argv) {
     }
 
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(1111);
+    addr.sin_port = htons(conf.listen_port);
     addr.sin_family = AF_INET;
     
     addr_len = sizeof(sockaddr_in);
 
-    if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1)
-    {
-        perror("bind() failed");
-        return -2;
+    if(bind(s, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+		perror("bind() failed");
+		return -2;
     }
-
-    if (listen(s, 3) == -1)
-    {
-        perror("listen() failed");
-        return -3;
+	
+    if(listen(s, 3) == -1) {
+		perror("listen() failed");
+		return -3;
     }
     
     qsock = s;
@@ -165,7 +148,7 @@ int main(int argc, char **argv) {
 		select(my_max(sock, qsock, csock) + 1, &fds, NULL, NULL, NULL);
 		
 		if(FD_ISSET(qsock, &fds)) {
-			csock = accept(qsock, (struct sockaddr*)&addr, &addr_len);
+			csock = accept(qsock, (struct sockaddr *) &addr, &addr_len);
 		}
 		if(FD_ISSET(sock, &fds)) {
 			// incoming data from socket, check if the value is buffered and needs to be updated

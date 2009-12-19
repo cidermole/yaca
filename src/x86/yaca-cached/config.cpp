@@ -28,10 +28,8 @@ void process_key(const char *key, const char *val) {
 		strcpy(conf.server, val);
 	} else if(compare(key, "port")) {
 		conf.port = atoi(val);
-	} else if(compare(key, "listen_pipe")) {
-		strcpy(conf.listen_pipe, val);
-	} else if(compare(key, "write_pipe")) {
-		strcpy(conf.write_pipe, val);
+	} else if(compare(key, "listen_port")) {
+		conf.listen_port = atoi(val);
 	} else if(compare(key, "logfile")) {
 		strcpy(conf.logfile, val);
 	}
@@ -46,8 +44,7 @@ void load_conf(const char *file) {
 	// default values
 	strcpy(conf.server, "192.168.1.1");
 	conf.port = 1222;
-	strcpy(conf.listen_pipe, "$(YACA_PATH)/yaca-cached.sink");
-	strcpy(conf.write_pipe, "$(YACA_PATH)/yaca-cached.source");
+	conf.listen_port = 1111;
 	strcpy(conf.logfile, "$(YACA_PATH)/yaca-cached.log");
 	
 	if(!f) {

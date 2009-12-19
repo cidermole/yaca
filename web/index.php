@@ -20,4 +20,8 @@ echo "<br /><br />";
 
 $mp->render();
 
+echo "<br /><br />";
+
+$mp->render();
+
 ?>
