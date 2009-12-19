@@ -115,9 +115,9 @@ void transition_charge() {
 }
 
 void transition_chg_top() {
-	// assumption: 10 % of 1900 mAh = 190 mAh, with C/100 (19 mA) over 10 h
-	charge_pwm = MILLIAMP_TO_PWM(52); // our 33 mA + 19 = 52 mA
-	chg_target = seconds + 36000UL; // 10 h * 3600 = 36000 s
+	// low charging current is supposedly bad for batteries, so topping charge with the full current (C/28 anyways...)
+	charge_pwm = MILLIAMP_TO_PWM(100); // charge with (100 - 33) = 67 mA
+	chg_target = seconds + 1200; // 20 min * 67 mA = 22 mAh (1,2 %)
 	green_led(1);
 	// red led is blinking
 	state = ST_CHG_TOP;
@@ -217,7 +217,8 @@ int main() {
 				lost_charge += i_in;
 			
 			if(++fifths == 2) {
-				transmit_status();
+				if(state != ST_IDLE)
+					transmit_status();
 				fifths = 0;
 			}
 			status_update = 0;
