@@ -65,6 +65,7 @@ int read_message(int sock, struct Message *buffer) {
 	if(!FD_ISSET(sock, &fds))
 		return 0;
 	
+	// FIXME: correct way would be to count offset
 	while(sum < sizeof(struct Message)) {
 		if((rv = read(sock, buffer, sizeof(struct Message))) > 0)
 			sum += rv;

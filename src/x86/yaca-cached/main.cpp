@@ -152,7 +152,11 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(sock, &fds)) {
 			// incoming data from socket, check if the value is buffered and needs to be updated
-			read_message(sock, &message);
+			if(!read_message(sock, &message)) {
+				fprintf(stderr, "read_message() from yaca-serial socket failed, exiting...\n");
+				return 1;
+			}
+			
 			if(!message.rtr && buffer.used(message.id)) {
 				//handle_message(&buffer, &message);
 				buffer.set(message.id, &message);
