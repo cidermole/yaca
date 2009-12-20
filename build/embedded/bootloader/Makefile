@@ -14,7 +14,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -DF_CPU=8000000UL -Os -fsigned-char -I/usr/lib/yaca/include
+CFLAGS += -Wall -gdwarf-2 -DF_CPU=2000000UL -Os -fsigned-char -I/usr/lib/yaca/include
 CFLAGS += -MD -MP -MT $(*F).o
 
 ## Assembly specific flags
