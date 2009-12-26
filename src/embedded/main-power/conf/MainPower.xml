@@ -1,13 +1,13 @@
-<node-config id="20">
+<node-config id="801">
 	<messages>
 		<message name="PowerStatus">
-			<id>22</id>
+			<id>400</id>
 		</message>
 		<message name="Charge">
-			<id>23</id>
+			<id>2</id>
 		</message>
 	</messages>
 	<settings>
-		<setting name="powerstatus_id" value="22"/>
+		<setting name="powerstatus_id" value="400"/>
 	</settings>
 </node-config>
