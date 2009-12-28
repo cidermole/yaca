@@ -9,7 +9,7 @@ SRCDIR = ../../../src/x86/yaca-time
 #
 EXE = main
 #INCDIRS +=
-#CFLAGS +=
+CFLAGS += -lrt
 
 CC = g++
 
@@ -26,7 +26,7 @@ mrproper: clean
 	rm ../../bin/yaca-time
 
 $(EXE):	$(OBJS)
-	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)
+	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS)
 	cp $(EXE) ../../bin/yaca-time
 
 %.o: $(SRCDIR)/%.cpp
