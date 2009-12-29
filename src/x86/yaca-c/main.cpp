@@ -70,35 +70,6 @@ void run() {
 	
 	XmlTree xmlt = Message::createXml(&src);
 	xmlt.write((Globals::getStr("nodeName") + ".nds").c_str());
-	
-/*
-	list<Message> l = src.getExports();
-	list<Param> pars;
-	list<Param>::iterator i;
-
-	pars = l.front().getParams();
-
-	cout << l.front().getName() << endl;
-
-	for(i = pars.begin(); i != pars.end(); i++) {
-		cout << (*i).getType() << " " << (*i).getName() << " (" << (*i).getSize() << "b, r" << (*i).getReg() << ")" << endl;
-	} */ // FIXME until here
-
-
-
-//	Message exp("SomeFunc");
-/*	list<Param> pars;
-	list<Param>::iterator i;*/
-/*
-	cout << "Getting..." << endl;
-
-	pars = l.front().getParams();
-
-	cout << "Got processed params" << endl;
-
-	for(i = pars.begin(); i != pars.end(); i++) {
-		cout << (*i).getType() << " " << (*i).getName() << " (" << (*i).getSize() << "b, r" << (*i).getReg() << ")" << endl;
-	}*/
 }
 
 int main(int argc, char** argv) {
