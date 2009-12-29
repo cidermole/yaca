@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
 	
 	signal(SIGHUP, exit_handler);
 	signal(SIGTERM, exit_handler);
+	signal(SIGINT, exit_handler);
 
 	clock_gettime(CLOCK_REALTIME, &t);
 	tm = localtime(&t.tv_sec);
