@@ -11,7 +11,7 @@
 #include "../yaca-path.h"
 
 int main(int argc, char **argv) {
-	int sock = 0, flags;
+	int sock = 0, flags, pid;
 	char buf[1024];
 //	char config_file[1024];
 	Message msg;
@@ -33,6 +33,14 @@ int main(int argc, char **argv) {
 	if(fcntl(sock, F_SETFD, flags | O_NONBLOCK) == -1) {
 		fprintf(stderr, "fcntl(sock, F_SETFD, flags | O_NONBLOCK) failed\n");
 		return 1;
+	}
+	
+	pid = fork();
+	if(pid < 0) {
+		fprintf(stderr, "fork() failed\n");
+		return 1;
+	} else if(pid > 0) { // parent
+		return 0;
 	}
 	
 	d.tv_sec = 0;
