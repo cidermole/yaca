@@ -36,7 +36,9 @@ int get_sender(fd_set *fds) {
     return i;
 }
 
-void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except = -1) {
+void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except = -1);
+
+void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
 	struct list_entry *le;
 
 	for(le = list->data; le; le = le->next)
