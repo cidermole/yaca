@@ -66,7 +66,7 @@ void put_buffer(const char *str, const char *buffer, int size) {
 
 #define CMD_SEND    0x03
 // buffer max size = sizeof(struct Message)
-int create_protocol_transmit(char *tbuffer, char *buffer) {
+int create_protocol_transmit(char *tbuffer, const char *buffer) {
 	int oi = 0, i;
 	struct Message *msg = (struct Message *)buffer;
 	
@@ -194,6 +194,7 @@ int main(int argc, char **argv) {
 				}
 			}
 		} else { // incoming data from socket
+			// FIXME: this kind of reception works *USUALLY*!!! fix!
 			client = get_sender(&fds);
 			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?
 				socket_close(client); // TODO: check if this works out
@@ -220,6 +221,7 @@ int main(int argc, char **argv) {
 							write(uart, temp_msg.data, temp_msg.length);
 							tcdrain(uart);
 						} else {*/
+							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
 							tlen = create_protocol_transmit(tbuf, pbuf);
 							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
 							
