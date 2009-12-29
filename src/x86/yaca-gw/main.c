@@ -36,11 +36,12 @@ int get_sender(fd_set *fds) {
     return i;
 }
 
-void send_to_all(struct list_type *list, const char *buffer, int size) {
+void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except = -1) {
 	struct list_entry *le;
 
 	for(le = list->data; le; le = le->next)
-		write(le->fd, buffer, size);
+		if(le->fd != fd_except)
+			write(le->fd, buffer, size);
 }
 
 #define bytewise(var, b) (((unsigned char*)&(var))[b])
@@ -199,6 +200,9 @@ int main(int argc, char **argv) {
 							tlen = create_protocol_transmit(tbuf, pbuf);
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
+							
+							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
+							
 							if(conf.debug > 1)
 								put_buffer("Transmitting via UART", tbuf, tlen);
 							write(uart, tbuf, tlen);
