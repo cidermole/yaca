@@ -31,6 +31,10 @@ e.g. 1 ping / second
 #define REPLY_TRSUC   0x02
 #define REPLY_DATA    0x01
 
+#define CANID_TIME 401
+#define TIME_FLAGS_DST (1 << 0) // daylight saving time
+#define TIME_FLAGS_BAK (1 << 1) // backup time source
+
 #define LINUX_PORT PORTD
 #define LINUX_DDR  DDRD
 #define LINUX_BIT  (1 << PD5)
@@ -38,6 +42,7 @@ e.g. 1 ping / second
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
 
 static uint8_t state = 0;
+volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, year = 0, ntp = 1, dst = 0, tr_time = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -109,6 +114,18 @@ void do_uart(uint8_t c) {
 
 	case 1: // Command: Send CAN frame
 		if(mask && c == 0x00) {
+			if(msg_out.id == CANID_TIME && msg_out.rtr == 0) {
+				ntp = 1;
+				sub_count = 0;
+				hour = msg_out.data[0];
+				min = msg_out.data[1];
+				sec = msg_out.data[2];
+				year = msg_out.data[3];
+				month = msg_out.data[4];
+				day = msg_out.data[5];
+				dst = msg_out.data[6] & 0x01;
+			}
+			
 			msg_index = 0;
 			if(yc_transmit(&msg_out) == PENDING) {
 				state = 2;
@@ -157,22 +174,54 @@ int main() {
 	delay_ms(1000); // Wait for EEPROM to warm up (?)
 	
 	yc_init();
-
+	
+	TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10); // CTC, prescaler 64
+	OCR1A = 31250; // 64 * 3.125 = 200.000 (100 ms ticks)
+	
 	wdt_enable(WDTO_2S);
 	sei();
 
 	while(1) {
-		if(fifo2_read.count && state != 2) {
+		if(fifo2_read.count && state != 2 && state != 3) {
 			data = uart_getc_nowait();
 			do_uart((uint8_t)data);
 		}
 		if(state == 2) { // if we are waiting for yc_transmit()...
 			do_uart(0); // the state machine needs to run to be able to poll for completion
 		}
-
+		
 		if(yc_poll_receive()) {
 			yc_receive(&msg);
 			uart_put_message(&msg);
+		}
+		
+		if(state == 3) {
+			_delay_us(100);
+			if(yc_poll_transmit(&msg) != PENDING) {
+				state = 0;
+			}
+		}
+		
+		if(tr_time && state != 2) {
+			msg.info = 0;
+			msg.id = CANID_TIME;
+			msg.length = 7;
+			msg.data[0] = hour;
+			msg.data[1] = min;
+			msg.data[2] = sec;
+			msg.data[3] = year;
+			msg.data[4] = month;
+			msg.data[5] = day;
+			msg.data[6] = dst | TIME_FLAGS_BAK;
+			
+			if(yc_transmit(&msg) == PENDING) {
+				state = 3;
+			}
+			
+			// debug: send time back to tty
+			uart_put_message(&msg);
+			
+			tr_time = 0;
 		}
 		
 		if(wb_is_full()) {
@@ -206,5 +255,80 @@ int main() {
 		wdt_reset();
 	}
 	return 0;
+}
+
+void advance_time() {
+	uint8_t days_in_month;
+	
+	sec++;
+	if(sec >= 60) {
+		sec = 0;
+		min++;
+	} else {
+		return;
+	}
+	
+	if(min >= 60) {
+		min = 0;
+		hour++;
+	} else {
+		return;
+	}
+	
+	if(hour >= 24) {
+		hour = 0;
+		day++;
+	} else {
+		return;
+	}
+	
+	switch(month) {
+		case 1: days_in_month = 31; break;
+		case 2:
+			// (2000 + year) % 4 == 0    ->   year % 4 == 0
+			// (2000 + year) % 100 == 0  ->   year % 100 == 0
+			// XXX: 400-year rule not implemented - doesn't make sense on 8 bit
+			
+			if((year % 4 == 0) && (year % 100 != 0))
+				days_in_month = 29;
+			else
+				days_in_month = 28;
+			break;
+		case 3: days_in_month = 31; break;
+		case 4: days_in_month = 30; break;
+		case 5: days_in_month = 31; break;
+		case 6: days_in_month = 30; break;
+		case 7: days_in_month = 31; break;
+		case 8: days_in_month = 31; break;
+		case 9: days_in_month = 30; break;
+		case 10: days_in_month = 31; break;
+		case 11: days_in_month = 30; break;
+		case 12: days_in_month = 31; break;
+		default: days_in_month = 30;
+	}
+	
+	if(day > days_in_month) {
+		day = 1;
+		month++;
+	} else {
+		return;
+	}
+	
+	if(month > 12) {
+		month = 1;
+		year++;
+	}
+}
+
+ISR(TIMER1_COMPA_vect) {
+	sub_count++;
+	if(ntp == 1 && sub_count >= 12) {
+		ntp = 0;
+	} else if(ntp || sub_count < 10) {
+		return;
+	}
+	sub_count = 0;
+	advance_time();
+	tr_time = 1;
 }
 

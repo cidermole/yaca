@@ -24,4 +24,7 @@ Status
 Bulk Status
 -----------
 400 MainPower::PowerStatus(uint8_t ac_power, uint16_t adc_voltage, uint16_t adc_current, uint8_t t_high, uint16_t t)
-401 Time(uint8_t hour, uint8_t min, uint8_t sec, uint8_t year, uint8_t month, uint8_t day, uint8_t dst)
+401 Time(uint8_t hour, uint8_t min, uint8_t sec, uint8_t year, uint8_t month, uint8_t day, uint8_t flags)
+		flags
+			0 daylight saving time
+			1 backup time source
