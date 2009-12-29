@@ -150,3 +150,36 @@ void target_eeprom_write(uint32_t id, int sock, uint16_t addr, uint8_t data) {
 	usleep(10 * 1000);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int create_host(int port) {
+    int s, c;
+    socklen_t addr_len;
+    struct sockaddr_in addr;
+
+    s = socket(PF_INET, SOCK_STREAM, 0);
+    if (s == -1)
+    {
+        perror("socket() failed");
+        return -1;
+    }
+
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(port);
+    addr.sin_family = AF_INET;
+
+    if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+    {
+        perror("bind() failed");
+        return -2;
+    }
+
+    if (listen(s, 3) == -1)
+    {
+        perror("listen() failed");
+        return -3;
+    }
+
+    return s;
+}
+
