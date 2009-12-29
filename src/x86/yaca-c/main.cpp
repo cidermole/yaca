@@ -217,33 +217,6 @@ int main(int argc, char** argv) {
 		system((es + "rm -f " + nodeName + ".nds").c_str());
 		system((es + "rm -f Messages.h").c_str());
 	}
-	
-
-/*	source.setFile(nodeName + ".C");
-
-	try {
-		source.compile();
-		cout << endl << "----------------- Symbol list -----------------" << endl << source.getSymbols() << endl;
-	} catch(const char* err) {
-		cerr << "Error: " << err << endl;
-	}
-
-	cout << endl << endl;
-
-	cout << "sizeof(int) = " << Source::sizeOf("int") << endl;
-	cout << "sizeof(int) = " << Source::sizeOf("int") << endl;
-	cout << "sizeof(char) = " << Source::sizeOf("char") << endl;
-
-	try {
-		Template t("out.tpl");
-
-		t.addKey("<CREATED>", now());
-		t.addKey("<ORIGIN>", "SomeClass.cpp");
-		t.addKey("<CODE>", "int main() {}");
-		cout << t.parse() << endl;
-	} catch(const char* err) {
-		cerr << "Error: " << err << endl;
-	}*/
 
 	return 0;
 }
