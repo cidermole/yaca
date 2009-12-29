@@ -221,7 +221,6 @@ int main(int argc, char **argv) {
 							write(uart, temp_msg.data, temp_msg.length);
 							tcdrain(uart);
 						} else {*/
-							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
 							tlen = create_protocol_transmit(tbuf, pbuf);
 							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
 							
