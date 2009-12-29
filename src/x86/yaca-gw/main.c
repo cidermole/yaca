@@ -198,10 +198,10 @@ int main(int argc, char **argv) {
 							tcdrain(uart);
 						} else {*/
 							tlen = create_protocol_transmit(tbuf, pbuf);
+							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
+							
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
-							
-							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
 							
 							if(conf.debug > 1)
 								put_buffer("Transmitting via UART", tbuf, tlen);
