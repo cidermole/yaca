@@ -1,14 +1,21 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
+#ifdef _WIN32
+	#include <winsock.h>
+	#include <io.h>
+#else
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <netdb.h>
+	#include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "network.h"
+#include "../../embedded/bootloader/msgdefs.h"
 
 
 int connect_socket(const char* host, int port) {
@@ -36,6 +43,26 @@ int connect_socket(const char* host, int port) {
 		return -1;
 	}
 	return sock;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+void write_message(int sock, unsigned int id, int length, char d0, char d1, char d2, char d3, char d4, char d5, char d6, char d7) {
+		struct Message msg;
+		
+		memset(&msg, 0, sizeof(msg));
+		msg.id = id;
+		msg.length = length;
+		msg.data[0] = d0;
+		msg.data[1] = d1;
+		msg.data[2] = d2;
+		msg.data[3] = d3;
+		msg.data[4] = d4;
+		msg.data[5] = d5;
+		msg.data[6] = d6;
+		msg.data[7] = d7;
+		write(sock, &msg, sizeof(msg));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
