@@ -32,6 +32,24 @@ void exit_handler(int signal) {
 	exit(0);
 }
 
+void hup_handler(int signal) {
+	fclose(yaca);
+	fclose(bulk);
+	
+	if(!(yaca = fopen(conf.logfile_yaca, "a"))) {
+		fprintf(stderr, "Error opening yaca logfile \"%s\"\n", conf.logfile_yaca);
+		exit(1);
+		return;
+	}
+	
+	if(!(bulk = fopen(conf.logfile_bulk, "a"))) {
+		fprintf(stderr, "Error opening bulk logfile \"%s\"\n", conf.logfile_bulk);
+		fclose(yaca);
+		exit(1);
+		return;
+	}
+}
+
 int main(int argc, char **argv) {
 	int i;
 	char buf[1024];
@@ -58,7 +76,7 @@ int main(int argc, char **argv) {
 		goto error_close_socket;
 	}
 	
-	signal(SIGHUP, exit_handler);
+	signal(SIGHUP, hup_handler);
 	signal(SIGTERM, exit_handler);
 	signal(SIGINT, exit_handler);
 
