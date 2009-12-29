@@ -18,6 +18,7 @@
 	#include <netdb.h>
 	#include <unistd.h>
 #endif
+#include <signal.h>
 
 struct Message {
         uint8_t info;
@@ -26,6 +27,10 @@ struct Message {
         uint8_t length;
         uint8_t data[8];
 } __attribute__((__packed__));
+
+
+int sock, uart;
+
 
 int get_sender(fd_set *fds) {
     int i = 0;
@@ -84,9 +89,15 @@ int create_protocol_transmit(char *tbuffer, char *buffer) {
 	return oi;
 }
 
+void sigterm_handler(int signal) {
+	socket_close(sock);
+	serial_close(uart);
+	exit(0);
+}
+
 int main(int argc, char **argv) {
 	struct sockaddr_in server;
-	int sock, client, uart, max, len, tlen, pos = 0, jam = 0;
+	int pid, client, max, len, tlen, pos = 0, jam = 0;
 	int status = 0, i;
 	fd_set fds;
 	struct list_type list;
@@ -103,6 +114,18 @@ int main(int argc, char **argv) {
 	sock = socket_init();
 	uart = serial_init();
 	list_init(&list);
+	
+	if(conf.debug == 0) {
+		pid = fork();
+		if(pid < 0) {
+			fprintf(stderr, "fork() failed\n");
+			return 1;
+		} else if(pid > 0) { // parent
+			return 0;
+		}
+	}
+	
+	signal(SIGTERM, sigterm_handler);
 
 	while(1) {
 		FD_ZERO(&fds);
