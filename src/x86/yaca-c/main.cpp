@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 		try {
 			run();
 
-			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
+			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T " + yaca_path + "/src/x86/yaca-c/link-" + Globals::getStr("mcu") + ".txt -lyaca";
 			if(verbose > 1)
 				cout << "Info: running command \"" << cmd << "\"" << endl;
 			if(system(cmd.c_str()))
