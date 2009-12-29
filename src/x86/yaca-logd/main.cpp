@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
 	tm = localtime(&t.tv_sec);
 	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
 	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fflush(yaca);
+	fflush(bulk);
 	
 	while(1) {
 		read_message(sock, &msg);
