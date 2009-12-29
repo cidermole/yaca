@@ -51,7 +51,7 @@ void hup_handler(int signal) {
 }
 
 int main(int argc, char **argv) {
-	int i;
+	int i, pid;
 	char buf[1024];
 	char config_file[1024];
 	Message msg;
@@ -74,6 +74,14 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error opening bulk logfile \"%s\"\n", conf.logfile_bulk);
 		fclose(yaca);
 		goto error_close_socket;
+	}
+	
+	pid = fork();
+	if(pid < 0) {
+		fprintf(stderr, "fork() failed\n");
+		return 1;
+	} else if(pid > 0) { // parent
+		return 0;
 	}
 	
 	signal(SIGHUP, hup_handler);
