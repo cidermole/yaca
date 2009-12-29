@@ -211,7 +211,8 @@ int main(int argc, char** argv) {
 	
 	if(cleanMode) {
 		system((es + "rm -f " + nodeName + "-app.hex").c_str());
-		system((es + "rm -f " + nodeName + "-full.hex").c_str());
+		if(!newMode)
+			system((es + "rm -f " + nodeName + "-full.hex").c_str());
 		system((es + "rm -f " + nodeName + "-app.eep").c_str());
 		system((es + "rm -f " + nodeName + ".nds").c_str());
 		system((es + "rm -f Messages.h").c_str());
