@@ -47,12 +47,12 @@ int main(int argc, char **argv) {
 	if((sock = connect_socket(conf.server, conf.port)) == -1)
 		return 1;
 	
-	if(!(yaca = fopen(conf.logfile_yaca, "w"))) {
+	if(!(yaca = fopen(conf.logfile_yaca, "a"))) {
 		fprintf(stderr, "Error opening yaca logfile \"%s\"\n", conf.logfile_yaca);
 		goto error_close_socket;
 	}
 
-	if(!(bulk = fopen(conf.logfile_bulk, "w"))) {
+	if(!(bulk = fopen(conf.logfile_bulk, "a"))) {
 		fprintf(stderr, "Error opening bulk logfile \"%s\"\n", conf.logfile_bulk);
 		fclose(yaca);
 		goto error_close_socket;
