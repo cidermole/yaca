@@ -12,7 +12,12 @@
 typedef struct {
 	char server[LINE_BUFFER];
 	int port;
-	int status_canid;
+	char logfile_yaca[LINE_BUFFER];
+	char logfile_bulk[LINE_BUFFER];
+	int bulk_from;
+	int bulk_to;
+	int nodeid_from;
+	int nodeid_to;
 } conf_t;
 
 extern conf_t conf;

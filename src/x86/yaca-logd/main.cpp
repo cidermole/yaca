@@ -5,49 +5,87 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <signal.h>
 
-//#include "config.h"
+#include "config.h"
 #include "network.h"
 #include "../yaca-path.h"
 
-int main(int argc, char **argv) {
-	int sock = 0, flags;
-	char buf[1024];
-//	char config_file[1024];
-	Message msg;
-	struct timespec t, d;
+int sock = 0;
+FILE *yaca, *bulk;
+
+void exit_handler(int signal) {
+	struct timespec t;
 	struct tm *tm;
 	
-	init_yaca_path();
-//	sprintf(config_file, "%s/src/x86/mpmon/conf/mpmon.conf", yaca_path);
-//	load_conf(config_file);
-//	if((sock = connect_socket(conf.server, conf.port)) == -1)
-	if((sock = connect_socket("192.168.1.1", 1222)) == -1)
-		return 1;
+	clock_gettime(CLOCK_REALTIME, &t);
+	tm = localtime(&t.tv_sec);
+	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd exiting -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd exiting -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fclose(yaca);
+	fclose(bulk);
+#ifdef _WIN32
+	closesocket(sock);
+#else
+	close(sock);
+#endif
+	exit(0);
+}
 
-	if((flags = fcntl(sock, F_GETFD)) == -1) {
-		fprintf(stderr, "fcntl(sock, F_GETFD) failed\n");
+int main(int argc, char **argv) {
+	int i;
+	char buf[1024];
+	char config_file[1024];
+	Message msg;
+	struct timespec t;
+	struct tm *tm;
+	FILE *f;
+	
+	init_yaca_path();
+	sprintf(config_file, "%s/src/x86/yaca-logd/conf/yaca-logd.conf", yaca_path);
+	load_conf(config_file);
+	if((sock = connect_socket(conf.server, conf.port)) == -1)
 		return 1;
+	
+	if(!(yaca = fopen(conf.logfile_yaca, "w"))) {
+		fprintf(stderr, "Error opening yaca logfile \"%s\"\n", conf.logfile_yaca);
+		goto error_close_socket;
 	}
-	// set O_NONBLOCK on 'sock'
-	if(fcntl(sock, F_SETFD, flags | O_NONBLOCK) == -1) {
-		fprintf(stderr, "fcntl(sock, F_SETFD, flags | O_NONBLOCK) failed\n");
-		return 1;
+
+	if(!(bulk = fopen(conf.logfile_bulk, "w"))) {
+		fprintf(stderr, "Error opening bulk logfile \"%s\"\n", conf.logfile_bulk);
+		fclose(yaca);
+		goto error_close_socket;
 	}
 	
-	d.tv_sec = 0;
+	signal(SIGHUP, exit_handler);
+	signal(SIGTERM, exit_handler);
+
+	clock_gettime(CLOCK_REALTIME, &t);
+	tm = localtime(&t.tv_sec);
+	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
 	
 	while(1) {
+		read_message(sock, &msg);
 		clock_gettime(CLOCK_REALTIME, &t);
-		d.tv_nsec = 1000000000 - t.tv_nsec;
-		nanosleep(&d, NULL);
-		
-		t.tv_sec++;
 		tm = localtime(&t.tv_sec);
-		write_message(sock, /* TODO */ 401, 7, tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_year - 100, tm->tm_mon + 1, tm->tm_mday, tm->tm_isdst);
-		read(sock, buf, sizeof(buf));
+		
+		if((msg.id >= conf.bulk_from && msg.id <= conf.bulk_to) || (msg.id >= conf.nodeid_from && msg.id <= conf.nodeid_to))
+			f = bulk;
+		else
+			f = yaca;
+		
+		fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%5d] %c (%d) ", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000), msg.id, msg.rtr ? 'R' : ' ', msg.length);
+		
+		for(i = 0; i < msg.length; i++)
+			fprintf(f, "%02X", msg.data[i]);
+		fprintf(f, "\n");
+		fflush(f);
 	}
-
+	
+	fclose(yaca);
+	fclose(bulk);
 #ifdef _WIN32
 	closesocket(sock);
 #else
@@ -55,5 +93,15 @@ int main(int argc, char **argv) {
 #endif
 
 	return 0;
+	
+error_close_socket:
+
+#ifdef _WIN32
+	closesocket(sock);
+#else
+	close(sock);
+#endif
+
+	return 1;
 }
 

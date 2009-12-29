@@ -9,7 +9,7 @@ SRCDIR = ../../../src/x86/yaca-logd
 #
 EXE = main
 #INCDIRS +=
-CFLAGS +=
+CFLAGS += -lrt
 
 CC = g++
 

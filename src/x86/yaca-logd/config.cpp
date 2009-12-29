@@ -28,8 +28,18 @@ void process_key(const char *key, const char *val) {
 		strcpy(conf.server, val);
 	} else if(compare(key, "port")) {
 		conf.port = atoi(val);
-	} else if(compare(key, "status_canid")) {
-		conf.status_canid = atoi(val);
+	} else if(compare(key, "logfile_yaca")) {
+		strcpy(conf.logfile_yaca, val);
+	} else if(compare(key, "logfile_bulk")) {
+		strcpy(conf.logfile_bulk, val);
+	} else if(compare(key, "bulk_from")) {
+		conf.bulk_from = atoi(val);
+	} else if(compare(key, "bulk_to")) {
+		conf.bulk_to = atoi(val);
+	} else if(compare(key, "nodeid_from")) {
+		conf.nodeid_from = atoi(val);
+	} else if(compare(key, "nodeid_to")) {
+		conf.nodeid_to = atoi(val);
 	}
 }
 
@@ -42,7 +52,12 @@ void load_conf(const char *file) {
 	// default values
 	strcpy(conf.server, "192.168.1.1");
 	conf.port = 1222;
-	conf.status_canid = 22;
+	strcpy(conf.logfile_yaca, "/var/log/yaca/yaca.log");
+	strcpy(conf.logfile_bulk, "/var/log/yaca/bulk.log");
+	conf.bulk_from = 400;
+	conf.bulk_to = 799;
+	conf.nodeid_from = 800;
+	conf.nodeid_to = 1024;
 	
 	if(!f) {
 		fprintf(stderr, "can't open config file \"%s\"\n", file);
