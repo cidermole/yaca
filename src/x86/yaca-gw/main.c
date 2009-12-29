@@ -36,8 +36,6 @@ int get_sender(fd_set *fds) {
     return i;
 }
 
-void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except = -1);
-
 void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
 	struct list_entry *le;
 
@@ -158,7 +156,7 @@ int main(int argc, char **argv) {
 						if(conf.debug && msgbuf_in.data[0] == 0xF0 && msgbuf_in.length)
 							printf("(debug msg, not forwarding)\n");
 						else
-							send_to_all(&list, (const char*)&msgbuf_in, sizeof(msgbuf_in));
+							send_to_all(&list, (const char *) &msgbuf_in, sizeof(msgbuf_in), -1);
 						pos = 0;
 					} else if(buf[i] == 0x01) {
 						bytewise(msgbuf_in, pos++) = 0x55;
