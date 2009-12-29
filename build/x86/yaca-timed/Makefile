@@ -2,7 +2,7 @@
 # add all objects to build here...
 #
 OBJS = network.o
-SRCDIR = ../../../src/x86/yaca-time
+SRCDIR = ../../../src/x86/yaca-timed
 
 #
 # project library settings
@@ -23,11 +23,11 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-time
+	rm ../../bin/yaca-timed
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS)
-	cp $(EXE) ../../bin/yaca-time
+	cp $(EXE) ../../bin/yaca-timed
 
 %.o: $(SRCDIR)/%.cpp
 	$(CC) -c -o $@ $< $(INCDIRS) $(CFLAGS)
