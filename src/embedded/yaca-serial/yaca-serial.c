@@ -176,7 +176,8 @@ int main() {
 	yc_init();
 	
 	TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10); // CTC, prescaler 64
-	OCR1A = 31250; // 64 * 3.125 = 200.000 (100 ms ticks)
+	OCR1A = 3125; // 64 * 3.125 = 200.000 (100 ms ticks)
+	TIMSK = (1 << OCIE1A); // enable output-compare interrupt
 	
 	wdt_enable(WDTO_2S);
 	sei();
@@ -329,6 +330,9 @@ ISR(TIMER1_COMPA_vect) {
 	}
 	sub_count = 0;
 	advance_time();
-	tr_time = 1;
+	
+	// don't transmit time if we were cold-started...
+	if(year != 0)
+		tr_time = 1;
 }
 
