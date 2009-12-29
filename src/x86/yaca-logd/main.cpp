@@ -20,8 +20,8 @@ void exit_handler(int signal) {
 	
 	clock_gettime(CLOCK_REALTIME, &t);
 	tm = localtime(&t.tv_sec);
-	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd exiting -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
-	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd exiting -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd exiting -------------\n", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd exiting -------------\n", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
 	fclose(yaca);
 	fclose(bulk);
 #ifdef _WIN32
@@ -63,8 +63,8 @@ int main(int argc, char **argv) {
 
 	clock_gettime(CLOCK_REALTIME, &t);
 	tm = localtime(&t.tv_sec);
-	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
-	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fprintf(yaca, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
+	fprintf(bulk, "%04d-%02d-%02d %02d:%02d:%02d.%03d ------------- yaca-logd started -------------\n", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000));
 	
 	while(1) {
 		read_message(sock, &msg);
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 		else
 			f = yaca;
 		
-		fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%5d] %c (%d) ", tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000), msg.id, msg.rtr ? 'R' : ' ', msg.length);
+		fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%5d] %c (%d) ", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int) (t.tv_nsec / 1000000), msg.id, msg.rtr ? 'R' : ' ', msg.length);
 		
 		for(i = 0; i < msg.length; i++)
 			fprintf(f, "%02X", msg.data[i]);
