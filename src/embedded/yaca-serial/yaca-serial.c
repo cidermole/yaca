@@ -205,6 +205,7 @@ int main() {
 		
 		if(tr_time && state != 2) {
 			msg.info = 0;
+			msg.rtr = 0;
 			msg.id = CANID_TIME;
 			msg.length = 7;
 			msg.data[0] = hour;
