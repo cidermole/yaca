@@ -37,7 +37,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Objects that must be built in order to link
-OBJECTS = $(PROJECT).o uart.o fifo.o
+OBJECTS = $(PROJECT).o uart.o fifo.o calendar.o
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
