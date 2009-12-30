@@ -67,30 +67,31 @@ void write_message(int sock, unsigned int id, int length, char d0, char d1, char
 ////////////////////////////////////////////////////////////////////////////////
 
 int read_message(int sock, struct Message *buffer) {
-	int sum = 0;
 	ssize_t rv = 0;
-	char *p = (char *) buffer;
-
-	while(sum < sizeof(struct Message) && rv != -1) {
-		if((rv = read(sock, p, sizeof(struct Message) - sum)) != -1) {
-			sum += rv;
-			p += rv;
-		}
-	}
-
-	return (rv != -1);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-int poll_message(int sock) {
+	char* buf = new char[sizeof(struct Message)];
+	int sum = 0;
 	fd_set fds;
-	struct timeval timeout = {RTR_TIMEOUT_SEC, RTR_TIMEOUT_US};
-	
+	struct timeval timeout = {1, 0};
+
 	FD_ZERO(&fds);
 	FD_SET(sock, &fds);
 	select(sock + 1, &fds, NULL, NULL, &timeout);
-	return FD_ISSET(sock, &fds);
+	if(!FD_ISSET(sock, &fds))
+		return 0;
+
+	// FIXME: correct way would be to count offset
+	while(sum < sizeof(struct Message)) {
+		if((rv = read(sock, buffer, sizeof(struct Message))) > 0)
+			sum += rv;
+		else break;
+		//if(rv == 0)
+		//  return 0;
+		if(sum < sizeof(struct Message))
+			printf("**read_message problem**");
+	}
+
+	//printf("readmessage end\n");
+	return (rv > 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
