@@ -315,21 +315,16 @@ void advance_time() {
 
 ISR(TIMER1_COMPA_vect) {
 	sub_count++;
-	if(!ntp) {
-		if(++corr_fac == CLOCK_CORR) {
-			corr_fac = 0;
-			sub_count++;
-		}
+	if(++corr_fac == CLOCK_CORR) {
+		corr_fac = 0;
+		sub_count--;
 	}
 	if(ntp == 1 && sub_count >= 12) {
 		ntp = 0;
 	} else if(ntp || sub_count < 10) {
 		return;
 	}
-	if(!ntp)
-		sub_count -= 10;
-	else
-		sub_count = 0;
+	sub_count = 0;
 	advance_time();
 	
 	// don't transmit time if we were cold-started...
