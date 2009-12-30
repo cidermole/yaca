@@ -176,6 +176,7 @@ int main(int argc, char **argv) {
 				continue;
 			}
 			if(message.rtr) { // this is a query
+				fail = false;
 				if(buffer.used(message.id)) {
 					buffer.get(&message, message.id);
 				} else {
