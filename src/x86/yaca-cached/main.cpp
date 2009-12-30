@@ -134,13 +134,13 @@ int main(int argc, char **argv) {
 		return -3;
     }
     
-/*	pid = fork();
+	pid = fork();
 	if(pid < 0) {
 		fprintf(stderr, "fork() failed\n");
 		return 1;
 	} else if(pid > 0) { // parent
 		return 0;
-	}*/
+	}
     
     qsock = s;
 	
@@ -158,12 +158,10 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(sock, &fds)) {
 			// incoming data from socket, check if the value is buffered and needs to be updated
-			printf("sock\n"); fflush(stdout);
 			if(!read_message(sock, &message)) {
 				fprintf(stderr, "read_message() from yaca-serial socket failed, exiting...\n");
 				return 1;
 			}
-			printf("/sock\n"); fflush(stdout);
 			
 			if(!message.rtr && buffer.used(message.id)) {
 				//handle_message(&buffer, &message);
@@ -172,14 +170,11 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(csock, &fds)) {
 			// incoming data from fifo
-			printf("csock\n"); fflush(stdout);
 			if(!read_message(csock, &message)) {
 				close(csock);
-				printf("/csock (client closed)\n"); fflush(stdout);
 				csock = 0;
 				continue;
 			}
-			printf("/csock\n"); fflush(stdout);
 			if(message.rtr) { // this is a query
 				if(buffer.used(message.id)) {
 					buffer.get(&message, message.id);
@@ -191,13 +186,10 @@ int main(int argc, char **argv) {
 					write(sock, &message, sizeof(Message));
 					fail = false;
 					while(message.id != id || message.rtr) {
-						printf("polled sock\n"); fflush(stdout);
 						if(!read_message(sock, &message)) {
-							printf("/polled sock\n"); fflush(stdout);
 							fail = true;
 							break;
 						}
-						printf("/polled sock\n"); fflush(stdout);
 						handle_message(&buffer, &message);
 					}
 				}
