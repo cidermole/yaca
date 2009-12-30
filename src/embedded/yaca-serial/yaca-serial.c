@@ -42,7 +42,7 @@ e.g. 1 ping / second
 
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
 
-#define CLOCK_CORR 545
+#define CLOCK_CORR 5454
 
 static uint8_t state = 0;
 volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, ntp = 1, dst = 0, tr_time = 0;
@@ -317,14 +317,17 @@ ISR(TIMER1_COMPA_vect) {
 	sub_count++;
 	if(++corr_fac == CLOCK_CORR) {
 		corr_fac = 0;
-		sub_count--;
+		sub_count++;
 	}
-	if(ntp == 1 && sub_count >= 12) {
+	if(ntp == 1 && sub_count >= 32) { // if 3 updates are missing, switch to local time sync
+		advance_time();
+		advance_time();
+		sub_count -= 20;
 		ntp = 0;
 	} else if(ntp || sub_count < 10) {
 		return;
 	}
-	sub_count = 0;
+	sub_count -= 10;
 	advance_time();
 	
 	// don't transmit time if we were cold-started...
