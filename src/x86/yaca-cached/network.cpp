@@ -83,6 +83,18 @@ int read_message(int sock, struct Message *buffer) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+int poll_message(int sock) {
+	fd_set fds;
+	struct timeval timeout = {RTR_TIMEOUT_SEC, RTR_TIMEOUT_US};
+	
+	FD_ZERO(&fds);
+	FD_SET(sock, &fds);
+	select(sock + 1, &fds, NULL, NULL, &timeout);
+	return FD_ISSET(sock, &fds);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 char *target_flash_page(const char *buffer, int page_size, int tid, int sock) {
 	struct Message enter, in;
 	int i, singleBytes;

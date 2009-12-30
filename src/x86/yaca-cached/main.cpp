@@ -186,10 +186,11 @@ int main(int argc, char **argv) {
 					write(sock, &message, sizeof(Message));
 					fail = false;
 					while(message.id != id || message.rtr) {
-						if(!read_message(sock, &message)) {
+						if(!poll_message(sock)) {
 							fail = true;
 							break;
 						}
+						read_message(sock, &message);
 						handle_message(&buffer, &message);
 					}
 				}
