@@ -4,6 +4,7 @@
 #include <yaca-bl.h>
 
 #include "uart.h"
+#include "calendar.h"
 
 /*
 
@@ -41,8 +42,11 @@ e.g. 1 ping / second
 
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
 
+#define CLOCK_CORR 545
+
 static uint8_t state = 0;
 volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, year = 0, ntp = 1, dst = 0, tr_time = 0;
+volatile uint16_t corr_fac = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -260,8 +264,6 @@ int main() {
 }
 
 void advance_time() {
-	uint8_t days_in_month;
-	
 	sec++;
 	if(sec >= 60) {
 		sec = 0;
@@ -273,6 +275,18 @@ void advance_time() {
 	if(min >= 60) {
 		min = 0;
 		hour++;
+		
+		// CEST starts on the last Sunday of March at 02:00 CET
+		if(month == 3 && hour == 2 && (day + 7) > 31 && day_of_week(year, month, day) == 0) {
+			dst = 1;
+			hour = 3;
+		}
+		
+		// CEST ends on the last Sunday of October at 03:00 CEST
+		if(dst == 1 && month == 10 && hour == 3 && (day + 7) > 31 && day_of_week(year, month, day) == 0) {
+			dst = 0;
+			hour = 2;
+		}
 	} else {
 		return;
 	}
@@ -284,32 +298,7 @@ void advance_time() {
 		return;
 	}
 	
-	switch(month) {
-		case 1: days_in_month = 31; break;
-		case 2:
-			// (2000 + year) % 4 == 0    ->   year % 4 == 0
-			// (2000 + year) % 100 == 0  ->   year % 100 == 0
-			// XXX: 400-year rule not implemented - doesn't make sense on 8 bit
-			
-			if((year % 4 == 0) && (year % 100 != 0))
-				days_in_month = 29;
-			else
-				days_in_month = 28;
-			break;
-		case 3: days_in_month = 31; break;
-		case 4: days_in_month = 30; break;
-		case 5: days_in_month = 31; break;
-		case 6: days_in_month = 30; break;
-		case 7: days_in_month = 31; break;
-		case 8: days_in_month = 31; break;
-		case 9: days_in_month = 30; break;
-		case 10: days_in_month = 31; break;
-		case 11: days_in_month = 30; break;
-		case 12: days_in_month = 31; break;
-		default: days_in_month = 30;
-	}
-	
-	if(day > days_in_month) {
+	if(day > days_in_month(month, 2000 + (uint16_t) year)) {
 		day = 1;
 		month++;
 	} else {
@@ -324,12 +313,16 @@ void advance_time() {
 
 ISR(TIMER1_COMPA_vect) {
 	sub_count++;
+	if(++corr_fac == CLOCK_CORR) {
+		corr_fac = 0;
+		sub_count++;
+	}
 	if(ntp == 1 && sub_count >= 12) {
 		ntp = 0;
 	} else if(ntp || sub_count < 10) {
 		return;
 	}
-	sub_count = 0;
+	sub_count -= 10;
 	advance_time();
 	
 	// don't transmit time if we were cold-started...
