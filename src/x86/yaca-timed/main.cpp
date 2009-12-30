@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		t.tv_sec++;
 		tm = localtime(&t.tv_sec);
 		write_message(sock, /* TODO */ 401, 8, tm->tm_hour, tm->tm_min, tm->tm_sec, (tm->tm_year + 1900) >> 8, (uint8_t) (tm->tm_year + 1900), tm->tm_mon + 1, tm->tm_mday, tm->tm_isdst);
-		read(sock, buf, sizeof(buf));
+//		read(sock, buf, sizeof(buf)); // TODO: check if overflowing buffers cause problems. this is commented out for now, because it takes ages even with O_NONBLOCK
 	}
 
 #ifdef _WIN32
