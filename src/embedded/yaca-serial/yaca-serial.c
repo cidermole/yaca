@@ -45,8 +45,8 @@ e.g. 1 ping / second
 #define CLOCK_CORR 545
 
 static uint8_t state = 0;
-volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, year = 0, ntp = 1, dst = 0, tr_time = 0;
-volatile uint16_t corr_fac = 0;
+volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, ntp = 1, dst = 0, tr_time = 0;
+volatile uint16_t year = 0, corr_fac = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -124,10 +124,11 @@ void do_uart(uint8_t c) {
 				hour = msg_out.data[0];
 				min = msg_out.data[1];
 				sec = msg_out.data[2];
-				year = msg_out.data[3];
-				month = msg_out.data[4];
-				day = msg_out.data[5];
-				dst = msg_out.data[6] & 0x01;
+				year = msg_out.data[4];
+				year += ((uint16_t) msg_out.data[3]) << 8;
+				month = msg_out.data[5];
+				day = msg_out.data[6];
+				dst = msg_out.data[7] & 0x01;
 			}
 			
 			msg_index = 0;
@@ -211,14 +212,15 @@ int main() {
 			msg.info = 0;
 			msg.rtr = 0;
 			msg.id = CANID_TIME;
-			msg.length = 7;
+			msg.length = 8;
 			msg.data[0] = hour;
 			msg.data[1] = min;
 			msg.data[2] = sec;
-			msg.data[3] = year;
-			msg.data[4] = month;
-			msg.data[5] = day;
-			msg.data[6] = dst | TIME_FLAGS_BAK;
+			msg.data[4] = year;
+			msg.data[3] = year >> 8;
+			msg.data[5] = month;
+			msg.data[6] = day;
+			msg.data[7] = dst | TIME_FLAGS_BAK;
 			
 			if(yc_transmit(&msg) == PENDING) {
 				state = 3;
@@ -298,7 +300,7 @@ void advance_time() {
 		return;
 	}
 	
-	if(day > days_in_month(month, 2000 + (uint16_t) year)) {
+	if(day > days_in_month(month, year)) {
 		day = 1;
 		month++;
 	} else {
