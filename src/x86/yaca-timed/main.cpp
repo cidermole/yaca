@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <stdint.h>
 
 //#include "config.h"
 #include "network.h"
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 		
 		t.tv_sec++;
 		tm = localtime(&t.tv_sec);
-		write_message(sock, /* TODO */ 401, 7, tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_year - 100, tm->tm_mon + 1, tm->tm_mday, tm->tm_isdst);
+		write_message(sock, /* TODO */ 401, 8, tm->tm_hour, tm->tm_min, tm->tm_sec, (tm->tm_year + 1900) >> 8, (uint8_t) (tm->tm_year + 1900), tm->tm_mon + 1, tm->tm_mday, tm->tm_isdst);
 		read(sock, buf, sizeof(buf));
 	}
 
