@@ -48,6 +48,7 @@ uint32_t chg_target = 0;
 uint32_t lost_charge = 0;
 uint16_t u_in, i_in;
 uint8_t fifths = 0;
+uint8_t no_topping = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -104,10 +105,15 @@ void transition_boost() {
 
 void transition_charge() {
 	charge_pwm = MILLIAMP_TO_PWM(100); // charge with (100 - 33) = 67 mA
-	yc_prepare(28);
+	yc_prepare(2008);
 	yc_send(MainPower, Debug1(lost_charge));
+	if((lost_charge >> 16) < 22) { // if discharge was less than 10 %, omit the topping
+		no_topping = 1;
+	} else {
+		no_topping = 0;
+	}
 	chg_target = seconds + (lost_charge >> 16) * 459;
-	yc_prepare(29);
+	yc_prepare(2009);
 	yc_send(MainPower, Debug2(chg_target));
 	red_led(1);
 	green_led(1);
@@ -115,6 +121,11 @@ void transition_charge() {
 }
 
 void transition_chg_top() {
+	if(no_topping) {
+		transition_idle();
+		return;
+	}
+
 	// low charging current is supposedly bad for batteries, so topping charge with the full current (C/28 anyways...)
 	charge_pwm = MILLIAMP_TO_PWM(100); // charge with (100 - 33) = 67 mA
 	chg_target = seconds + 1200; // 20 min * 67 mA = 22 mAh (1,2 %)
