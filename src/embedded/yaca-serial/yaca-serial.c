@@ -4,6 +4,7 @@
 #include <yaca-bl.h>
 
 #include "uart.h"
+#include "calendar.h"
 
 /*
 
@@ -31,13 +32,21 @@ e.g. 1 ping / second
 #define REPLY_TRSUC   0x02
 #define REPLY_DATA    0x01
 
+#define CANID_TIME 401
+#define TIME_FLAGS_DST (1 << 0) // daylight saving time
+#define TIME_FLAGS_BAK (1 << 1) // backup time source
+
 #define LINUX_PORT PORTD
 #define LINUX_DDR  DDRD
 #define LINUX_BIT  (1 << PD5)
 
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
 
+#define CLOCK_CORR 5454
+
 static uint8_t state = 0;
+volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, ntp = 1, dst = 0, tr_time = 0;
+volatile uint16_t year = 0, corr_fac = 0;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -109,6 +118,19 @@ void do_uart(uint8_t c) {
 
 	case 1: // Command: Send CAN frame
 		if(mask && c == 0x00) {
+			if(msg_out.id == CANID_TIME && msg_out.rtr == 0) {
+				ntp = 1;
+				sub_count = 0;
+				hour = msg_out.data[0];
+				min = msg_out.data[1];
+				sec = msg_out.data[2];
+				year = msg_out.data[4];
+				year += ((uint16_t) msg_out.data[3]) << 8;
+				month = msg_out.data[5];
+				day = msg_out.data[6];
+				dst = msg_out.data[7] & 0x01;
+			}
+			
 			msg_index = 0;
 			if(yc_transmit(&msg_out) == PENDING) {
 				state = 2;
@@ -157,22 +179,57 @@ int main() {
 	delay_ms(1000); // Wait for EEPROM to warm up (?)
 	
 	yc_init();
-
+	
+	TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10); // CTC, prescaler 64
+	OCR1A = 3125; // 64 * 3.125 = 200.000 (100 ms ticks)
+	TIMSK = (1 << OCIE1A); // enable output-compare interrupt
+	
 	wdt_enable(WDTO_2S);
 	sei();
 
 	while(1) {
-		if(fifo2_read.count && state != 2) {
+		if(fifo2_read.count && state != 2 && state != 3) {
 			data = uart_getc_nowait();
 			do_uart((uint8_t)data);
 		}
 		if(state == 2) { // if we are waiting for yc_transmit()...
 			do_uart(0); // the state machine needs to run to be able to poll for completion
 		}
-
+		
 		if(yc_poll_receive()) {
 			yc_receive(&msg);
 			uart_put_message(&msg);
+		}
+		
+		if(state == 3) {
+			_delay_us(100);
+			if(yc_poll_transmit(&msg) != PENDING) {
+				state = 0;
+			}
+		}
+		
+		if(tr_time && state != 2) {
+			msg.info = 0;
+			msg.rtr = 0;
+			msg.id = CANID_TIME;
+			msg.length = 8;
+			msg.data[0] = hour;
+			msg.data[1] = min;
+			msg.data[2] = sec;
+			msg.data[4] = year;
+			msg.data[3] = year >> 8;
+			msg.data[5] = month;
+			msg.data[6] = day;
+			msg.data[7] = dst | TIME_FLAGS_BAK;
+			
+			if(yc_transmit(&msg) == PENDING) {
+				state = 3;
+			}
+			
+			// debug: send time back to tty
+			uart_put_message(&msg);
+			
+			tr_time = 0;
 		}
 		
 		if(wb_is_full()) {
@@ -206,5 +263,75 @@ int main() {
 		wdt_reset();
 	}
 	return 0;
+}
+
+void advance_time() {
+	sec++;
+	if(sec >= 60) {
+		sec = 0;
+		min++;
+	} else {
+		return;
+	}
+	
+	if(min >= 60) {
+		min = 0;
+		hour++;
+		
+		// CEST starts on the last Sunday of March at 02:00 CET
+		if(month == 3 && hour == 2 && (day + 7) > 31 && day_of_week(year, month, day) == 0) {
+			dst = 1;
+			hour = 3;
+		}
+		
+		// CEST ends on the last Sunday of October at 03:00 CEST
+		if(dst == 1 && month == 10 && hour == 3 && (day + 7) > 31 && day_of_week(year, month, day) == 0) {
+			dst = 0;
+			hour = 2;
+		}
+	} else {
+		return;
+	}
+	
+	if(hour >= 24) {
+		hour = 0;
+		day++;
+	} else {
+		return;
+	}
+	
+	if(day > days_in_month(month, year)) {
+		day = 1;
+		month++;
+	} else {
+		return;
+	}
+	
+	if(month > 12) {
+		month = 1;
+		year++;
+	}
+}
+
+ISR(TIMER1_COMPA_vect) {
+	sub_count++;
+	if(++corr_fac == CLOCK_CORR) {
+		corr_fac = 0;
+		sub_count++;
+	}
+	if(ntp == 1 && sub_count >= 32) { // if 3 updates are missing, switch to local time sync
+		advance_time();
+		advance_time();
+		sub_count -= 20;
+		ntp = 0;
+	} else if(ntp || sub_count < 10) {
+		return;
+	}
+	sub_count -= 10;
+	advance_time();
+	
+	// don't transmit time if we were cold-started...
+	if(year != 0)
+		tr_time = 1;
 }
 

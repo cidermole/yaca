@@ -1,23 +1,13 @@
--> CAN-ID space:
-	fr	to	usage
 
-	0	399	status messages
-	400	799	rpc messages
-	800	1k	node ids (tid)
-	1k	2k	multimedia (MSB set)
-
-
-
-	REVERT 2101e851eb73ed857a6548f5585173e77cd12d92
-	(Makefiles for main-power)
+-> take apart a node (e.g. cut mcp2515 pins) and see what happens (app should continue without bus)
 
 
 -> "Read eeprom message" into libyaca
--> CHECK: 'info' of Message struct in yaca-serial?
+O> CHECK: 'info' of Message struct in yaca-serial?
 O> "Enter bootloader message" into libyaca
 O> libyaca: call init _Z4initv
 
--> yaca-cached: if socket to yaca-serial dies, endless loop - fix
+?> yaca-cached: if socket to yaca-serial dies, endless loop - fix
 
 LONG-TERM
 ^^^^^^^^^

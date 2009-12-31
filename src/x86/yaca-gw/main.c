@@ -18,6 +18,7 @@
 	#include <netdb.h>
 	#include <unistd.h>
 #endif
+#include <signal.h>
 
 struct Message {
         uint8_t info;
@@ -26,6 +27,10 @@ struct Message {
         uint8_t length;
         uint8_t data[8];
 } __attribute__((__packed__));
+
+
+int sock, uart;
+
 
 int get_sender(fd_set *fds) {
     int i = 0;
@@ -36,11 +41,12 @@ int get_sender(fd_set *fds) {
     return i;
 }
 
-void send_to_all(struct list_type *list, const char *buffer, int size) {
+void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
 	struct list_entry *le;
 
 	for(le = list->data; le; le = le->next)
-		write(le->fd, buffer, size);
+		if(le->fd != fd_except)
+			write(le->fd, buffer, size);
 }
 
 #define bytewise(var, b) (((unsigned char*)&(var))[b])
@@ -60,7 +66,7 @@ void put_buffer(const char *str, const char *buffer, int size) {
 
 #define CMD_SEND    0x03
 // buffer max size = sizeof(struct Message)
-int create_protocol_transmit(char *tbuffer, char *buffer) {
+int create_protocol_transmit(char *tbuffer, const char *buffer) {
 	int oi = 0, i;
 	struct Message *msg = (struct Message *)buffer;
 	
@@ -83,9 +89,15 @@ int create_protocol_transmit(char *tbuffer, char *buffer) {
 	return oi;
 }
 
+void sigterm_handler(int signal) {
+	socket_close(sock);
+	serial_close(uart);
+	exit(0);
+}
+
 int main(int argc, char **argv) {
 	struct sockaddr_in server;
-	int sock, client, uart, max, len, tlen, pos = 0, jam = 0;
+	int pid, client, max, len, tlen, pos = 0, jam = 0;
 	int status = 0, i;
 	fd_set fds;
 	struct list_type list;
@@ -102,6 +114,18 @@ int main(int argc, char **argv) {
 	sock = socket_init();
 	uart = serial_init();
 	list_init(&list);
+	
+	if(conf.debug == 0) {
+		pid = fork();
+		if(pid < 0) {
+			fprintf(stderr, "fork() failed\n");
+			return 1;
+		} else if(pid > 0) { // parent
+			return 0;
+		}
+	}
+	
+	signal(SIGTERM, sigterm_handler);
 
 	while(1) {
 		FD_ZERO(&fds);
@@ -155,7 +179,7 @@ int main(int argc, char **argv) {
 						if(conf.debug && msgbuf_in.data[0] == 0xF0 && msgbuf_in.length)
 							printf("(debug msg, not forwarding)\n");
 						else
-							send_to_all(&list, (const char*)&msgbuf_in, sizeof(msgbuf_in));
+							send_to_all(&list, (const char *) &msgbuf_in, sizeof(msgbuf_in), -1);
 						pos = 0;
 					} else if(buf[i] == 0x01) {
 						bytewise(msgbuf_in, pos++) = 0x55;
@@ -170,6 +194,7 @@ int main(int argc, char **argv) {
 				}
 			}
 		} else { // incoming data from socket
+			// FIXME: this kind of reception works *USUALLY*!!! fix!
 			client = get_sender(&fds);
 			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?
 				socket_close(client); // TODO: check if this works out
@@ -197,8 +222,11 @@ int main(int argc, char **argv) {
 							tcdrain(uart);
 						} else {*/
 							tlen = create_protocol_transmit(tbuf, pbuf);
+							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
+							
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
+							
 							if(conf.debug > 1)
 								put_buffer("Transmitting via UART", tbuf, tlen);
 							write(uart, tbuf, tlen);

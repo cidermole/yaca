@@ -90,7 +90,7 @@ void handle_message(Buffer *buffer, Message *message) {
 // message.info = 0 -> reply to a query
 
 int main(int argc, char **argv) {
-	int sock = 0, qsock = 0, csock = 0, fifo_write = 0, id;
+	int sock = 0, qsock = 0, csock = 0, fifo_write = 0, id, pid;
 	char config_file[1024];
 	string listen_pipe, write_pipe, logfname;
 	size_t pos;
@@ -113,11 +113,9 @@ int main(int argc, char **argv) {
     socklen_t addr_len;
     struct sockaddr_in addr;
 
-    s = socket(PF_INET, SOCK_STREAM, 0);
-    if (s == -1)
-    {
+    if((s = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket() failed");
-        return -1;
+        return 1;
     }
 
     addr.sin_addr.s_addr = INADDR_ANY;
@@ -136,6 +134,14 @@ int main(int argc, char **argv) {
 		return -3;
     }
     
+	pid = fork();
+	if(pid < 0) {
+		fprintf(stderr, "fork() failed\n");
+		return 1;
+	} else if(pid > 0) { // parent
+		return 0;
+	}
+    
     qsock = s;
 	
 	while(1) {
@@ -152,7 +158,11 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(sock, &fds)) {
 			// incoming data from socket, check if the value is buffered and needs to be updated
-			read_message(sock, &message);
+			if(!read_message(sock, &message)) {
+				fprintf(stderr, "read_message() from yaca-serial socket failed, exiting...\n");
+				return 1;
+			}
+			
 			if(!message.rtr && buffer.used(message.id)) {
 				//handle_message(&buffer, &message);
 				buffer.set(message.id, &message);
@@ -166,6 +176,7 @@ int main(int argc, char **argv) {
 				continue;
 			}
 			if(message.rtr) { // this is a query
+				fail = false;
 				if(buffer.used(message.id)) {
 					buffer.get(&message, message.id);
 				} else {

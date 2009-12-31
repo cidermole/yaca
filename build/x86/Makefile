@@ -6,6 +6,8 @@ all:
 	cd yaca-cached; make
 	cd yaca-tr; make
 	cd mpmon; make
+	cd yaca-timed; make
+	cd yaca-logd; make
 
 clean:
 	cd yaca-c; make clean
@@ -15,6 +17,8 @@ clean:
 	cd yaca-cached; make clean
 	cd yaca-tr; make clean
 	cd mpmon; make clean
+	cd yaca-timed; make clean
+	cd yaca-logd; make clean
 
 mrproper:
 	cd yaca-c; make mrproper
@@ -24,3 +28,5 @@ mrproper:
 	cd yaca-cached; make mrproper
 	cd yaca-tr; make mrproper
 	cd mpmon; make mrproper
+	cd yaca-timed; make mrproper
+	cd yaca-logd; make mrproper

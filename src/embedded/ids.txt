@@ -1,7 +1,30 @@
-1: Switcha: Testaufbau mit LED
-2: Switcha: SetLed (uint8_t)
-3: Switcha: LedStatus (uint8_t)
+fr	to	usage
 
-20: MainPower: Stromversorgung Hausbus
-21: MainPower: HelloWorld(uint8_t) // obsolete
-22: MainPower: PowerStatus(uint8_t state, uint16_t u, uint16_t i)
+1	199	rpc messages
+200	399	status messages
+400	799	bulk status messages
+800	1k	node ids (tid)
+1k	2k	multimedia (MSB set)
+
+
+Nodes
+-----
+800 Switcha: Testaufbau mit LED
+801 MainPower: Stromversorgung Hausbus
+
+RPCs
+----
+1 Switcha::SetLed(uint8_t)
+2 MainPower::Charge(uint8_t t_high, uint16_t t)
+
+Status
+------
+200 Switcha::LedStatus(uint8_t)
+
+Bulk Status
+-----------
+400 MainPower::PowerStatus(uint8_t ac_power, uint16_t adc_voltage, uint16_t adc_current, uint8_t t_high, uint16_t t)
+401 Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)
+		flags
+			0 daylight saving time
+			1 backup time source

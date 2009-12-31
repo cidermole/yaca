@@ -70,35 +70,6 @@ void run() {
 	
 	XmlTree xmlt = Message::createXml(&src);
 	xmlt.write((Globals::getStr("nodeName") + ".nds").c_str());
-	
-/*
-	list<Message> l = src.getExports();
-	list<Param> pars;
-	list<Param>::iterator i;
-
-	pars = l.front().getParams();
-
-	cout << l.front().getName() << endl;
-
-	for(i = pars.begin(); i != pars.end(); i++) {
-		cout << (*i).getType() << " " << (*i).getName() << " (" << (*i).getSize() << "b, r" << (*i).getReg() << ")" << endl;
-	} */ // FIXME until here
-
-
-
-//	Message exp("SomeFunc");
-/*	list<Param> pars;
-	list<Param>::iterator i;*/
-/*
-	cout << "Getting..." << endl;
-
-	pars = l.front().getParams();
-
-	cout << "Got processed params" << endl;
-
-	for(i = pars.begin(); i != pars.end(); i++) {
-		cout << (*i).getType() << " " << (*i).getName() << " (" << (*i).getSize() << "b, r" << (*i).getReg() << ")" << endl;
-	}*/
 }
 
 int main(int argc, char** argv) {
@@ -167,7 +138,7 @@ int main(int argc, char** argv) {
 		try {
 			run();
 
-			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T linkerscript -lyaca";
+			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T " + yaca_path + "/src/x86/yaca-c/link-" + Globals::getStr("mcu") + ".txt -lyaca";
 			if(verbose > 1)
 				cout << "Info: running command \"" << cmd << "\"" << endl;
 			if(system(cmd.c_str()))
@@ -211,38 +182,12 @@ int main(int argc, char** argv) {
 	
 	if(cleanMode) {
 		system((es + "rm -f " + nodeName + "-app.hex").c_str());
-		system((es + "rm -f " + nodeName + "-full.hex").c_str());
+		if(!newMode)
+			system((es + "rm -f " + nodeName + "-full.hex").c_str());
 		system((es + "rm -f " + nodeName + "-app.eep").c_str());
 		system((es + "rm -f " + nodeName + ".nds").c_str());
 		system((es + "rm -f Messages.h").c_str());
 	}
-	
-
-/*	source.setFile(nodeName + ".C");
-
-	try {
-		source.compile();
-		cout << endl << "----------------- Symbol list -----------------" << endl << source.getSymbols() << endl;
-	} catch(const char* err) {
-		cerr << "Error: " << err << endl;
-	}
-
-	cout << endl << endl;
-
-	cout << "sizeof(int) = " << Source::sizeOf("int") << endl;
-	cout << "sizeof(int) = " << Source::sizeOf("int") << endl;
-	cout << "sizeof(char) = " << Source::sizeOf("char") << endl;
-
-	try {
-		Template t("out.tpl");
-
-		t.addKey("<CREATED>", now());
-		t.addKey("<ORIGIN>", "SomeClass.cpp");
-		t.addKey("<CODE>", "int main() {}");
-		cout << t.parse() << endl;
-	} catch(const char* err) {
-		cerr << "Error: " << err << endl;
-	}*/
 
 	return 0;
 }
