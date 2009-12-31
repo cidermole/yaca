@@ -42,7 +42,7 @@ e.g. 1 ping / second
 
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
 
-#define CLOCK_CORR 5454
+#define CLOCK_CORR 5450
 
 static uint8_t state = 0;
 volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, ntp = 1, dst = 0, tr_time = 0;
