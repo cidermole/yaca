@@ -219,7 +219,7 @@ int main() {
 			}
 		}
 		
-		if(tr_time && state != 2) {
+		if(tr_time && state != 2 && state != 3) {
 			msg.info = 0;
 			msg.rtr = 0;
 			msg.id = CANID_TIME;
