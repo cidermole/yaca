@@ -1,6 +1,7 @@
 #include <util/delay.h>
 #include <inttypes.h>
 #include <avr/wdt.h>
+#include <avr/interrupt.h>
 #include <yaca-bl.h>
 
 #include "uart.h"
@@ -35,6 +36,8 @@ e.g. 1 ping / second
 #define CANID_TIME 401
 #define TIME_FLAGS_DST (1 << 0) // daylight saving time
 #define TIME_FLAGS_BAK (1 << 1) // backup time source
+
+#define CANID_YACA_SERIAL_RESET 3
 
 #define LINUX_PORT PORTD
 #define LINUX_DDR  DDRD
@@ -110,6 +113,7 @@ void do_uart(uint8_t c) {
 	static Message msg_out;
 	static uint8_t msg_index = 0;
 	static uint8_t mask = 0;
+	uint8_t i;
 
 	switch(state) {
 	case 0:
@@ -129,6 +133,13 @@ void do_uart(uint8_t c) {
 				month = msg_out.data[5];
 				day = msg_out.data[6];
 				dst = msg_out.data[7] & 0x01;
+			} else if(msg_out.id == CANID_YACA_SERIAL_RESET && msg_out.rtr == 0) {
+				cli();
+				for(i = 0; i < 8; i++) {
+					delay_ms(1000);
+					wdt_reset();
+				}
+				while(1); // wait until watchdog kills us
 			}
 			
 			msg_index = 0;

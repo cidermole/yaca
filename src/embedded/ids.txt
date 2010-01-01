@@ -16,6 +16,7 @@ RPCs
 ----
 1 Switcha::SetLed(uint8_t)
 2 MainPower::Charge(uint8_t t_high, uint16_t t)
+3 YacaSerial::Reset()
 
 Status
 ------
