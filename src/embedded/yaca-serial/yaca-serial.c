@@ -262,6 +262,10 @@ int main() {
 				uart_putc(0x55);
 				uart_putc(0x04);
 				rb_reported = 1;
+				
+				delay_ms(1000); // XXX: radical buffer-overflow handling :-)
+				cli();
+				while(1);
 			}
 		} else {
 			if(rb_reported) {
