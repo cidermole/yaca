@@ -50,6 +50,8 @@ uint16_t u_in, i_in;
 uint8_t fifths = 0;
 uint8_t no_topping = 0;
 
+void transmit_status();
+
 void delay_ms(uint16_t t) {
 	uint16_t i;
 	for(i = 0; i < t; i++)
@@ -90,6 +92,7 @@ void adc_init() {
 }
 
 void transition_idle() {
+	transmit_status();
 	charge_pwm = MILLIAMP_TO_PWM(35); // we consume 33 mA from battery at all times, 2 mA reserved
 	red_led(0);
 	green_led(1);
