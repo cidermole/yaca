@@ -41,6 +41,10 @@ PB1 relay output, active high
 
 */
 
+#define ADMUX_REF ((1 << REFS1) | (1 << REFS0)) // internal AREF = 2.56 V
+
+#define ADC_PH 0
+
 void delay_ms(uint16_t t) {
 	uint16_t i;
 	for(i = 0; i < t; i++) {
@@ -58,9 +62,16 @@ void enter_bootloader_hook() {
 }
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
-	if(hour > 12)
+/*	if(hour > 12)
 		hour -= 12;
-	sevenseg_display((uint16_t)hour * 100 + min, 2);
+	sevenseg_display((uint16_t)hour * 100 + min, 2);*/
+}
+
+uint16_t adc_convert(uint8_t channel) {
+	ADMUX = (channel & 0x07) | ADMUX_REF; // select channel (+ keep reference)
+	ADCSRA |= (1 << ADSC) | (1 << ADIF); // start conversion, clear int flag
+	while(!(ADCSRA & (1 << ADIF))); // wait for conversion
+	return ADCW;
 }
 
 int main() {
@@ -74,11 +85,15 @@ int main() {
 	TIMSK = (1 << OCIE1A);
 	OCR1A = 1000; // 2 MHz / 2000 = 1000 Hz
 
+	ADCSRA = (1 << ADEN) | (1 << ADPS2); // prescaler 16, 2 MHz / 16 = 125 kHz ADC clock (max 200 kHz in accordance with datasheet)
+
 	sei();
+	sevenseg_display(1001, 0); // "---"
 
 	while(1) {
-//		sevenseg_display(n++, 0);
+		sevenseg_display(adc_convert(ADC_PH), 0);
 		delay_ms(1000);
+		yc_dispatch_auto();
 	}
 }
 
