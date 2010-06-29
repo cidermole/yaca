@@ -74,8 +74,14 @@ uint16_t adc_convert(uint8_t channel) {
 	return ADCW;
 }
 
-void display_value(uint16_t adc_value) {
-	uint16_t ph = (uint16_t) ((((uint32_t) adc_value) * 700) / 512);
+void display_value() {
+	uint16_t adc_value = 0;
+	uint8_t i;
+
+	for(i = 0; i < 20; i++)
+		adc_value += adc_convert(ADC_PH);
+
+	uint16_t ph = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
 	if(ph > 999)
 		sevenseg_display(ph / 10, 1);
 	else
@@ -99,7 +105,7 @@ int main() {
 	sevenseg_display(1001, 0); // "---"
 
 	while(1) {
-		display_value(adc_convert(ADC_PH));
+		display_value();
 		delay_ms(1000);
 		yc_dispatch_auto();
 	}
