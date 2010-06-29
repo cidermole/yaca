@@ -58,6 +58,8 @@ void enter_bootloader_hook() {
 }
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
+	if(hour > 12)
+		hour -= 12;
 	sevenseg_display((uint16_t)hour * 100 + min, 2);
 }
 
