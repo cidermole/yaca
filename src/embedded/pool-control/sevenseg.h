@@ -35,14 +35,45 @@ PD7 g
 
 uint8_t _sevenseg_encode(uint8_t digit);
 
+uint8_t _sevenseg_segs[3];
+
+void sevenseg_off() {
+	PORTB |= SEVENSEG_SEGMASK;
+}
+
 void sevenseg_display(uint16_t number, uint8_t decimals) {
-	uint8_t dig = _sevenseg_encode((uint8_t) number);
+	int8_t i;
+	if(number > 999) {
+		for(i = 0; i < 3; i++)
+			_sevenseg_segs[i] = _sevenseg_encode('-');
+	} else {
+		for(i = 2; i >= 0; i--) {
+			_sevenseg_segs[i] = _sevenseg_encode(number % 10);
+			number /= 10;
+		}
+		if(decimals > 0 && decimals < 3)
+			_sevenseg_segs[2 - decimals] &= ~SEVENSEG_DOT;
+	}
+}
+
+void sevenseg_render() {
+	static uint8_t counter = 0;
+	uint8_t dig = _sevenseg_segs[counter];
+
 	PORTD = dig & ~(1 << PD2); // bit 2 is not ours
-	PORTB = (PORTB & ~SEVENSEG_SEGMASK) | (1 << PB6) | (1 << PB0);
+
 	if(dig & (1 << 2))
 		PORTC |= (1 << PC5);
 	else
 		PORTC &= ~(1 << PC5);
+
+	PORTB = (PORTB & ~SEVENSEG_SEGMASK);
+	if(counter == 0) PORTB |= (1 << PB6) | (1 << PB0);
+	else if(counter == 1) PORTB |= (1 << PB7) | (1 << PB0);
+	else if(counter == 2) PORTB |= (1 << PB7) | (1 << PB6);
+
+	if(++counter == 3)
+		counter = 0;
 }
 
 uint8_t _sevenseg_encode(uint8_t digit) {

@@ -1,7 +1,11 @@
 #include "PoolControl.h"
 #include "sevenseg.h"
 #include <yaca.h>
+#ifndef F_CPU
+#define F_CPU 2000000UL
+#endif
 #include <util/delay.h>
+#include <avr/interrupt.h>
 
 /*
 
@@ -45,6 +49,14 @@ void delay_ms(uint16_t t) {
 	}
 }
 
+void enter_bootloader_hook() {
+	TCCR1B = 0;
+	TIMSK = 0;
+	cli();
+	sevenseg_off();
+	yc_bld_reset();
+}
+
 int main() {
 	uint8_t n = 0;
 
@@ -52,11 +64,20 @@ int main() {
 	DDRD = ~(1 << PD2); // PD2 is not ours
 	DDRC = (1 << PC5) | (1 << PC4);
 
+	TCCR1B = (1 << WGM12) | (1 << CS10); // CTC (top = OCR1A), prescaler 1
+	TIMSK = (1 << OCIE1A);
+	OCR1A = 2000; // 2 MHz / 2000 = 1000 Hz
+
+	sei();
+
 	while(1) {
-		sevenseg_display(n, 0);
-		if(++n == 11)
-			n = 0;
+		sevenseg_display(n++, 0);
 		delay_ms(1000);
 	}
+}
+
+ISR(TIMER1_COMPA_vect) {
+	PORTC ^= (1 << PC4);
+	sevenseg_render();
 }
 
