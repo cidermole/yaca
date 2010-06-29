@@ -72,7 +72,7 @@ int main() {
 
 	TCCR1B = (1 << WGM12) | (1 << CS10); // CTC (top = OCR1A), prescaler 1
 	TIMSK = (1 << OCIE1A);
-	OCR1A = 2000; // 2 MHz / 2000 = 1000 Hz
+	OCR1A = 1000; // 2 MHz / 2000 = 1000 Hz
 
 	sei();
 
