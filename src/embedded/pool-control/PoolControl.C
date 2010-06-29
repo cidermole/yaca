@@ -57,6 +57,10 @@ void enter_bootloader_hook() {
 	yc_bld_reset();
 }
 
+void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
+	sevenseg_display((uint16_t)hour * 100 + min, 2);
+}
+
 int main() {
 	uint8_t n = 0;
 
@@ -71,7 +75,7 @@ int main() {
 	sei();
 
 	while(1) {
-		sevenseg_display(n++, 0);
+//		sevenseg_display(n++, 0);
 		delay_ms(1000);
 	}
 }
