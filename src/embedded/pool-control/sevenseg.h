@@ -60,6 +60,7 @@ void sevenseg_render() {
 	static uint8_t counter = 0;
 	uint8_t dig = _sevenseg_segs[counter];
 
+	PORTB |= SEVENSEG_SEGMASK; // first, turn off all segments (against ghost numbers)
 	PORTD = dig & ~(1 << PD2); // bit 2 is not ours
 
 	if(dig & (1 << 2))
@@ -67,10 +68,9 @@ void sevenseg_render() {
 	else
 		PORTC &= ~(1 << PC5);
 
-	PORTB = (PORTB & ~SEVENSEG_SEGMASK);
-	if(counter == 0) PORTB |= (1 << PB6) | (1 << PB0);
-	else if(counter == 1) PORTB |= (1 << PB7) | (1 << PB0);
-	else if(counter == 2) PORTB |= (1 << PB7) | (1 << PB6);
+	if(counter == 0) PORTB &= ~(1 << PB7);
+	else if(counter == 1) PORTB &= ~(1 << PB6);
+	else if(counter == 2) PORTB &= ~(1 << PB0);
 
 	if(++counter == 3)
 		counter = 0;
