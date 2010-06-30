@@ -113,8 +113,10 @@ void DR(PhStatus()) {
 	display_value();
 }
 
+volatile uint16_t hms_counter = 0;
+
 int main() {
-	uint8_t n = 0;
+	uint8_t n = 0, cond, sc = 0;
 
 	DDRB |= SEVENSEG_SEGMASK | (1 << PB1); // be careful with port B (in use for CAN)
 	DDRD = ~(1 << PD2); // PD2 is not ours
@@ -131,13 +133,28 @@ int main() {
 
 	while(1) {
 		display_value();
-		delay_ms(1000);
-		yc_dispatch_auto();
+//		delay_ms(1000);
+		cond = 1;
+		while(cond) {
+			yc_dispatch_auto();
+			cli();
+			cond = hms_counter < 2000;
+			sei();
+		}
+		cli();
+		hms_counter = 0;
+		sei();
+
+		if(++sc == 10) {
+			PORTB ^= (1 << PB1); // toggle relay
+			sc = 0;
+		}
 	}
 }
 
 ISR(TIMER1_COMPA_vect) {
 	PORTC ^= (1 << PC4);
 	sevenseg_render();
+	ms_counter++;
 }
 
