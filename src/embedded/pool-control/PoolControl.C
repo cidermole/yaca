@@ -155,6 +155,6 @@ int main() {
 ISR(TIMER1_COMPA_vect) {
 	PORTC ^= (1 << PC4);
 	sevenseg_render();
-	ms_counter++;
+	hms_counter++;
 }
 
