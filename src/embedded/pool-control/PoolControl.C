@@ -45,6 +45,13 @@ PB1 relay output, active high
 
 #define ADC_PH 0
 
+enum DisplayMode {
+	DISPLAY_RAW = 0,
+	DISPLAY_PH = 1
+};
+
+DisplayMode disp_mode = DISPLAY_RAW;
+
 void delay_ms(uint16_t t) {
 	uint16_t i;
 	for(i = 0; i < t; i++) {
@@ -67,6 +74,10 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	sevenseg_display((uint16_t)hour * 100 + min, 2);*/
 }
 
+void DM(SetMode(uint8_t mode)) {
+	disp_mode = (DisplayMode) mode;
+}
+
 uint16_t adc_convert(uint8_t channel) {
 	ADMUX = (channel & 0x07) | ADMUX_REF; // select channel (+ keep reference)
 	ADCSRA |= (1 << ADSC) | (1 << ADIF); // start conversion, clear int flag
@@ -81,11 +92,16 @@ void display_value() {
 	for(i = 0; i < 20; i++)
 		adc_value += adc_convert(ADC_PH);
 
-	uint16_t ph = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
-	if(ph > 999)
-		sevenseg_display(ph / 10, 1);
-	else
-		sevenseg_display(ph, 2);
+	if(disp_mode == DISPLAY_PH) {
+		uint16_t ph = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
+		if(ph > 999)
+			sevenseg_display(ph / 10, 1);
+		else
+			sevenseg_display(ph, 2);
+	} else {
+		adc_value /= 20;
+		sevenseg_display(adc_value, 0);
+	}
 }
 
 int main() {

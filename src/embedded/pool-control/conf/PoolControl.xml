@@ -3,6 +3,9 @@
 		<message name="Time">
 			<id>401</id>
 		</message>
+		<message name="SetMode">
+			<id>4</id>
+		</message>
 	</messages>
 	<settings/>
 </node-config>
