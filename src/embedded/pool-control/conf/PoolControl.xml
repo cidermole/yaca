@@ -7,5 +7,7 @@
 			<id>4</id>
 		</message>
 	</messages>
-	<settings/>
+	<settings>
+		<setting name="phstatus_id" value="402"/>
+	</settings>
 </node-config>

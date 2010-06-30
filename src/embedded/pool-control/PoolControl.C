@@ -1,4 +1,5 @@
 #include "PoolControl.h"
+#include "RPoolControl.h"
 #include "sevenseg.h"
 #include <yaca.h>
 #ifndef F_CPU
@@ -88,12 +89,14 @@ uint16_t adc_convert(uint8_t channel) {
 void display_value() {
 	uint16_t adc_value = 0;
 	uint8_t i;
+	uint16_t ph;
 
 	for(i = 0; i < 20; i++)
 		adc_value += adc_convert(ADC_PH);
 
+	ph = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
+
 	if(disp_mode == DISPLAY_PH) {
-		uint16_t ph = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
 		if(ph > 999)
 			sevenseg_display(ph / 10, 1);
 		else
@@ -102,6 +105,12 @@ void display_value() {
 		adc_value /= 20;
 		sevenseg_display(adc_value, 0);
 	}
+	yc_prepare_ee(YC_EE_PHSTATUS_ID);
+	yc_send(PoolControl, PhStatus(ph));
+}
+
+void DR(PhStatus()) {
+	display_value();
 }
 
 int main() {
