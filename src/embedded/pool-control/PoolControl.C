@@ -146,7 +146,7 @@ int main() {
 		sei();
 
 		if(++sc == 10) {
-			PORTB ^= (1 << PB1); // toggle relay
+//			PORTB ^= (1 << PB1); // toggle relay
 			sc = 0;
 		}
 	}
