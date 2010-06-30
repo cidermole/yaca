@@ -50,7 +50,7 @@ enum DisplayMode {
 	DISPLAY_PH = 1
 };
 
-DisplayMode disp_mode = DISPLAY_RAW;
+DisplayMode disp_mode = DISPLAY_PH;
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
