@@ -116,7 +116,7 @@ void DR(PhStatus()) {
 volatile uint16_t hms_counter = 0;
 
 int main() {
-	uint8_t n = 0, cond, sc = 0;
+	uint8_t n = 0, cond;
 
 	DDRB |= SEVENSEG_SEGMASK | (1 << PB1); // be careful with port B (in use for CAN)
 	DDRD = ~(1 << PD2); // PD2 is not ours
@@ -133,7 +133,7 @@ int main() {
 
 	while(1) {
 		display_value();
-//		delay_ms(1000);
+
 		cond = 1;
 		while(cond) {
 			yc_dispatch_auto();
@@ -144,11 +144,6 @@ int main() {
 		cli();
 		hms_counter = 0;
 		sei();
-
-		if(++sc == 10) {
-//			PORTB ^= (1 << PB1); // toggle relay
-			sc = 0;
-		}
 	}
 }
 
