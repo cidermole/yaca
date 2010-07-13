@@ -12,5 +12,9 @@
 	</messages>
 	<settings>
 		<setting name="phstatus_id" value="402"/>
+
+		<!-- Pump working hours (e.g. 09:00 - 21:00 -> from 9, to 21) -->
+		<setting name="pump_from_hour" value="9"/>
+		<setting name="pump_to_hour" value="21"/>
 	</settings>
 </node-config>
