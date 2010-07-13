@@ -7,40 +7,34 @@
 #endif
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 
 /*
 
 Pin configurations
 ------------------
 
-7 seg display, 3 digits, all outputs active low
+sevenseg
 
-     a
-    ___
- f |   | b
-   |_g_|
- e |   | c
-   |___| * h (dot)
-     d
-
-PB7 segment 1
-PB6 segment 2
-PB0 segment 3
-PD0 a
-PD1 f
-PC5 b   !!! bit 2
-PD3 e
-PD4 d
-PD5 h
-PD6 c
-PD7 g
-
-=================================================
+  PB7 segment 1
+  PB6 segment 2
+  PB0 segment 3
+  PD0 a
+  PD1 f
+  PC5 b   !!! bit 2
+  PD3 e
+  PD4 d
+  PD5 h
+  PD6 c
+  PD7 g
 
 PC4 charge pump for opamps
 PB1 relay output, active high
 
 */
+
+#define PUMP_PORT PORTB
+#define PUMP_BIT  PB1
 
 #define ADMUX_REF ((1 << REFS1) | (1 << REFS0)) // internal AREF = 2.56 V
 
@@ -52,6 +46,9 @@ enum DisplayMode {
 };
 
 DisplayMode disp_mode = DISPLAY_PH;
+uint8_t pump_from_hour, pump_to_hour;
+
+
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -70,9 +67,13 @@ void enter_bootloader_hook() {
 }
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
-/*	if(hour > 12)
-		hour -= 12;
-	sevenseg_display((uint16_t)hour * 100 + min, 2);*/
+	if(min == 0 && sec == 0) {
+		if(hour == pump_from_hour) {
+			set_bit(PUMP_PORT, PUMP_BIT);
+		} else if(hour == pump_to_hour) {
+			clear_bit(PUMP_PORT, PUMP_BIT);
+		}
+	}
 }
 
 void DM(SetMode(uint8_t mode)) {
@@ -130,6 +131,9 @@ int main() {
 
 	sei();
 	sevenseg_display(1001, 0); // "---"
+	pump_from_hour = eeprom_read_byte(YC_EE_PUMP_FROM_HOUR);
+	pump_to_hour = eeprom_read_byte(YC_EE_PUMP_TO_HOUR);
+	/* TODO: temp sensor */
 
 	while(1) {
 		display_value();
