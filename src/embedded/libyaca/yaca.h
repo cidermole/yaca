@@ -237,5 +237,9 @@ void __attribute__ ((weak)) enter_bootloader_hook(void);
 }
 #endif
 
+#define set_bit(var, bit) ((var) |= (1 << (bit)))
+#define clear_bit(var, bit) ((var) &= ~(1 << (bit)))
+#define toggle_bit(var, bit) ((var) ^= (1 << (bit)))
+
 #endif /* _LIBYACA_H_ */
 
