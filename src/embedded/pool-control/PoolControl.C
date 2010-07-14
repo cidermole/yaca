@@ -1,6 +1,7 @@
 #include "PoolControl.h"
 #include "RPoolControl.h"
 #include "sevenseg.h"
+#include "calendar.h"
 #include <yaca.h>
 #ifndef F_CPU
 #define F_CPU 2000000UL
@@ -40,22 +41,49 @@ PB1 relay output, active high
 
 #define ADC_PH 0
 
+#define TIMESYNC_TIMEOUT 1500 // timeout in milliseconds after last time update when local clock starts
+
 enum DisplayMode {
 	DISPLAY_RAW = 0,
 	DISPLAY_PH = 1
 };
 
+struct Time {
+	uint8_t hour;
+	uint8_t min;
+	uint8_t sec;
+	uint16_t year;
+	uint8_t month;
+	uint8_t day;
+	int16_t sync;
+	uint8_t local_clock;
+};
+
 DisplayMode disp_mode = DISPLAY_PH;
+Time curtime;
 uint8_t pump_from_hour, pump_to_hour;
+volatile int16_t hms_counter = 0;
 
 
 
-void delay_ms(uint16_t t) {
+void delay_ms(int16_t t) {
 	uint16_t i;
-	for(i = 0; i < t; i++) {
-		_delay_ms(1);
+	uint8_t cond;
+
+	t *= 2;
+	cond = 1;
+	while(cond) {
 		yc_dispatch_auto();
+		if(curtime.sync < hms_counter)
+			curtime.local_clock = 1;
+		cli();
+		cond = hms_counter < t;
+		sei();
 	}
+	cli();
+	hms_counter -= t;
+	sei();
+	curtime.sync -= t;
 }
 
 void enter_bootloader_hook() {
@@ -66,14 +94,68 @@ void enter_bootloader_hook() {
 	yc_bld_reset();
 }
 
-void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
-	if(min == 0 && sec == 0) {
-		if(hour == pump_from_hour) {
+void time_changed() {
+	if(curtime.min == 0 && curtime.sec == 0) {
+		if(curtime.hour == pump_from_hour) {
 			set_bit(PUMP_PORT, PUMP_BIT);
-		} else if(hour == pump_to_hour) {
+		} else if(curtime.hour == pump_to_hour) {
 			clear_bit(PUMP_PORT, PUMP_BIT);
 		}
 	}
+}
+
+void time_advance() {
+	curtime.sec++;
+	if(curtime.sec >= 60) {
+		curtime.sec = 0;
+		curtime.min++;
+	} else {
+		goto _ta_return;
+	}
+	
+	if(curtime.min >= 60) {
+		curtime.min = 0;
+		curtime.hour++;
+	} else {
+		goto _ta_return;
+	}
+	
+	if(curtime.hour >= 24) {
+		curtime.hour = 0;
+		curtime.day++;
+	} else {
+		goto _ta_return;
+	}
+	
+	if(curtime.day > days_in_month(curtime.month, curtime.year)) {
+		curtime.day = 1;
+		curtime.month++;
+	} else {
+		goto _ta_return;
+	}
+	
+	if(curtime.month > 12) {
+		curtime.month = 1;
+		curtime.year++;
+	}
+
+_ta_return:
+	time_changed();
+}
+
+void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
+	// synchronize current time and reset synchronization half-milliseconds
+	curtime.hour = hour;
+	curtime.min = min;
+	curtime.sec = sec;
+	curtime.year = year;
+	curtime.month = month;
+	curtime.day = day;
+	cli();
+	curtime.sync = hms_counter + 2 * TIMESYNC_TIMEOUT;
+	sei();
+	curtime.local_clock = 0;
+	time_changed();
 }
 
 void DM(SetMode(uint8_t mode)) {
@@ -114,7 +196,6 @@ void DR(PhStatus()) {
 	display_value();
 }
 
-volatile uint16_t hms_counter = 0;
 
 int main() {
 	uint8_t n = 0, cond;
@@ -133,21 +214,16 @@ int main() {
 	sevenseg_display(1001, 0); // "---"
 	pump_from_hour = eeprom_read_byte(YC_EE_PUMP_FROM_HOUR);
 	pump_to_hour = eeprom_read_byte(YC_EE_PUMP_TO_HOUR);
+	curtime.local_clock = 0;
 	/* TODO: temp sensor */
 
 	while(1) {
 		display_value();
+		delay_ms(1000);
+		if(curtime.local_clock)
+			time_advance();
 
-		cond = 1;
-		while(cond) {
-			yc_dispatch_auto();
-			cli();
-			cond = hms_counter < 2000;
-			sei();
-		}
-		cli();
-		hms_counter -= 2000;
-		sei();
+		//yc_dispatch_auto(); // called in delay_ms()
 	}
 }
 
