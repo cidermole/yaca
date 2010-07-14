@@ -28,7 +28,7 @@ class PoolControl extends Plugin {
 			return false;
 		}
 
-		echo "{PoolControl: pH = " . $this->getPh($msg_ph) . ", T = " . $this->getTemp($msg_te) . " }";
+		echo "{PoolControl: pH = " . $this->getPh($msg_ph) . ", T = " . $this->getTemp($msg_te) . " °C }";
 		return true;
 	}
 }
