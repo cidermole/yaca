@@ -2,6 +2,7 @@
 #include "RPoolControl.h"
 #include "sevenseg.h"
 #include "calendar.h"
+#include "one-wire.h"
 #include <yaca.h>
 #ifndef F_CPU
 #define F_CPU 2000000UL
@@ -29,6 +30,7 @@ sevenseg
   PD6 c
   PD7 g
 
+PC3 1-wire temp sensor (DS18S20)
 PC4 charge pump for opamps
 PB1 relay output, active high
 
@@ -57,6 +59,7 @@ struct Time {
 Time curtime;
 uint8_t pump_from_hour, pump_to_hour;
 uint16_t ph_value; // pH * 100
+int16_t temp_value; // temp * 10
 volatile int16_t hms_counter = 0;
 
 
@@ -176,6 +179,31 @@ void measure_ph() {
 	yc_send(PoolControl, PhStatus(ph_value));
 }
 
+void measure_temp() {
+	uint8_t data[9], i;
+
+	if(!ow_check())
+		return;
+	ow_write(OW_SKIP_ROM);
+	ow_write(OW_CONVERT_T, OW_PULL);
+	loopdelay_ms(800);
+	if(!ow_check())
+		return;
+
+	ow_write(OW_SKIP_ROM);
+	ow_write(OW_READ_SCRATCHPAD);
+
+	for(i = 0; i < 9; i++)
+		data[i] = ow_read();
+
+	temp_value = data[0] | (((int16_t) data[1]) << 8);
+	temp_value *= 5; // 0.5 °C steps
+	// TODO: exact temp measurement with remainder
+
+	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
+	yc_send(PoolControl, TempStatus(temp_value));
+}
+
 void display_ph() {
 	if(ph_value > 999)
 		sevenseg_display(ph_value / 10, 1);
@@ -184,7 +212,13 @@ void display_ph() {
 }
 
 void DR(PhStatus()) {
-	display_value();
+	yc_prepare_ee(YC_EE_PHSTATUS_ID);
+	yc_send(PoolControl, PhStatus(ph_value));
+}
+
+void DR(TempStatus()) {
+	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
+	yc_send(PoolControl, TempStatus(temp_value));
 }
 
 
@@ -206,12 +240,16 @@ int main() {
 	pump_from_hour = eeprom_read_byte(YC_EE_PUMP_FROM_HOUR);
 	pump_to_hour = eeprom_read_byte(YC_EE_PUMP_TO_HOUR);
 	curtime.local_clock = 0;
-	/* TODO: temp sensor */
 
 	while(1) {
+		// pH
 		measure_ph();
 		display_ph();
-		loopdelay_ms(1000);
+
+		// temp
+		measure_temp();
+
+		loopdelay_ms(200); // remaining 800 in measure_temp()
 		if(curtime.local_clock)
 			time_advance();
 
