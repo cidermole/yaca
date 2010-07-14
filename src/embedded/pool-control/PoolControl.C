@@ -45,6 +45,8 @@ PB1 relay output, active high
 
 #define TIMESYNC_TIMEOUT 1500 // timeout in milliseconds after last time update when local clock starts
 
+#define DS18B20 // using DS18B20 with more resolution than DS18S20
+
 struct Time {
 	uint8_t hour;
 	uint8_t min;
@@ -207,8 +209,12 @@ void measure_temp() {
 		data[i] = ow_read();
 
 	temp_value = data[0] | (((int16_t) data[1]) << 8);
+#ifdef DS18B20
+	temp_value = (temp_value * 10) / 16;
+#else
 	temp_value *= 5; // 0.5 °C steps
 	// TODO: exact temp measurement with remainder
+#endif
 
 	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
 	yc_send(PoolControl, TempStatus(temp_value));
@@ -219,6 +225,11 @@ void display_ph() {
 		sevenseg_display(ph_value / 10, 1);
 	else
 		sevenseg_display(ph_value, 2);
+
+/*	if(temp_value > 999)
+		sevenseg_display(temp_value / 10, 0);
+	else
+		sevenseg_display(temp_value, 1); // displays temp instead of pH */
 }
 
 void DR(PhStatus()) {
