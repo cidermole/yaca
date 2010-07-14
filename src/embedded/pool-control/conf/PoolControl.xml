@@ -11,6 +11,7 @@
 		</message>
 		<message name="TempStatus">
 			<id>403</id>
+		</message>
 	</messages>
 	<settings>
 		<setting name="phstatus_id" value="402"/>
