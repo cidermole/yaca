@@ -146,7 +146,7 @@ int main() {
 			sei();
 		}
 		cli();
-		hms_counter = 0;
+		hms_counter -= 2000;
 		sei();
 	}
 }
