@@ -56,11 +56,12 @@ struct Time {
 
 Time curtime;
 uint8_t pump_from_hour, pump_to_hour;
+uint16_t ph_value; // pH * 100
 volatile int16_t hms_counter = 0;
 
 
-
-void delay_ms(int16_t t) {
+// loopdelay_ms: keeps exact time reference in the main loop
+void loopdelay_ms(int16_t t) {
 	uint16_t i;
 	uint8_t cond;
 
@@ -162,27 +163,24 @@ uint16_t adc_convert(uint8_t channel) {
 	return ADCW;
 }
 
-void display_value() {
+void measure_ph() {
 	uint16_t adc_value = 0;
 	uint8_t i;
-	uint16_t ph;
 
 	for(i = 0; i < 20; i++)
 		adc_value += adc_convert(ADC_PH);
 
-	ph = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
+	ph_value = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
 
-	if(disp_mode == DISPLAY_PH) {
-		if(ph > 999)
-			sevenseg_display(ph / 10, 1);
-		else
-			sevenseg_display(ph, 2);
-	} else {
-		adc_value /= 20;
-		sevenseg_display(adc_value, 0);
-	}
 	yc_prepare_ee(YC_EE_PHSTATUS_ID);
-	yc_send(PoolControl, PhStatus(ph));
+	yc_send(PoolControl, PhStatus(ph_value));
+}
+
+void display_ph() {
+	if(ph_value > 999)
+		sevenseg_display(ph_value / 10, 1);
+	else
+		sevenseg_display(ph_value, 2);
 }
 
 void DR(PhStatus()) {
@@ -211,12 +209,13 @@ int main() {
 	/* TODO: temp sensor */
 
 	while(1) {
-		display_value();
-		delay_ms(1000);
+		measure_ph();
+		display_ph();
+		loopdelay_ms(1000);
 		if(curtime.local_clock)
 			time_advance();
 
-		//yc_dispatch_auto(); // called in delay_ms()
+		//yc_dispatch_auto(); // called in loopdelay_ms()
 	}
 }
 
