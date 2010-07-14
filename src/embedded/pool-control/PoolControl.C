@@ -142,6 +142,10 @@ _ta_return:
 }
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
+	uint8_t oldyr;
+
+	oldyr = curtime.year;
+
 	// synchronize current time and reset synchronization half-milliseconds
 	curtime.hour = hour;
 	curtime.min = min;
@@ -154,6 +158,9 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	sei();
 	curtime.local_clock = 0;
 	time_changed();
+
+	if(oldyr == 0 && curtime.hour >= pump_from_hour && curtime.hour < pump_to_hour)
+		set_bit(PUMP_PORT, PUMP_BIT);
 }
 
 void DM(SetMode(uint8_t mode)) {
@@ -240,6 +247,7 @@ int main() {
 	pump_from_hour = eeprom_read_byte(YC_EE_PUMP_FROM_HOUR);
 	pump_to_hour = eeprom_read_byte(YC_EE_PUMP_TO_HOUR);
 	curtime.local_clock = 0;
+	curtime.year = 0;
 
 	while(1) {
 		// pH
