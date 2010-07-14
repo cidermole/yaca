@@ -9,9 +9,12 @@
 		<message name="PhStatus">
 			<id>402</id>
 		</message>
+		<message name="TempStatus">
+			<id>403</id>
 	</messages>
 	<settings>
 		<setting name="phstatus_id" value="402"/>
+		<setting name="tempstatus_id" value="403"/>
 
 		<!-- Pump working hours (e.g. 09:00 - 21:00 -> from 9, to 21) -->
 		<setting name="pump_from_hour" value="9"/>

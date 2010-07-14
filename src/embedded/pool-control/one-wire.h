@@ -10,6 +10,7 @@
 #include <yaca.h>
 #include <inttypes.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #define OW_DDR  DDRC

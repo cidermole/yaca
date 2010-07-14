@@ -32,3 +32,4 @@ Bulk Status
 			1<<0 daylight saving time
 			1<<1 backup time source
 402 PoolControl::PhStatus(uint16_t ph_centi)
+403 PoolControl::TempStatus(int16_t temp_deci)
