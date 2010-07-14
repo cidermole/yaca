@@ -43,11 +43,6 @@ PB1 relay output, active high
 
 #define TIMESYNC_TIMEOUT 1500 // timeout in milliseconds after last time update when local clock starts
 
-enum DisplayMode {
-	DISPLAY_RAW = 0,
-	DISPLAY_PH = 1
-};
-
 struct Time {
 	uint8_t hour;
 	uint8_t min;
@@ -59,7 +54,6 @@ struct Time {
 	uint8_t local_clock;
 };
 
-DisplayMode disp_mode = DISPLAY_PH;
 Time curtime;
 uint8_t pump_from_hour, pump_to_hour;
 volatile int16_t hms_counter = 0;
@@ -159,7 +153,6 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 }
 
 void DM(SetMode(uint8_t mode)) {
-	disp_mode = (DisplayMode) mode;
 }
 
 uint16_t adc_convert(uint8_t channel) {
