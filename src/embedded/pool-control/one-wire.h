@@ -67,6 +67,7 @@ uint8_t ow_read() {
 		sei();
 		yc_dispatch_auto();
 	}
+	return data;
 }
 
 uint8_t ow_check() {
