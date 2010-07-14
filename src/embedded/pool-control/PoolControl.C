@@ -196,6 +196,7 @@ void measure_temp() {
 	ow_write(OW_SKIP_ROM);
 	ow_write(OW_CONVERT_T, OW_PULL);
 	loopdelay_ms(800);
+	ow_release();
 	if(!ow_check())
 		return;
 

@@ -86,6 +86,7 @@ uint8_t ow_check() {
 	clear_bit(OW_DDR, OW_BIT);
 
 	yc_dispatch_auto();
+	return 1; // FIXME we should check if DS18S20 is there (presence pulse, datasheet page 13)
 }
 
 void ow_pull() {
