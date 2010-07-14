@@ -189,8 +189,10 @@ void measure_ph() {
 void measure_temp() {
 	uint8_t data[9], i;
 
-	if(!ow_check())
+	if(!ow_check()) {
+		loopdelay_ms(800);
 		return;
+	}
 	ow_write(OW_SKIP_ROM);
 	ow_write(OW_CONVERT_T, OW_PULL);
 	loopdelay_ms(800);
