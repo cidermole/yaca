@@ -2,11 +2,11 @@
 #include "RPoolControl.h"
 #include "sevenseg.h"
 #include "calendar.h"
-#include "one-wire.h"
-#include <yaca.h>
 #ifndef F_CPU
 #define F_CPU 2000000UL
 #endif
+#include "one-wire.h"
+#include <yaca.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>

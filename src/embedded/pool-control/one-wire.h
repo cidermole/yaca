@@ -86,6 +86,13 @@ uint8_t ow_check() {
 	clear_bit(OW_DDR, OW_BIT);
 
 	yc_dispatch_auto();
+	cli();
+	_delay_us(300);
+	// XXX portability! written for ATmega8 (INT0 = PD2)
+	if(bit_is_set(PIND, PD2)) { // if no CAN interrupt occured until now, we can safely wait more
+		_delay_us(200);
+	}
+	sei();
 	return 1; // FIXME we should check if DS18S20 is there (presence pulse, datasheet page 13)
 }
 
