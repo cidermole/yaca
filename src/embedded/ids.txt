@@ -18,7 +18,7 @@ RPCs
 1 Switcha::SetLed(uint8_t)
 2 MainPower::Charge(uint8_t t_high, uint16_t t)
 3 YacaSerial::Reset()
-4 PoolControl::SetMode(uint8_t mode) // raw: 0, ph: 1
+4 PoolControl::SetMode(uint8_t mode) // filtered (64 secs and measurements mean value): 0, raw: 1
 
 Status
 ------

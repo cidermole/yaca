@@ -60,14 +60,20 @@ struct Time {
 	uint8_t local_clock;
 };
 
+enum DisplayMode {
+	DISPLAY_FILTERED = 0,
+	DISPLAY_RAW = 1
+};
+
 Time curtime;
 uint8_t pump_from_hour, pump_to_hour;
-uint16_t ph_value, ph_buffer[MEASURE_BUF]; // pH * 100
+uint16_t ph_value, ph_raw, ph_buffer[MEASURE_BUF]; // pH * 100
 int16_t temp_value, temp_buffer[MEASURE_BUF]; // temp * 10
 uint32_t ph_sum;
 int32_t temp_sum;
 uint8_t ph_count = 0, temp_count = 0, temp_buffer_running = 0, ph_buffer_running = 0;
 volatile int16_t hms_counter = 0;
+DisplayMode display_mode = DISPLAY_FILTERED;
 
 
 // loopdelay_ms: keeps exact time reference in the main loop
@@ -171,6 +177,7 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 }
 
 void DM(SetMode(uint8_t mode)) {
+	display_mode = (DisplayMode) mode;
 }
 
 uint16_t adc_convert(uint8_t channel) {
@@ -188,6 +195,7 @@ void measure_ph() {
 		adc_value += adc_convert(ADC_PH);
 
 	ph_value = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
+	ph_raw = ph_value;
 
 	if(ph_buffer_running) {
 		ph_sum -= ph_buffer[ph_count];
@@ -261,6 +269,9 @@ void measure_temp() {
 }
 
 void display_ph() {
+	if(display_mode == DISPLAY_RAW)
+		ph_value = ph_raw;
+
 	if(ph_value > 999)
 		sevenseg_display(ph_value / 10, 1);
 	else
