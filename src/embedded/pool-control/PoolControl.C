@@ -47,6 +47,8 @@ PB1 relay output, active high
 
 #define DS18B20 // using DS18B20 with more resolution than DS18S20
 
+#define MEASURE_BUF 64
+
 struct Time {
 	uint8_t hour;
 	uint8_t min;
@@ -60,8 +62,11 @@ struct Time {
 
 Time curtime;
 uint8_t pump_from_hour, pump_to_hour;
-uint16_t ph_value; // pH * 100
-int16_t temp_value; // temp * 10
+uint16_t ph_value, ph_buffer[MEASURE_BUF]; // pH * 100
+int16_t temp_value, temp_buffer[MEASURE_BUF]; // temp * 10
+uint32_t ph_sum;
+int32_t temp_sum;
+uint8_t ph_count = 0, temp_count = 0, temp_buffer_running = 0, ph_buffer_running = 0;
 volatile int16_t hms_counter = 0;
 
 
@@ -184,6 +189,23 @@ void measure_ph() {
 
 	ph_value = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
 
+	if(ph_buffer_running) {
+		ph_sum -= ph_buffer[ph_count];
+		ph_sum += ph_value;
+	}
+	ph_buffer[ph_count++] = ph_value;
+	if(ph_count == MEASURE_BUF) {
+		if(ph_buffer_running == 0) {
+			for(i = 0; i < MEASURE_BUF; i++)
+				ph_sum += ph_buffer[i];
+			ph_buffer_running = 1;
+		}
+		ph_count = 0;
+	}
+
+	if(ph_buffer_running) {
+		ph_value = (uint16_t) (ph_sum / MEASURE_BUF);
+	}
 	yc_prepare_ee(YC_EE_PHSTATUS_ID);
 	yc_send(PoolControl, PhStatus(ph_value));
 }
@@ -215,6 +237,24 @@ void measure_temp() {
 	temp_value *= 5; // 0.5 °C steps
 	// TODO: exact temp measurement with remainder
 #endif
+
+	if(temp_buffer_running) {
+		temp_sum -= temp_buffer[temp_count];
+		temp_sum += temp_value;
+	}
+	temp_buffer[temp_count++] = temp_value;
+	if(temp_count == MEASURE_BUF) {
+		if(temp_buffer_running == 0) {
+			for(i = 0; i < MEASURE_BUF; i++)
+				temp_sum += temp_buffer[i];
+			temp_buffer_running = 1;
+		}
+		temp_count = 0;
+	}
+
+	if(temp_buffer_running) {
+		temp_value = (int16_t) (temp_sum / MEASURE_BUF);
+	}
 
 	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
 	yc_send(PoolControl, TempStatus(temp_value));

@@ -9,7 +9,7 @@
 namespace PoolControl {
 	void HDS(PhStatus(uint16_t ph_centi));
 	void HDR(PhStatus());
-	void HDS(TempStatus(uint16_t temp_deci));
+	void HDS(TempStatus(int16_t temp_deci));
 	void HDR(TempStatus());
 
 	void HDM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags));
