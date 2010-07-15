@@ -78,7 +78,6 @@ DisplayMode display_mode = DISPLAY_FILTERED;
 
 // loopdelay_ms: keeps exact time reference in the main loop
 void loopdelay_ms(int16_t t) {
-	uint16_t i;
 	uint8_t cond;
 
 	t *= 2;
@@ -295,8 +294,6 @@ void DR(TempStatus()) {
 
 
 int main() {
-	uint8_t n = 0, cond;
-
 	DDRB |= SEVENSEG_SEGMASK | (1 << PB1); // be careful with port B (in use for CAN)
 	DDRD = ~(1 << PD2); // PD2 is not ours
 	DDRC = (1 << PC5) | (1 << PC4);
