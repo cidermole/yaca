@@ -48,23 +48,24 @@ void Source::compile() {
 		return;
 
 	if(Globals::getInt("verbose") >= 2)
-		cout << "Info: running command \"" << "avr-gcc -o \"" << m_object << "\" \"" << m_file << "\" -c -O2 -mmcu=" << Globals::getStr("mcu") << " " << Globals::getStr("compilerOptions") << " 2>\"" << Globals::getStr("tmpfile") << "\"\"" << endl;
-	gccCode = system((ES + "avr-gcc -o \"" + m_object + "\" \"" + m_file + "\" -c -O2 -mmcu=" + Globals::getStr("mcu") + " " + Globals::getStr("compilerOptions") + " 2>\"" + Globals::getStr("tmpfile") + "\"").c_str());
-	if(gccCode) {
-		file.open(Globals::getStr("tmpfile").c_str(), ifstream::in);
-		if(!file.good()) {
-			if(Globals::getInt("verbose") >= 2)
-				cerr << "Warning: failed to open temporary file \"" << Globals::getStr("tmpfile") << "\"" << endl;
-			throw_error("Compiling \"" + m_file + "\" went wrong, but could not open temporary error file.");
-		}
-		while(getline(file, line))
-			gccError << endl << line;
-
-		cleanup(Globals::getStr("tmpfile"));
-		
-		throw_error("Compiler error on \"" + m_file + "\". Passing through compiler output:" + gccError.str());
+		cout << "Info: running command \"" << "avr-gcc -o \"" << m_object << "\" \"" << m_file << "\" -c -mmcu=" << Globals::getStr("mcu") << " " << Globals::getStr("compilerOptions") << " 2>\"" << Globals::getStr("tmpfile") << "\"\"" << endl;
+	gccCode = system((ES + "avr-gcc -o \"" + m_object + "\" \"" + m_file + "\" -c -mmcu=" + Globals::getStr("mcu") + " " + Globals::getStr("compilerOptions") + " 2>\"" + Globals::getStr("tmpfile") + "\"").c_str());
+	file.open(Globals::getStr("tmpfile").c_str(), ifstream::in);
+	if(!file.good()) {
+		if(Globals::getInt("verbose") >= 2)
+			cerr << "Warning: failed to open temporary file \"" << Globals::getStr("tmpfile") << "\"" << endl;
+		throw_error("While compiling \"" + m_file + "\": could not open temporary error file.");
 	}
+	while(getline(file, line))
+		gccError << endl << line;
+
 	cleanup(Globals::getStr("tmpfile"));
+		
+	if(gccCode) {
+		throw_error("Compiler error on \"" + m_file + "\". Passing through compiler output:" + gccError.str());
+	} else if(gccError.str().length() > 1) {
+		cerr << "Warning: compiler warning:" << gccError.str() << endl;
+	}
 	m_compiled = true;
 }
 

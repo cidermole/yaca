@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
 	Globals::setStr("outTemplate", es + yaca_path + "/src/x86/yaca-c/templates/out.tpl");
 	Globals::setStr("messageHeader", "Messages.h");
 	Globals::setStr("mcu", "atmega8");
-	Globals::setStr("compilerOptions", es + "-I" + yaca_path + "/build/include");
+	Globals::setStr("compilerOptions", es + "-I" + yaca_path + "/build/include -Wall -O2");
 	Globals::setInt("verbose", verbose);
 	Globals::setStr("nodeName", nodeName);
 	Globals::setInt("saveTemps", saveTemps ? 1 : 0);
