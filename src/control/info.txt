@@ -1,0 +1,31 @@
+# host
+pppd /dev/ttyUSB0 9600 nocrtscts noipdefault noauth connect /etc/ppp/my-chat-script debug local 192.168.55.101:192.168.55.100 ms-dns 192.168.1.1 nodetach
+
+# /etc/ppp/my-chat-script
+#!/bin/sh
+exec chat -v\
+     ATZ OK\
+     AT OK\
+     ATE0V1\&C1\&D2 OK\
+     ATS7=120 OK\
+     ATZ OK\
+     AT OK\
+     ATE0V1\&C1\&D2 OK\
+     ATS7=120 OK\
+     ATX3 OK\
+     ATDT1234 'CONNECT 9600'
+
+# setup on pocket pc:
+#
+# Einstellungen -> Verbindungen -> Verbindungen...
+# ISP -> Neue Modemverbindung...
+# defaults, Weiter
+# Rufnummer: 1234, Weiter
+# User, PW egal. Erweitert...
+#   Allgemein -> Baudrate einstellen, [ ] Auf Freizeichen warten
+#   Anschlusseinstellungen -> 8N2, no flow control, OK
+# Fertig
+
+# routing
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -A POSTROUTING -t nat -j MASQUERADE -s 192.168.55.0/24
