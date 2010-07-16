@@ -1,0 +1,2 @@
+HFUSE: D8
+LFUSE: E2

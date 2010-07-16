@@ -12,6 +12,7 @@ Nodes
 800 Switcha: Testaufbau mit LED
 801 MainPower: Stromversorgung Hausbus
 802 PoolControl
+803 ControlPanel: PocketPC serial <-> CAN
 
 RPCs
 ----
