@@ -179,6 +179,13 @@ void DM(SetMode(uint8_t mode)) {
 	display_mode = (DisplayMode) mode;
 }
 
+void DM(SetRelay(uint8_t status)) {
+	if(status)
+		set_bit(PUMP_PORT, PUMP_BIT);
+	else
+		clear_bit(PUMP_PORT, PUMP_BIT);
+}
+
 uint16_t adc_convert(uint8_t channel) {
 	ADMUX = (channel & 0x07) | ADMUX_REF; // select channel (+ keep reference)
 	ADCSRA |= (1 << ADSC) | (1 << ADIF); // start conversion, clear int flag

@@ -6,6 +6,9 @@
 		<message name="SetMode">
 			<id>4</id>
 		</message>
+		<message name="SetRelay">
+			<id>5</id>
+		</message>
 		<message name="PhStatus">
 			<id>402</id>
 		</message>
