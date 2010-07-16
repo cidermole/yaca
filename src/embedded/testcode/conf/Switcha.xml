@@ -1,13 +1,4 @@
 <node-config id="800">
-	<messages>
-		<message name="SetLed">
-			<id>1</id>
-		</message>
-		<message name="LedStatus">
-			<id>200</id>
-		</message>
-	</messages>
-	<settings>
-		<setting name="ledstatus_id" value="200"/>
-	</settings>
+	<messages/>
+	<settings/>
 </node-config>
