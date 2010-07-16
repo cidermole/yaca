@@ -1,5 +1,5 @@
 baud=38400
-# setserial /dev/tts/0 spd_shi
+# setserial /dev/tts/0 spd_shi: instead of 38400, run 230 kbaud (which is 250 in practice on wrt54gl)
 
 /etc/rc.d/S61yaca -> /etc/init.d/yaca
 
