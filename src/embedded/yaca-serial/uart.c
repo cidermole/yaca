@@ -22,6 +22,7 @@ void uart_init(uint16_t ubrr) {
 
 	UCSRB = (1 << RXEN) | (1 << TXEN) | (1 << RXCIE) | (1 << TXCIE);
 	UCSRC = (1 << URSEL) | (1 << UCSZ1) | (1 << UCSZ0);
+	UCSRA = (1 << U2X);
 
 	// Flush Receive-Buffer
 	do {

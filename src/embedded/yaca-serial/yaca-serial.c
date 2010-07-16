@@ -185,7 +185,7 @@ int main() {
 	uint8_t wb_reported = 0, rb_reported = 0;
 	Message msg;
 
-	uart_init((uint16_t) (F_CPU / (16.0 * BAUDRATE) - 1));
+	uart_init((uint16_t) (F_CPU / (8.0 * BAUDRATE) - 1));
 	
 	delay_ms(1000); // Wait for EEPROM to warm up (?)
 	
