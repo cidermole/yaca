@@ -99,7 +99,10 @@ int main(int argc, char **argv) {
 		read_message(sock, &msg);
 		clock_gettime(CLOCK_REALTIME, &t);
 		tm = localtime(&t.tv_sec);
-		
+
+		if(msg.id >= conf.multi_from && msg.id <= conf.multi_to)
+			continue;
+
 		if((msg.id >= conf.bulk_from && msg.id <= conf.bulk_to) || (msg.id >= conf.nodeid_from && msg.id <= conf.nodeid_to))
 			f = bulk;
 		else
