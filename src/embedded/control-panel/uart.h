@@ -7,8 +7,8 @@
 
 #define BAUDRATE 115200
 
-#define WRITE_BUFFER 400
-#define READ_BUFFER  100
+#define WRITE_BUFFER 200
+#define READ_BUFFER  200
 
 extern fifo_t fifo2_read;
 extern fifo_t fifo2_write;
@@ -16,7 +16,7 @@ extern fifo_t fifo2_write;
 uint8_t wb_is_full();
 uint8_t rb_is_full();
 
-void uart_init();
+void uart_init(uint16_t ubrr);
 int uart_putc(const uint8_t c);
 int uart_puts(const char* p);
 int uart_puts_P(const prog_char* p);
