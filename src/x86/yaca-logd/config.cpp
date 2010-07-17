@@ -40,6 +40,10 @@ void process_key(const char *key, const char *val) {
 		conf.nodeid_from = atoi(val);
 	} else if(compare(key, "nodeid_to")) {
 		conf.nodeid_to = atoi(val);
+	} else if(compare(key, "multi_from")) {
+		conf.multi_from = atoi(val);
+	} else if(compare(key, "multi_to")) {
+		conf.multi_to = atoi(val);
 	}
 }
 

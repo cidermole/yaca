@@ -18,6 +18,8 @@ typedef struct {
 	int bulk_to;
 	int nodeid_from;
 	int nodeid_to;
+	int multi_from;
+	int multi_to;
 } conf_t;
 
 extern conf_t conf;
