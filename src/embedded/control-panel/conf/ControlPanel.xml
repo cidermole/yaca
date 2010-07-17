@@ -1,0 +1,7 @@
+<node-config id="803">
+	<messages/>
+	<settings>
+		<setting name="tcp_in_id" value="1024"/>
+		<setting name="tcp_out_id" value="1025"/>
+	</settings>
+</node-config>
