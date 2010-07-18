@@ -15,6 +15,7 @@ uint32_t tcp_in_id, tid;
 void msg_bld_check(Message *msg) {
 	if(msg->id == tid && msg->data[0] == TID_BLD_ENTER)
 		yc_bld_reset();
+	yc_dispatch_auto(); // we won't get here. needed for linking of libyaca and consequently the INT0 ISR
 }
 
 int main() {
