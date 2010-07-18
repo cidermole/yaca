@@ -46,9 +46,6 @@ void load_conf(const char *file) {
 	// default values
 	strcpy(conf.server, "192.168.1.1");
 	conf.port = 1222;
-	conf.flash_size = 8192;
-	conf.page_size = 64;
-	conf.boot_size = 2048;
 	
 	if(!f) {
 		fprintf(stderr, "can't open config file \"%s\"\n", file);

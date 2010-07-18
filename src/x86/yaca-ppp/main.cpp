@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <errno.h>
 
 #include "config.h"
 #include "network.h"
@@ -15,7 +16,7 @@
 int main(int argc, char **argv) {
 	int sock = 0, p2c[2], c2p[2], pppd_argc = 1, max, len;
 	char config_file[1024], buf[sizeof(Message) * 20], *pbuf;
-	char *pppd_args[100], *p, *start, ppp_name[] = "pppd"; // _params
+	char *pppd_args[100], *p, *start, ppp_name[] = "/usr/sbin/pppd"; // _params
 	Message *mp, msg;
 	pid_t child;
 	fd_set fds;
@@ -28,14 +29,15 @@ int main(int argc, char **argv) {
 
 	/* load pppd args (split on ' ') */
 	pppd_args[0] = ppp_name;
-	for(p = conf.pppd_params, start = conf.pppd_params; p != '\0'; p++) {
-		if(p == ' ') {
+	for(p = conf.pppd_params, start = conf.pppd_params; *p != '\0'; p++) {
+		if(*p == ' ') {
 			pppd_args[pppd_argc++] = start;
-			p = '\0';
+			*p = '\0';
 			start = p + 1;
 		}
 	}
 	pppd_args[pppd_argc++] = start;
+	pppd_args[pppd_argc] = NULL;
 
 	/* create pipes for communication with pppd, fork() and execvp() */
 	pipe(p2c);
@@ -50,8 +52,8 @@ int main(int argc, char **argv) {
 		close(c2p[0]);
 		dup2(0, p2c[0]); // replace stdin by pipe
 		dup2(1, c2p[1]); // replace stdout by pipe
-		execvp("pppd", pppd_args);
-		fprintf(stderr, "child: execlp() failed\n");
+		execv("/usr/sbin/pppd", pppd_args);
+		fprintf(stderr, "child: execv() failed: %d\n", errno);
 		return 1;
 	}
 
@@ -79,7 +81,7 @@ int main(int argc, char **argv) {
 				pbuf += sizeof(Message);
 				len -= sizeof(Message);
 				mp = (Message *) pbuf;
-				if(mp->id == config.tcp_in_id) {
+				if(mp->id == conf.tcp_in_id) {
 					write(p2c[1], mp->data, mp->length);
 				}
 			}
