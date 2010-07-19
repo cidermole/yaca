@@ -29,6 +29,8 @@ int main() {
 	eeprom_read_block(&tid, EE_TEMPID, sizeof(tid));
 	msg_out.rtr = 0;
 
+	PORTD |= (1 << PD0); // enable pull-up on RxD
+
 	sei();
 
 	while(1) {
