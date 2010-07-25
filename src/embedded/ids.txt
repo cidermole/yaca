@@ -25,6 +25,7 @@ RPCs
 Status
 ------
 200 Switcha::LedStatus(uint8_t)
+201 PoolControl::RelayStatus(uint8_t pump_on)
 
 Bulk Status
 -----------

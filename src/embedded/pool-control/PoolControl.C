@@ -153,6 +153,8 @@ _ta_return:
 	time_changed();
 }
 
+// =====================================================================================
+
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
 	uint8_t oldyr;
 
@@ -171,8 +173,10 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	curtime.local_clock = 0;
 	time_changed();
 
-	if(oldyr == 0 && curtime.hour >= pump_from_hour && curtime.hour < pump_to_hour)
+	if(oldyr == 0 && curtime.hour >= pump_from_hour && curtime.hour < pump_to_hour) {
 		set_bit(PUMP_PORT, PUMP_BIT);
+		yc_status(RelayStatus);
+	}
 }
 
 void DM(SetMode(uint8_t mode)) {
@@ -184,7 +188,26 @@ void DM(SetRelay(uint8_t status)) {
 		set_bit(PUMP_PORT, PUMP_BIT);
 	else
 		clear_bit(PUMP_PORT, PUMP_BIT);
+
+	yc_status(RelayStatus);
 }
+
+void DR(PhStatus()) {
+	yc_prepare_ee(YC_EE_PHSTATUS_ID);
+	yc_send(PoolControl, PhStatus(ph_value));
+}
+
+void DR(TempStatus()) {
+	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
+	yc_send(PoolControl, TempStatus(temp_value));
+}
+
+void DR(RelayStatus()) {
+	yc_prepare_ee(YC_EE_RELAYSTATUS_ID);
+	yc_send(PoolControl, RelayStatus(bit_is_set(PUMP_PORT, PUMP_BIT) ? 1 : 0));
+}
+
+// =====================================================================================
 
 uint16_t adc_convert(uint8_t channel) {
 	ADMUX = (channel & 0x07) | ADMUX_REF; // select channel (+ keep reference)
@@ -220,8 +243,7 @@ void measure_ph() {
 	if(ph_buffer_running) {
 		ph_value = (uint16_t) (ph_sum / MEASURE_BUF);
 	}
-	yc_prepare_ee(YC_EE_PHSTATUS_ID);
-	yc_send(PoolControl, PhStatus(ph_value));
+	yc_status(PhStatus);
 }
 
 void measure_temp() {
@@ -270,8 +292,7 @@ void measure_temp() {
 		temp_value = (int16_t) (temp_sum / MEASURE_BUF);
 	}
 
-	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
-	yc_send(PoolControl, TempStatus(temp_value));
+	yc_status(TempStatus);
 }
 
 void display_ph() {
@@ -289,16 +310,7 @@ void display_ph() {
 		sevenseg_display(temp_value, 1); // displays temp instead of pH */
 }
 
-void DR(PhStatus()) {
-	yc_prepare_ee(YC_EE_PHSTATUS_ID);
-	yc_send(PoolControl, PhStatus(ph_value));
-}
-
-void DR(TempStatus()) {
-	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
-	yc_send(PoolControl, TempStatus(temp_value));
-}
-
+// =====================================================================================
 
 int main() {
 	DDRB |= SEVENSEG_SEGMASK | (1 << PB1); // be careful with port B (in use for CAN)
