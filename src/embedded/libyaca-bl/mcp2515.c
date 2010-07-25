@@ -47,9 +47,9 @@ void _spi_init() {
 	DDR_CS |= (1 << P_CS); // CS: output
 	PORT_CS |= (1 << P_CS); // disable CS (CS is active low)
 
-	// set SPI clock rate output prescaler to 1/8 of main clock
+	// set SPI clock rate output prescaler to 1/2 of main clock
 	// see ATmega8 datasheet table 50 (page 130)
-	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
+	SPCR = (1 << SPE) | (1 << MSTR);
 	SPSR = (1 << SPI2X);
 }
 
