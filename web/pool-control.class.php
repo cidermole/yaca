@@ -27,8 +27,13 @@ class PoolControl extends Plugin {
 			echo "{PoolControl: request " . $this->config['canid_tempstatus'] . " failed}";
 			return false;
 		}
+		$msg_st = new Message($this->common);
+		if(!$msg_st->request($this->config['canid_relaystatus'])) {
+			echo "{PoolControl: request " . $this->config['canid_relaystatus'] . " failed}";
+			return false;
+		}
 
-		echo "{PoolControl: pH = " . $this->getPh($msg_ph) . ", T = " . $this->getTemp($msg_te) . " &deg;C }";
+		echo "{PoolControl: pH = " . $this->getPh($msg_ph) . ", T = " . $this->getTemp($msg_te) . " &deg;C, relay = " . ($msg_st->data[0] == 1 ? "on" : "off") . " }";
 		return true;
 	}
 }
