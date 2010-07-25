@@ -150,6 +150,7 @@ uint8_t _read_frame(Message* f, uint8_t read_cmd) {
 	temp &= 0x0F;
 	f->length = temp;
 
+	/* would use less code with pointer arithmetic (?) */
 	for(i = 0; i < temp; i++)
 		f->data[i] = _spi_getc();
 
