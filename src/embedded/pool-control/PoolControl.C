@@ -105,7 +105,7 @@ void enter_bootloader_hook() {
 }
 
 void time_changed() {
-	if(curtime.min == 0 && curtime.sec == 0) {
+	if(curtime.min == 0 && (curtime.sec < 5)) {
 		if(curtime.hour == pump_from_hour) {
 			set_bit(PUMP_PORT, PUMP_BIT);
 		} else if(curtime.hour == pump_to_hour) {
