@@ -76,7 +76,7 @@ int main() {
 				_count = fifo2_read.count;
 				_timer = 0;
 			}
-			if(_timer < 5) // 5 ms timeout for aggregating messages
+			if(_timer < 50) // ms timeout for aggregating messages
 				continue;
 		}
 
