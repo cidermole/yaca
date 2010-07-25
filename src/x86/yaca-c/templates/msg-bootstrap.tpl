@@ -14,6 +14,7 @@
 #define DR(a) <NODENAME>::__rtr_##a
 #define yc_send(a, b)
 #define yc_rtr(a, b)
+#define yc_status(a)
 
 #endif /* _MESSAGES_H_ */
 
