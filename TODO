@@ -1,6 +1,20 @@
 
--> take apart a node (e.g. cut mcp2515 pins) and see what happens (app should continue without bus)
+HEIZUNG
 
+-> Temperatursensoren: Vorlauf, Rücklauf, Warmwasser, Keller (main-power?) (KG), Wohnzimmer (EG), OG
+-> Mindestlaufzeit für Brenner
+-> Status-Anzeige: Sonne (Dauerheizung), Mond (Nachtbetrieb), Uhr (Programm)
+
+
+-> yaca-logd should die if yaca-gw socket dies
+-> fix message length problem in yaca-ppp
+-> check PoolControl for switching reliability
+
+=========================================================================
+
+
+-> take apart a node (e.g. cut mcp2515 pins) and see what happens (app should continue without bus)
+	-> enable INT pull-up!
 
 -> "Read eeprom message" into libyaca
 O> CHECK: 'info' of Message struct in yaca-serial?
