@@ -3,5 +3,6 @@
 	<settings>
 		<setting name="tcp_in_id" value="1024"/>
 		<setting name="tcp_out_id" value="1025"/>
+		<setting name="tempstatus_id" value="404"/>
 	</settings>
 </node-config>
