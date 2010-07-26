@@ -10,6 +10,7 @@
 #include "../bootloader/msgdefs.h"
 #include "../bootloader/eeprom.h"
 #include "one-wire.h"
+#include <limits.h>
 
 #define DS18B20 // using DS18B20 with more resolution than DS18S20
 
@@ -54,7 +55,7 @@ void check_and_receive() {
 		if(yc_poll_transmit(&msg_out) == SUCCESS)
 			pending = 0;
 		else
-			continue;
+			return;
 	}
 
 	msg_out.length = 0;
@@ -67,7 +68,7 @@ void check_and_receive() {
 			_timer = 0;
 		}
 		if(_timer < 50) // ms timeout for aggregating messages
-			continue;
+			return;
 	}
 
 	while((c = uart_getc_nowait()) != -1 && msg_out.length < 8)
@@ -89,14 +90,14 @@ int16_t measure_temp() {
 	}*/
 
 	cli();
-	if(_conv_time > 1000) { // start conversion
-		_conv_time = 0;
+	if(_conv_timer > 1000) { // start conversion
+		_conv_timer = 0;
 		sei();
 		ow_write(OW_SKIP_ROM);
 		ow_write(OW_CONVERT_T, OW_PULL);
 		return INT_MIN;
-	} else if(_conv_time > 800) {
-		_conv_time = 1001;
+	} else if(_conv_timer > 800) {
+		_conv_timer = 1001;
 		sei();
 	} else {
 		sei();
@@ -126,7 +127,7 @@ int16_t measure_temp() {
 }
 
 int main() {
-	int16_t temp, _temp;
+	int16_t temp = -200, _temp;
 	uint8_t temp_pending = 0;
 
 	uart_init((uint16_t) (((F_CPU / (16.0 * BAUDRATE) - 1) * 2 + 1) / 2));
