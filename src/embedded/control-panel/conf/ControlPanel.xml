@@ -4,5 +4,6 @@
 		<setting name="tcp_in_id" value="1024"/>
 		<setting name="tcp_out_id" value="1025"/>
 		<setting name="tempstatus_id" value="404"/>
+		<setting name="ubrr" value="23"/> <!-- see ControlPanel.C for calculation. 23 @ 14.745 MHz = 38400 baud -->
 	</settings>
 </node-config>

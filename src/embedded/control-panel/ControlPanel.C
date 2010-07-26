@@ -129,8 +129,11 @@ int16_t measure_temp() {
 int main() {
 	int16_t temp = -200, _temp;
 	uint8_t temp_pending = 0;
+	uint16_t baud;
 
-	uart_init((uint16_t) (((F_CPU / (16.0 * BAUDRATE) - 1) * 2 + 1) / 2));
+//	uart_init((uint16_t) (((F_CPU / (16.0 * BAUDRATE) - 1) * 2 + 1) / 2));
+	eeprom_read_block(&baud, YC_EE_UBRR, sizeof(baud));
+	uart_init(baud);
 	eeprom_read_block(&tcp_in_id, YC_EE_TCP_IN_ID, sizeof(tcp_in_id));
 	eeprom_read_block(&tcp_out_id, YC_EE_TCP_OUT_ID, sizeof(tcp_out_id));
 	eeprom_read_block(&temp_id, YC_EE_TEMPSTATUS_ID, sizeof(temp_id));
