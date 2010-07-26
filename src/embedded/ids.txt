@@ -36,5 +36,6 @@ Bulk Status
 			1<<1 backup time source
 402 PoolControl::PhStatus(uint16_t ph_centi)
 403 PoolControl::TempStatus(int16_t temp_deci)
+404 ControlPanel::TempStatus(int16_t temp_deci)
 
 1024, 1025: TCP/IP to/from ControlPanel
