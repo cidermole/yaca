@@ -16,7 +16,7 @@
 #define OW_DDR  DDRC
 #define OW_PORT PORTC
 #define OW_PIN  PINC
-#define OW_BIT  PC3
+#define OW_BIT  PC2
 
 
 void ow_pull();
