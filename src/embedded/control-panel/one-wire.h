@@ -65,6 +65,7 @@ uint8_t ow_read() {
 		_delay_us(12);
 		if(bit_is_set(OW_PIN, OW_BIT))
 			data |= 0x80;
+		_delay_us(80 - 14);
 		sei();
 		check_and_receive();
 	}
