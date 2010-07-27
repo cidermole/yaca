@@ -4,7 +4,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <errno.h>
+#include <pty.h>
+#include <cctype>
 
 #include "config.h"
 #include "network.h"
@@ -12,9 +16,22 @@
 #include "../../embedded/bootloader/eeprom.h"
 #include "../yaca-path.h"
 
+void printmsg(Message *m) {
+	int i;
+	printf(" ");
+	for(i = 0; i < m->length; i++) {
+		printf("%02X", m->data[i]);
+	}
+	printf(" ");
+	for(i = 0; i < m->length; i++) {
+		printf("%c", m->data[i] < 0x80 && isprint(m->data[i]) ? m->data[i] : '?');
+	}
+	printf("\n");
+	fflush(stdout);
+}
 
 int main(int argc, char **argv) {
-	int sock = 0, p2c[2], c2p[2], pppd_argc = 1, max, len;
+	int sock = 0, tty, pppd_argc = 1, max, len;
 	char config_file[1024], buf[sizeof(Message) * 20], *pbuf;
 	char *pppd_args[100], *p, *start, ppp_name[] = "/usr/sbin/pppd"; // _params
 	Message *mp, msg;
@@ -39,35 +56,27 @@ int main(int argc, char **argv) {
 	pppd_args[pppd_argc++] = start;
 	pppd_args[pppd_argc] = NULL;
 
-	/* create pipes for communication with pppd, fork() and execvp() */
-	pipe(p2c);
-	pipe(c2p);
-	child = fork();
+	/* create pseudo-tty for communication with pppd, fork() and execvp() */
+	child = forkpty(&tty, NULL, NULL, NULL);
 	if(child == -1) {
 		fprintf(stderr, "fork() failed\n");
 		return 1;
 	} else if(child == 0) {
 		// child
-		close(p2c[1]);
-		close(c2p[0]);
-		dup2(0, p2c[0]); // replace stdin by pipe
-		dup2(1, c2p[1]); // replace stdout by pipe
-		execv("/usr/sbin/pppd", pppd_args);
+		execv(ppp_name, pppd_args);
 		fprintf(stderr, "child: execv() failed: %d\n", errno);
 		return 1;
 	}
 
-	/* parent: close child's ends of pipes, connect to CAN gateway */
-	close(p2c[0]);
-	close(c2p[1]);
+	/* parent: connect to CAN gateway */
 	if((sock = connect_socket(conf.server, conf.port)) == -1)
 		return 1;
 
 	while(1) {
 		FD_ZERO(&fds);
 		FD_SET(sock, &fds);
-		FD_SET(c2p[0], &fds);
-		max = sock > c2p[0] ? sock : c2p[0];
+		FD_SET(tty, &fds);
+		max = sock > tty ? sock : tty;
 		select(max + 1, &fds, NULL, NULL, NULL);
 
 		if(FD_ISSET(sock, &fds)) {
@@ -78,21 +87,23 @@ int main(int argc, char **argv) {
 					printf("len < sizeof(Message)\n");
 					continue;
 				}
-				pbuf += sizeof(Message);
-				len -= sizeof(Message);
 				mp = (Message *) pbuf;
 				if(mp->id == conf.tcp_in_id) {
-					write(p2c[1], mp->data, mp->length);
+					write(tty, mp->data, mp->length);
+					printf(">"); printmsg(mp);
 				}
+				pbuf += sizeof(Message);
+				len -= sizeof(Message);
 			}
-		} else if(FD_ISSET(c2p[0], &fds)) {
-			len = read(sock, buf, sizeof(buf));
+		} else if(FD_ISSET(tty, &fds)) {
+			len = read(tty, buf, sizeof(buf));
 			pbuf = buf;
 			while(len > 0) {
 				msg.info = 0;
 				msg.length = (len > 8) ? 8 : len;
 				memcpy(msg.data, pbuf, msg.length);
 				write(sock, &msg, sizeof(Message));
+				printf("<"); printmsg(&msg);
 				pbuf += msg.length;
 				len -= msg.length;
 			}
