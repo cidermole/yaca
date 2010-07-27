@@ -18,6 +18,7 @@ uint32_t tcp_in_id, tcp_out_id, temp_id, tid;
 volatile uint8_t _timer;
 volatile uint16_t _conv_timer = 1001;
 uint8_t _count = 0, pending = 0;
+uint16_t temp_interval;
 Message msg_in, msg_out;
 
 void msg_bld_check(Message *msg) {
@@ -84,7 +85,7 @@ int16_t measure_temp() {
 	int16_t temp_value;
 
 	cli();
-	if(_conv_timer > 1000) { // start conversion
+	if(_conv_timer > temp_interval/* + 1001*/) { // start conversion
 		_conv_timer = 0;
 		sei();
 		ow_check(); // ow_check() will not return 0 atm
@@ -95,7 +96,7 @@ int16_t measure_temp() {
 		ow_write(OW_SKIP_ROM);
 		ow_write(OW_CONVERT_T, OW_PULL);
 		return INT_MIN;
-	} else if(_conv_timer > 800) {
+	} else if(_conv_timer > 800 && _conv_timer < 1000) { // XXX: 200 ms slot for temp sensing... should be no problem with little TCP/IP load though
 		_conv_timer = 1001;
 		sei();
 	} else {
@@ -136,7 +137,9 @@ int main() {
 	eeprom_read_block(&tcp_in_id, YC_EE_TCP_IN_ID, sizeof(tcp_in_id));
 	eeprom_read_block(&tcp_out_id, YC_EE_TCP_OUT_ID, sizeof(tcp_out_id));
 	eeprom_read_block(&temp_id, YC_EE_TEMPSTATUS_ID, sizeof(temp_id));
+	eeprom_read_block(&temp_interval, YC_EE_TEMP_INTERVAL, sizeof(temp_interval));
 	eeprom_read_block(&tid, EE_TEMPID, sizeof(tid));
+	temp_interval += 1001; // see measure_temp()
 	msg_out.rtr = 0;
 
 	PORTD |= (1 << PD0); // enable pull-up on RxD
