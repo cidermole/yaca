@@ -28,5 +28,5 @@ mrproper: clean
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).c $(OBJS) $(LDFLAGS)
 
-%.o: $(SRCDIR)/%.cpp
+%.o: $(SRCDIR)/%.c
 	$(CC) -c -o $@ $< $(INCDIRS) $(CFLAGS)
