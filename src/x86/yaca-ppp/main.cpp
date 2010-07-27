@@ -84,13 +84,13 @@ int main(int argc, char **argv) {
 			pbuf = buf;
 			while(len > 0) {
 				if(len < sizeof(Message)) {
-					printf("len < sizeof(Message)\n");
+					printf("len < sizeof(Message)\n"); /* FIXME */
 					continue;
 				}
 				mp = (Message *) pbuf;
 				if(mp->id == conf.tcp_in_id) {
 					write(tty, mp->data, mp->length);
-					printf(">"); printmsg(mp);
+					//printf(">"); printmsg(mp);
 				}
 				pbuf += sizeof(Message);
 				len -= sizeof(Message);
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 				msg.length = (len > 8) ? 8 : len;
 				memcpy(msg.data, pbuf, msg.length);
 				write(sock, &msg, sizeof(Message));
-				printf("<"); printmsg(&msg);
+				//printf("<"); printmsg(&msg);
 				pbuf += msg.length;
 				len -= msg.length;
 			}
