@@ -16,7 +16,7 @@
 #include "../../embedded/bootloader/eeprom.h"
 #include "../yaca-path.h"
 
-void printmsg(Message *m) {
+void printmsg(struct Message *m) {
 	int i;
 	printf(" ");
 	for(i = 0; i < m->length; i++) {
@@ -32,9 +32,9 @@ void printmsg(Message *m) {
 
 int main(int argc, char **argv) {
 	int sock = 0, tty, pppd_argc = 1, max, len;
-	char config_file[1024], buf[sizeof(Message) * 20], *pbuf;
+	char config_file[1024], buf[sizeof(struct Message) * 20], *pbuf;
 	char *pppd_args[100], *p, *start, ppp_name[] = "/usr/sbin/pppd"; // _params
-	Message *mp, msg;
+	struct Message *mp, msg;
 	pid_t child;
 	fd_set fds;
 
@@ -83,17 +83,17 @@ int main(int argc, char **argv) {
 			len = read(sock, buf, sizeof(buf));
 			pbuf = buf;
 			while(len > 0) {
-				if(len < sizeof(Message)) {
-					printf("len < sizeof(Message)\n"); /* FIXME */
+				if(len < sizeof(struct Message)) {
+					printf("len < sizeof(struct Message)\n"); /* FIXME */
 					continue;
 				}
-				mp = (Message *) pbuf;
+				mp = (struct Message *) pbuf;
 				if(mp->id == conf.tcp_in_id) {
 					write(tty, mp->data, mp->length);
 					//printf(">"); printmsg(mp);
 				}
-				pbuf += sizeof(Message);
-				len -= sizeof(Message);
+				pbuf += sizeof(struct Message);
+				len -= sizeof(struct Message);
 			}
 		} else if(FD_ISSET(tty, &fds)) {
 			len = read(tty, buf, sizeof(buf));
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 				msg.info = 0;
 				msg.length = (len > 8) ? 8 : len;
 				memcpy(msg.data, pbuf, msg.length);
-				write(sock, &msg, sizeof(Message));
+				write(sock, &msg, sizeof(struct Message));
 				//printf("<"); printmsg(&msg);
 				pbuf += msg.length;
 				len -= msg.length;

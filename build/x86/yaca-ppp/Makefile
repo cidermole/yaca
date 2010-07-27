@@ -12,7 +12,7 @@ EXE = main
 #CFLAGS +=
 LDFLAGS = -lutil
 
-CC = /home/david/openwrt/trunk/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-g++
+CC = /home/david/openwrt/trunk/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-gcc
 
 #########################################################################
 #########################################################################
@@ -26,7 +26,7 @@ clean:
 mrproper: clean
 
 $(EXE):	$(OBJS)
-	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(LDFLAGS)
+	$(CC) -o $@ $(SRCDIR)/$(EXE).c $(OBJS) $(LDFLAGS)
 
 %.o: $(SRCDIR)/%.cpp
 	$(CC) -c -o $@ $< $(INCDIRS) $(CFLAGS)
