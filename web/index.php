@@ -24,4 +24,8 @@ echo "<br /><br />Time: ";
 
 $time->render();
 
+echo "<br /><br />JS: ";
+
+$time->renderJS();
+
 ?>
