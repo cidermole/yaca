@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <pty.h>
-#include <cctype>
+#include <ctype.h>
 
 #include "config.h"
 #include "network.h"
