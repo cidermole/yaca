@@ -41,7 +41,7 @@ function clock() {
 
 </script>
 </head>
-<body>
+<body onload="clock();">
 <?php
 
 //////////////////////////////////////////////////////////////////
