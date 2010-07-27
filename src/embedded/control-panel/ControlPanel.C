@@ -83,16 +83,15 @@ int16_t measure_temp() {
 	uint8_t data[9], i;
 	int16_t temp_value;
 
-	ow_check(); // ow_check() will not return 0 atm
-/*	if(!ow_check()) {
-		loopdelay_ms(800);
-		return;
-	}*/
-
 	cli();
 	if(_conv_timer > 1000) { // start conversion
 		_conv_timer = 0;
 		sei();
+		ow_check(); // ow_check() will not return 0 atm
+/*		if(!ow_check()) {
+			loopdelay_ms(800);
+			return;
+		}*/
 		ow_write(OW_SKIP_ROM);
 		ow_write(OW_CONVERT_T, OW_PULL);
 		return INT_MIN;
