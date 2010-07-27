@@ -11,7 +11,7 @@ EXE = main
 #INCDIRS +=
 #CFLAGS +=
 
-CC = g++
+CC = /home/david/openwrt/trunk/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-g++
 
 #########################################################################
 #########################################################################
@@ -23,11 +23,9 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-ppp
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)
-	cp $(EXE) ../../bin/yaca-ppp
 
 %.o: $(SRCDIR)/%.cpp
 	$(CC) -c -o $@ $< $(INCDIRS) $(CFLAGS)
