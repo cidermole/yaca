@@ -52,7 +52,7 @@ function render_date(d) {
 	return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
 }
 
-var ajax_num = 0;
+var ajax_num = 0, async = false;
 function clock() {
 	setTimeout('clock()', 940);
 	/* synchronize clock every minute */
@@ -62,6 +62,14 @@ function clock() {
 			aj.open('GET', 'time.php?x=' + (ajax_num++), true);
 			aj.onreadystatechange = function() {
 				if(aj.readyState == 4) {
+					if(aj.responseText.length < 5) {
+						async = true;
+						el("time").style.color = '#f00';
+						return;
+					} else if(async) {
+						async = false;
+						el("time").style.color = '#000';
+					}
 					cur_date = eval('new Date(' + aj.responseText + ')');
 				}
 			}
