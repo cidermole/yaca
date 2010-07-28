@@ -38,6 +38,7 @@ e.g. 1 ping / second
 #define TIME_FLAGS_BAK (1 << 1) // backup time source
 
 #define CANID_YACA_SERIAL_RESET 3
+#define CANID_JAM_TO_CONTROLPANEL 1026
 
 #define LINUX_PORT PORTD
 #define LINUX_DDR  DDRD
@@ -182,7 +183,7 @@ void do_uart(uint8_t c) {
 
 int main() {
 	int data;
-	uint8_t wb_reported = 0, rb_reported = 0;
+	uint8_t wb_reported = 0, rb_reported = 0, tr_wb_report_can = 0;
 	Message msg;
 
 	uart_init((uint16_t) (F_CPU / (8.0 * BAUDRATE) - 1));
@@ -218,6 +219,18 @@ int main() {
 				state = 0;
 			}
 		}
+		if(tr_wb_report_can && state != 2 && state != 3) {
+			msg.info = 0;
+			msg.rtr = 0;
+			msg.id = CANID_JAM_TO_CONTROLPANEL;
+			msg.length = 0;
+
+			if(yc_transmit(&msg) == PENDING) {
+				state = 3;
+			}
+
+			tr_wb_report_can = 0;
+		}
 		
 		if(tr_time && state != 2 && state != 3) {
 			msg.info = 0;
@@ -247,6 +260,7 @@ int main() {
 			uart_putc(0x55);
 			uart_putc(0x03);
 			wb_reported = 1;
+			tr_wb_report_can = 1;
 		} else if(wb_is_not_full() && wb_reported) {
 			uart_putc(0x55);
 			uart_putc(0x13);
