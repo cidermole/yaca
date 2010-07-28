@@ -18,6 +18,9 @@ uint8_t wb_is_not_full() {
 uint8_t rb_is_full() {
 	return (fifo2_read.count > RB_THRESHOLD);
 }
+uint8_t rb_is_not_full() {
+	return (fifo2_read.count < RB_LOW_THRESHOLD);
+}
 
 void uart_init(uint16_t ubrr) {
 	UBRRH = (uint8_t) (ubrr>>8);

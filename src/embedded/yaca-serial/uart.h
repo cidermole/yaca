@@ -10,14 +10,17 @@
 #define WRITE_BUFFER      400
 #define WB_THRESHOLD      350
 #define WB_LOW_THRESHOLD   50
-#define READ_BUFFER       100
-#define RB_THRESHOLD       50
+#define READ_BUFFER       200
+#define RB_THRESHOLD      150
+#define RB_LOW_THRESHOLD   50
 
 extern fifo_t fifo2_read;
 extern fifo_t fifo2_write;
 
 uint8_t wb_is_full();
+uint8_t wb_is_not_full();
 uint8_t rb_is_full();
+uint8_t rb_is_not_full();
 
 void uart_init(uint16_t ubrr);
 int uart_putc(const uint8_t c);
