@@ -61,7 +61,7 @@ function clock() {
 			aj.open('GET', 'time.php?x=' + (ajax_num++), true);
 			aj.onreadystatechange = function() {
 				if(aj.readyState == 4) {
-					cur_date = eval('new Date(' + aj.responseText + ')');
+					cur_date = eval('new Date(' + aj.responseText + ' + 3)');
 				}
 			}
 			aj.send();
@@ -82,7 +82,7 @@ function clock() {
 
 $pool->render();
 
-echo "<br /><br />Time: ";
+echo "<br /><br />Time " . $_SERVER['HTTP_USER_AGENT'] . ": ";
 
 ?>
 <div id="time" style="font-size: 20pt;">
