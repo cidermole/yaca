@@ -7,7 +7,7 @@ require_once('includes.php');
 <title>Yaca</title>
 <script>
 
-var cur_date = new Date(<?php $time->renderJS(); echo (strpos($_SERVER['HTTP_USER_AGENT'], 'Windows CE') === false ? "" : " + 4"); ?>); // XXX year: test, removeme
+var cur_date = new Date(<?php $time->renderJS(); ?>);
 
 function el(n) {
 	if(document.getElementById) {
@@ -54,6 +54,7 @@ function render_date(d) {
 
 var ajax_num = 0;
 function clock() {
+	setTimeout('clock()', 990);
 	/* synchronize clock every minute */
 	if(cur_date.getSeconds() == 0) {
 		var aj = createAjax();
@@ -61,7 +62,7 @@ function clock() {
 			aj.open('GET', 'time.php?x=' + (ajax_num++), true);
 			aj.onreadystatechange = function() {
 				if(aj.readyState == 4) {
-					cur_date = eval('new Date(' + aj.responseText + '<?php echo (strpos($_SERVER['HTTP_USER_AGENT'], 'Windows CE') === false ? "" : " + 4"); ?>)');
+					cur_date = eval('new Date(' + aj.responseText + ')');
 				}
 			}
 			aj.send();
@@ -70,7 +71,6 @@ function clock() {
 	cur_date.setSeconds(cur_date.getSeconds() + 1);
 	el("time").innerHTML = render_time(cur_date);
 	el("date").innerHTML = render_date(cur_date);
-	setTimeout('clock()', 1000);
 }
 
 </script>
