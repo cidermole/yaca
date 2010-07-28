@@ -39,4 +39,3 @@ Bulk Status
 404 ControlPanel::TempStatus(int16_t temp_deci)
 
 1024, 1025: TCP/IP to/from ControlPanel
-1026, 1027: jam to/from ControlPanel

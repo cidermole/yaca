@@ -38,7 +38,10 @@ e.g. 1 ping / second
 #define TIME_FLAGS_BAK (1 << 1) // backup time source
 
 #define CANID_YACA_SERIAL_RESET 3
-#define CANID_JAM_TO_CONTROLPANEL 1026
+
+#define CANID_JAM_TO_CONTROLPANEL 1024
+#define XOFF 0x13
+#define XON  0x11
 
 #define LINUX_PORT PORTD
 #define LINUX_DDR  DDRD
@@ -242,7 +245,8 @@ int main() {
 			msg.info = 0;
 			msg.rtr = 0;
 			msg.id = CANID_JAM_TO_CONTROLPANEL;
-			msg.length = 0;
+			msg.length = 1;
+			msg.data[0] = tr_wb_report_can;
 
 			if(transmit(&msg) == PENDING) {
 				state = 3;
@@ -279,11 +283,12 @@ int main() {
 			uart_putc(0x55);
 			uart_putc(0x03);
 			wb_reported = 1;
-			tr_wb_report_can = 1;
+			tr_wb_report_can = XOFF;
 		} else if(wb_is_not_full() && wb_reported) {
 			uart_putc(0x55);
 			uart_putc(0x13);
 			wb_reported = 0;
+			tr_wb_report_can = XON;
 		}
 		
 		if(rb_is_full() && !rb_reported) {

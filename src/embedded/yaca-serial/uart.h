@@ -8,7 +8,7 @@
 #define BAUDRATE 250000
 
 #define WRITE_BUFFER      400
-#define WB_THRESHOLD      350
+#define WB_THRESHOLD      300
 #define WB_LOW_THRESHOLD   50
 #define READ_BUFFER       200
 #define RB_THRESHOLD      150
