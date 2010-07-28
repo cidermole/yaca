@@ -49,8 +49,12 @@ e.g. 1 ping / second
 #define CLOCK_CORR 5450
 
 static uint8_t state = 0;
-volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, ntp = 1, dst = 0, tr_time = 0;
+volatile uint8_t sub_count = 0, hour = 0, min = 0, sec = 0, day = 1, month = 1, ntp = 1, dst = 0, tr_time = 0, tx_timeout = 0;
 volatile uint16_t year = 0, corr_fac = 0;
+uint8_t tx_restart = 0;
+
+tstatus transmit(Message *m);
+tstatus poll_transmit(Message *m);
 
 void delay_ms(uint16_t t) {
 	uint16_t i;
@@ -144,7 +148,7 @@ void do_uart(uint8_t c) {
 			}
 			
 			msg_index = 0;
-			if(yc_transmit(&msg_out) == PENDING) {
+			if(transmit(&msg_out) == PENDING) {
 				state = 2;
 			} else {
 				uart_putc(REPLY_TRSUC);
@@ -169,7 +173,7 @@ void do_uart(uint8_t c) {
 
 	case 2:
 		_delay_us(100);
-		if(yc_poll_transmit(&msg_out) != PENDING) {
+		if(poll_transmit(&msg_out) != PENDING) {
 			uart_putc(REPLY_TRSUC);
 			state = 0;
 			msg_index = 0;
@@ -179,6 +183,21 @@ void do_uart(uint8_t c) {
 	default:
 		break;
 	}
+}
+
+tstatus transmit(Message *m) {
+	tx_timeout = 0;
+	return yc_transmit(m);
+}
+
+tstatus poll_transmit(Message *m) {
+	tstatus t = yc_poll_transmit(m);
+	if(t == PENDING && tx_timeout > 3) { // if still pending after (300 ms - 400 ms), restart
+		delay_ms(1000); // wait for UART to flush
+		cli();
+		while(1); // wait for watchdog to kill us
+	}
+	return t;
 }
 
 int main() {
@@ -215,7 +234,7 @@ int main() {
 		
 		if(state == 3) {
 			_delay_us(100);
-			if(yc_poll_transmit(&msg) != PENDING) {
+			if(poll_transmit(&msg) != PENDING) {
 				state = 0;
 			}
 		}
@@ -225,7 +244,7 @@ int main() {
 			msg.id = CANID_JAM_TO_CONTROLPANEL;
 			msg.length = 0;
 
-			if(yc_transmit(&msg) == PENDING) {
+			if(transmit(&msg) == PENDING) {
 				state = 3;
 			}
 
@@ -246,7 +265,7 @@ int main() {
 			msg.data[6] = day;
 			msg.data[7] = dst | TIME_FLAGS_BAK;
 			
-			if(yc_transmit(&msg) == PENDING) {
+			if(transmit(&msg) == PENDING) {
 				state = 3;
 			}
 			
@@ -267,21 +286,13 @@ int main() {
 			wb_reported = 0;
 		}
 		
-		if(rb_is_full()) {
-			if(!rb_reported) {
-				uart_putc(0x55);
-				uart_putc(0x04);
-				rb_reported = 1;
-				
-				delay_ms(1000); // XXX: radical buffer-overflow handling :-)
-				cli();
-				while(1);
-			}
-		} else {
-			if(rb_reported) {
-				uart_putc(0x55);
-				uart_putc(0x14);
-			}
+		if(rb_is_full() && !rb_reported) {
+			uart_putc(0x55);
+			uart_putc(0x04);
+			rb_reported = 1;
+		} else if(rb_is_not_full() && rb_reported) {
+			uart_putc(0x55);
+			uart_putc(0x14);
 			rb_reported = 0;
 		}
 
@@ -354,7 +365,9 @@ ISR(TIMER1_COMPA_vect) {
 	}
 	sub_count -= 10;
 	advance_time();
-	
+
+	tx_timeout++;
+
 	// don't transmit time if we were cold-started...
 	if(year != 0)
 		tr_time = 1;
