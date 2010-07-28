@@ -82,7 +82,7 @@ function clock() {
 
 $pool->render();
 
-echo "<br /><br />Time " . $_SERVER['HTTP_USER_AGENT'] . ": ";
+echo "<br /><br />Time: ";
 
 ?>
 <div id="time" style="font-size: 20pt;">
