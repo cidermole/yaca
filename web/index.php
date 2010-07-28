@@ -42,7 +42,7 @@ function render_time(d) {
 }
 
 function render_date(d) {
-	return d.getDay() + '.' + d.getMonth() + '.' + d.getYear();
+	return d.getDay() + '.' + d.getMonth() + '.' + d.getFullYear();
 }
 
 var ajax_num = 0;
