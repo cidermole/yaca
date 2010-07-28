@@ -37,12 +37,19 @@ function createAjax() {
 	return x;
 }
 
+function pad(s) {
+	if(s.length == 1)
+		return '0' + s;
+	else
+		return s;
+}
+
 function render_time(d) {
-	return d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+	return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 }
 
 function render_date(d) {
-	return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear();
+	return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
 }
 
 var ajax_num = 0;
