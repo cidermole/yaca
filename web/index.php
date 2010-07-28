@@ -7,7 +7,7 @@ require_once('includes.php');
 <title>Yaca</title>
 <script>
 
-var cur_date = new Date(<?php $time->renderJS(); ?>); // XXX year: test, removeme
+var cur_date = new Date(<?php $time->renderJS(); echo (strpos($_SERVER['HTTP_USER_AGENT'], 'Windows CE') === false ? "" : " + 4"); ?>); // XXX year: test, removeme
 
 function el(n) {
 	if(document.getElementById) {
@@ -61,7 +61,7 @@ function clock() {
 			aj.open('GET', 'time.php?x=' + (ajax_num++), true);
 			aj.onreadystatechange = function() {
 				if(aj.readyState == 4) {
-					cur_date = eval('new Date(' + aj.responseText + '<?php echo (strpos($_SERVER['HTTP_USER_AGENT'], 'Windows CE') === false ? "" : " + 3"); ?>)');
+					cur_date = eval('new Date(' + aj.responseText + '<?php echo (strpos($_SERVER['HTTP_USER_AGENT'], 'Windows CE') === false ? "" : " + 4"); ?>)');
 				}
 			}
 			aj.send();
