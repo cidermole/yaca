@@ -7,7 +7,7 @@ require_once('includes.php');
 <title>Yaca</title>
 <script>
 
-var cur_date = new Date(<?php $time->renderJS(); ?> + 1); // XXX year: test, removeme
+var cur_date = new Date(<?php $time->renderJS(); ?>); // XXX year: test, removeme
 
 function el(n) {
 	if(document.getElementById) {
