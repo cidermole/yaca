@@ -54,7 +54,7 @@ function render_date(d) {
 
 var ajax_num = 0;
 function clock() {
-	setTimeout('clock()', 990);
+	setTimeout('clock()', 940);
 	/* synchronize clock every minute */
 	if(cur_date.getSeconds() == 0) {
 		var aj = createAjax();
