@@ -38,8 +38,8 @@ function createAjax() {
 }
 
 function pad(s) {
-	if(s.length == 1)
-		return '0' + s;
+	if(s.toString().length == 1)
+		return '0' + s.toString();
 	else
 		return s;
 }
