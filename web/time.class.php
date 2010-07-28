@@ -29,7 +29,7 @@ class Time extends Plugin {
 			return false;
 		}
 
-		echo ($msg->data[3] * 0x100 + $msg->data[4]) . ", " . $msg->data[5] . ", " . $msg->data[6] . ", " . $msg->data[0] . "," . $msg->data[1] . "," . $msg->data[2];
+		echo ($msg->data[3] * 0x100 + $msg->data[4]) . ", " . ($msg->data[5] - 1) . ", " . $msg->data[6] . ", " . $msg->data[0] . "," . $msg->data[1] . "," . $msg->data[2];
 		return true;
 	}
 }
