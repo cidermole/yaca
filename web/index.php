@@ -60,7 +60,7 @@ function clock() {
 		if(aj) {
 			aj.open('GET', 'time.php?x=' + (ajax_num++), true);
 			aj.onreadystatechange = function() {
-				if(x.readyState == 4) {
+				if(aj.readyState == 4) {
 					cur_date = eval('new Date(' + aj.responseText + ')');
 				}
 			}
