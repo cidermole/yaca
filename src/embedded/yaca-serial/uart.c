@@ -9,11 +9,14 @@ fifo_t fifo2_read;
 fifo_t fifo2_write;
 
 uint8_t wb_is_full() {
-	return (fifo2_write.count > WB_TRESHOLD);
+	return (fifo2_write.count > WB_THRESHOLD);
+}
+uint8_t wb_is_not_full() {
+	return (fifo2_write.count < WB_LOW_THRESHOLD);
 }
 
 uint8_t rb_is_full() {
-	return (fifo2_read.count > RB_TRESHOLD);
+	return (fifo2_read.count > RB_THRESHOLD);
 }
 
 void uart_init(uint16_t ubrr) {

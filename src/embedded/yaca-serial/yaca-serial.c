@@ -243,17 +243,13 @@ int main() {
 			tr_time = 0;
 		}
 		
-		if(wb_is_full()) {
-			if(!wb_reported) {
-				uart_putc(0x55);
-				uart_putc(0x03);
-				wb_reported = 1;
-			}
-		} else {
-			if(wb_reported) {
-				uart_putc(0x55);
-				uart_putc(0x13);
-			}
+		if(wb_is_full() && !wb_reported) {
+			uart_putc(0x55);
+			uart_putc(0x03);
+			wb_reported = 1;
+		} else if(wb_is_not_full() && wb_reported) {
+			uart_putc(0x55);
+			uart_putc(0x13);
 			wb_reported = 0;
 		}
 		

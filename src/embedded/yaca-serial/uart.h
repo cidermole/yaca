@@ -7,10 +7,11 @@
 
 #define BAUDRATE 250000
 
-#define WRITE_BUFFER 400
-#define WB_TRESHOLD  350
-#define READ_BUFFER  100
-#define RB_TRESHOLD  50
+#define WRITE_BUFFER      400
+#define WB_THRESHOLD      350
+#define WB_LOW_THRESHOLD   50
+#define READ_BUFFER       100
+#define RB_THRESHOLD       50
 
 extern fifo_t fifo2_read;
 extern fifo_t fifo2_write;
