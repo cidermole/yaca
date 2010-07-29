@@ -259,9 +259,9 @@ int main(int argc, char **argv) {
 					} else if(buf[i] == 0x02 && conf.debug)
 						printf("ping reply\n");
 					else if(buf[i] == 0x03)
-						fprintf(stderr, "MCU: write buffer treshold reached\n");
+						fprintf(stderr, "MCU: write buffer threshold reached\n");
 					else if(buf[i] == 0x04)
-						fprintf(stderr, "MCU: read buffer treshold reached\n");
+						fprintf(stderr, "MCU: read buffer threshold reached\n");
 					break;
 				}
 			}
