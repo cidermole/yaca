@@ -236,10 +236,7 @@ int main(int argc, char **argv) {
 							printf("Incoming CAN Message(rtr: %d): ID %d, data: ", (msgbuf_in.rtr ? 1 : 0), msgbuf_in.id);
 							put_buffer("", (const char*)&msgbuf_in.data, msgbuf_in.length);
 						}
-						if(conf.debug && msgbuf_in.data[0] == 0xF0 && msgbuf_in.length)
-							printf("(debug msg, not forwarding)\n");
-						else
-							send_to_all(&list, (const char *) &msgbuf_in, sizeof(msgbuf_in), -1);
+						send_to_all(&list, (const char *) &msgbuf_in, sizeof(msgbuf_in), -1);
 						pos = 0;
 					} else if(buf[i] == 0x01) {
 						bytewise(msgbuf_in, pos++) = 0x55;
