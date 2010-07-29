@@ -146,7 +146,11 @@ int main(int argc, char **argv) {
 
 
 		if(FD_ISSET(sock, &fds)) { // new connection?
+			if(conf.debug > 2)
+				printf("new client connection\n");
 			client = accept(sock, NULL, 0);
+			if(conf.debug > 2)
+				printf("client number: %d\n", client);
 			list_append(&list, client);
 		}
 
@@ -155,9 +159,16 @@ int main(int argc, char **argv) {
 			if(!FD_ISSET(le->fd, &fds))
 				continue;
 
+			if(conf.debug > 2)
+				printf("incoming data from client socket\n");
+
 			// FIXME: this kind of reception works *USUALLY*!!! fix!
 			client = get_sender(&fds);
+			if(conf.debug > 2)
+				printf("client number: %d\n", client);
 			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?
+				if(conf.debug > 2)
+					printf("client closed the connection\n");
 				socket_close(client); // TODO: check if this works out
 				list_remove(&list, client);
 			} else {
@@ -203,6 +214,8 @@ int main(int argc, char **argv) {
 		}
 
 		if(FD_ISSET(uart, &fds)) { // incoming data from uart?
+			if(conf.debug > 2)
+				printf("incoming from uart\n");
 			len = read(uart, buf, sizeof(buf));
 			if(conf.debug > 1)
 				put_buffer("UART: ", buf, len);
@@ -237,6 +250,8 @@ int main(int argc, char **argv) {
 							put_buffer("", (const char*)&msgbuf_in.data, msgbuf_in.length);
 						}
 						send_to_all(&list, (const char *) &msgbuf_in, sizeof(msgbuf_in), -1);
+						if(conf.debug > 2)
+							printf("send_to_all() done\n");
 						pos = 0;
 					} else if(buf[i] == 0x01) {
 						bytewise(msgbuf_in, pos++) = 0x55;
