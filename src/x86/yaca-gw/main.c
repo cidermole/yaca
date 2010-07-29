@@ -19,6 +19,7 @@
 	#include <unistd.h>
 #endif
 #include <signal.h>
+#include <assert.h>
 
 struct Message {
         uint8_t info;
@@ -85,11 +86,13 @@ int create_protocol_transmit(char *tbuffer, const char *buffer) {
 
 	tbuffer[oi++] = 0x55; // line end
 	tbuffer[oi++] = 0x00;
+	assert(oi < 2 * sizeof(struct Message));
 
 	return oi;
 }
 
 void sigterm_handler(int signal) {
+	printf("SIGTERM received, exiting.\n");
 	socket_close(sock);
 	serial_close(uart);
 	exit(0);
