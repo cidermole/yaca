@@ -101,6 +101,7 @@ int main(int argc, char **argv) {
 	int status = 0, i;
 	fd_set fds;
 	struct list_type list;
+	struct list_entry *le;
 	char buf[sizeof(struct Message) * 10];
 	char tbuf[sizeof(buf) * 2];
 	char *pbuf;
@@ -139,10 +140,66 @@ int main(int argc, char **argv) {
 		
 		select(max + 1, &fds, NULL, NULL, NULL);
 		
+
+
 		if(FD_ISSET(sock, &fds)) { // new connection?
 			client = accept(sock, NULL, 0);
 			list_append(&list, client);
-		} else if(FD_ISSET(uart, &fds)) { // incoming data from uart?
+		}
+
+		// incoming data from socket?
+		for(le = list.data; le; le = le->next) {
+			if(!FD_ISSET(le->fd, &fds))
+				continue;
+
+			// FIXME: this kind of reception works *USUALLY*!!! fix!
+			client = get_sender(&fds);
+			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?
+				socket_close(client); // TODO: check if this works out
+				list_remove(&list, client);
+			} else {
+				if(len >= sizeof(struct Message)) {
+					if(conf.debug > 1)
+						put_buffer("Socket: ", buf, len);
+					pbuf = buf;
+
+					while(len > 0) {
+						if(len < sizeof(struct Message)) {
+							fprintf(stderr, "wrong message size received on TCP: %d\n", len);
+							break;
+						}
+						
+						// TARGET addr: 10 is me, myself and i
+						// TODO: change '10' to something more sensible
+						// TODO: extend to 'start/stop/restart linux'
+/*						memcpy(&temp_msg, buf, sizeof(struct Message));
+						if(temp_msg.id == 10) {
+							len -= sizeof(struct Message);
+							printf("DEBUG message received, sending raw data...\n");
+							write(uart, temp_msg.data, temp_msg.length);
+							tcdrain(uart);
+						} else {*/
+							tlen = create_protocol_transmit(tbuf, pbuf);
+							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
+							
+							pbuf += sizeof(struct Message);
+							len -= sizeof(struct Message);
+							
+							if(conf.debug > 1)
+								put_buffer("Transmitting via UART", tbuf, tlen);
+							write(uart, tbuf, tlen);
+							tcdrain(uart);
+							if(conf.debug > 1)
+								printf("flushed.\n");
+//						}
+					}
+				} else {
+					fprintf(stderr, "wrong message size received on TCP: %d\n", len);
+				}
+			}
+		}
+
+		if(FD_ISSET(uart, &fds)) { // incoming data from uart?
 			len = read(uart, buf, sizeof(buf));
 			if(conf.debug > 1)
 				put_buffer("UART: ", buf, len);
@@ -191,52 +248,6 @@ int main(int argc, char **argv) {
 					else if(buf[i] == 0x04)
 						fprintf(stderr, "MCU: read buffer treshold reached\n");
 					break;
-				}
-			}
-		} else { // incoming data from socket
-			// FIXME: this kind of reception works *USUALLY*!!! fix!
-			client = get_sender(&fds);
-			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?
-				socket_close(client); // TODO: check if this works out
-				list_remove(&list, client);
-			} else {
-				if(len >= sizeof(struct Message)) {
-					if(conf.debug > 1)
-						put_buffer("Socket: ", buf, len);
-					pbuf = buf;
-
-					while(len > 0) {
-						if(len < sizeof(struct Message)) {
-							fprintf(stderr, "wrong message size received on TCP: %d\n", len);
-							break;
-						}
-						
-						// TARGET addr: 10 is me, myself and i
-						// TODO: change '10' to something more sensible
-						// TODO: extend to 'start/stop/restart linux'
-/*						memcpy(&temp_msg, buf, sizeof(struct Message));
-						if(temp_msg.id == 10) {
-							len -= sizeof(struct Message);
-							printf("DEBUG message received, sending raw data...\n");
-							write(uart, temp_msg.data, temp_msg.length);
-							tcdrain(uart);
-						} else {*/
-							tlen = create_protocol_transmit(tbuf, pbuf);
-							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
-							
-							pbuf += sizeof(struct Message);
-							len -= sizeof(struct Message);
-							
-							if(conf.debug > 1)
-								put_buffer("Transmitting via UART", tbuf, tlen);
-							write(uart, tbuf, tlen);
-							tcdrain(uart);
-							if(conf.debug > 1)
-								printf("flushed.\n");
-//						}
-					}
-				} else {
-					fprintf(stderr, "wrong message size received on TCP: %d\n", len);
 				}
 			}
 		}
