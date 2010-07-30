@@ -1,3 +1,14 @@
+BUGS
+
+-> yaca-serial: dead (no incoming msgs)
+-> yaca-gw: dies after some time
+-> pool-control: hangup, timing problems
+-> control-panel: hangup
+
+TODO
+
+-> flow control, at least remove the current one from yaca-serial
+
 
 HEIZUNG
 
