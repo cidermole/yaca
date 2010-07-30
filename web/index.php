@@ -152,5 +152,8 @@ function clock() {
 <div id="pool">
 <?php $pool->render(); ?>
 </div>
+<div id="panel">
+<?php $controlpanel_temp->render(); ?>
+</div>
 </body>
 </html>

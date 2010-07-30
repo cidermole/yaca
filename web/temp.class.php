@@ -18,7 +18,7 @@ class Temp extends Plugin {
 			return false;
 		}
 
-		echo $this->getTemp($msg_te) . " &deg;C";
+		echo ($this->getTemp($msg_te) - 4.6) . " &deg;C";
 		return true;
 	}
 }
