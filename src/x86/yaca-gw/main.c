@@ -32,16 +32,6 @@ struct Message {
 
 int sock, uart;
 
-
-int get_sender(fd_set *fds) {
-    int i = 0;
-
-    while(!FD_ISSET(i, fds))
-        i++;
-
-    return i;
-}
-
 void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
 	struct list_entry *le;
 
@@ -163,7 +153,7 @@ int main(int argc, char **argv) {
 				printf("incoming data from client socket\n");
 
 			// FIXME: this kind of reception works *USUALLY*!!! fix!
-			client = get_sender(&fds);
+			client = le->fd;
 			if(conf.debug > 2)
 				printf("client number: %d\n", client);
 			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?

@@ -2,6 +2,7 @@ BUGS
 
 -> yaca-serial: dead (no incoming msgs)
 -> yaca-gw: dies after some time
+	-> FIXED: get_sender() could return other fd's like UART...
 -> pool-control: hangup, timing problems
 -> control-panel: hangup
 
