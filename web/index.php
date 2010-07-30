@@ -122,23 +122,29 @@ function clock() {
 <style>
 
 <?php if($ppc) { ?>
+div {
+	position: absolute;
+}
+
 #time {
 	font-size: 20pt;
-	position: absolute;
 	left: 0px;
 	top: 0px;
 }
 
 #date {
-	position: absolute;
 	left: 230px;
 	top: 0px;
 }
 
 #pool {
-	position: absolute;
 	left: 0px;
 	top: 40px;
+}
+
+#panel {
+	left: 0px;
+	top: 80px;
 }
 <?php } ?>
 
