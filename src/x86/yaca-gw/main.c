@@ -36,8 +36,11 @@ void send_to_all(struct list_type *list, const char *buffer, int size, int fd_ex
 	struct list_entry *le;
 
 	for(le = list->data; le; le = le->next)
-		if(le->fd != fd_except)
+		if(le->fd != fd_except) {
 			write(le->fd, buffer, size);
+			if(conf.debug > 2)
+				printf("   sent to %d\n", le->fd);
+		}
 }
 
 #define bytewise(var, b) (((unsigned char*)&(var))[b])
@@ -184,7 +187,11 @@ int main(int argc, char **argv) {
 							tcdrain(uart);
 						} else {*/
 							tlen = create_protocol_transmit(tbuf, pbuf);
+							if(conf.debug > 2)
+								printf("create_protocol_transmit() finished\n");
 							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
+							if(conf.debug > 2)
+								printf("send_to_all() finished\n");
 							
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
