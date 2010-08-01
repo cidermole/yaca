@@ -11,6 +11,7 @@ TODO
 -> yaca-logd should die if yaca-gw socket dies
 -> fix message length problem in yaca-ppp, yaca-gw
 -> check PoolControl for switching reliability
+-> daemons should try to re-open socket connections if they go down
 
 
 CHECK / should be fixed
