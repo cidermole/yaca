@@ -36,7 +36,7 @@ int sock, uart;
 void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
 	struct list_entry *le, *le_delete = NULL;
 
-	for(le = list->data; le; le = le->next)
+	for(le = list->data; le; le = le->next) {
 		if(le->fd != fd_except) {
 			if(write(le->fd, buffer, size) == -1) {
 				le_delete = le;
@@ -44,6 +44,7 @@ void send_to_all(struct list_type *list, const char *buffer, int size, int fd_ex
 					printf("send_to_all(): write() = -1 (errno %d)\n", errno);
 			}
 		}
+	}
 
 	if(le_delete) {
 		socket_close(le_delete->fd);
@@ -200,11 +201,7 @@ int main(int argc, char **argv) {
 							tcdrain(uart);
 						} else {*/
 							tlen = create_protocol_transmit(tbuf, pbuf);
-							if(conf.debug > 2)
-								printf("create_protocol_transmit() finished\n");
 							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
-							if(conf.debug > 2)
-								printf("send_to_all() finished\n");
 							
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
