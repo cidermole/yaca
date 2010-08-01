@@ -93,6 +93,13 @@ void sigterm_handler(int signal) {
 	exit(0);
 }
 
+void sig_handler(int signal) {
+	printf("signal %d received\n", signal);
+	socket_close(sock);
+	serial_close(uart);
+	exit(0);
+}
+
 int main(int argc, char **argv) {
 	struct sockaddr_in server;
 	int pid, client, max, len, tlen, pos = 0, jam = 0;
@@ -126,6 +133,9 @@ int main(int argc, char **argv) {
 	}
 	
 	signal(SIGTERM, sigterm_handler);
+	for(i = 1; i < 32; i++)
+		if(i != SIGTERM && i != SIGSTOP && i != SIGKILL)
+			signal(i, sig_handler);
 
 	while(1) {
 		FD_ZERO(&fds);
