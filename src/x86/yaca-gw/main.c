@@ -34,10 +34,12 @@ int sock, uart;
 
 void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
 	struct list_entry *le;
+	ssize_t sz;
 
 	for(le = list->data; le; le = le->next)
 		if(le->fd != fd_except) {
-			write(le->fd, buffer, size);
+			if((sz = write(le->fd, buffer, size)) != size && conf.debug)
+				printf("   send_to_all(): write(%d, ..., %d) = %d\n", le->fd, size, sz);
 			if(conf.debug > 2)
 				printf("   sent to %d\n", le->fd);
 		}
@@ -102,6 +104,7 @@ int main(int argc, char **argv) {
 	char tbuf[sizeof(buf) * 2];
 	char *pbuf;
 	struct Message msgbuf_in, temp_msg;
+	int sel_type;
 
 	if(argc < 2) {
 		printf("Usage: %s <config file>\n", argv[0]);
@@ -133,12 +136,14 @@ int main(int argc, char **argv) {
 		FD_SET(uart, &fds);
 		if(uart > max)
 			max = uart;
-		
+	
+		sel_type = 0;
 		select(max + 1, &fds, NULL, NULL, NULL);
 		
 
 
 		if(FD_ISSET(sock, &fds)) { // new connection?
+			sel_type |= 1;
 			if(conf.debug > 2)
 				printf("new client connection\n");
 			client = accept(sock, NULL, 0);
@@ -152,6 +157,7 @@ int main(int argc, char **argv) {
 			if(!FD_ISSET(le->fd, &fds))
 				continue;
 
+			sel_type |= 2;
 			if(conf.debug > 2)
 				printf("incoming data from client socket\n");
 
@@ -211,6 +217,7 @@ int main(int argc, char **argv) {
 		}
 
 		if(FD_ISSET(uart, &fds)) { // incoming data from uart?
+			sel_type |= 4;
 			if(conf.debug > 2)
 				printf("incoming from uart\n");
 			len = read(uart, buf, sizeof(buf));
@@ -263,6 +270,8 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
+		if(sel_type == 0)
+			printf("select() returned without used slot\n");
 	}
 
 	// not that we would ever get here
