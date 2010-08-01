@@ -1,14 +1,23 @@
 BUGS
 
 -> yaca-serial: dead (no incoming msgs)
--> yaca-gw: dies after some time
-	-> FIXED: get_sender() could return other fd's like UART...
--> pool-control: hangup, timing problems
--> control-panel: hangup
+-> pool-control: timing problems, hangup (related to random messages? [yaca-gw get_sender() bug])
+-> control-panel: hangup (related to yaca-gw SIGPIPE bug?)
+
 
 TODO
 
 -> flow control, at least remove the current one from yaca-serial
+-> yaca-logd should die if yaca-gw socket dies
+-> fix message length problem in yaca-ppp, yaca-gw
+-> check PoolControl for switching reliability
+
+
+CHECK / should be fixed
+
+-> yaca-gw: dies after some time
+	-> FIXED: get_sender() could return other fd's like UART...
+	-> FIXED: SIGPIPE killed process
 
 
 HEIZUNG
@@ -17,10 +26,6 @@ HEIZUNG
 -> Mindestlaufzeit für Brenner
 -> Status-Anzeige: Sonne (Dauerheizung), Mond (Nachtbetrieb), Uhr (Programm)
 
-
--> yaca-logd should die if yaca-gw socket dies
--> fix message length problem in yaca-ppp
--> check PoolControl for switching reliability
 
 =========================================================================
 
