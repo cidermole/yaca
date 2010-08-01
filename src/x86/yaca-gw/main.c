@@ -20,6 +20,7 @@
 #endif
 #include <signal.h>
 #include <assert.h>
+#include <errno.h>
 
 struct Message {
         uint8_t info;
@@ -33,16 +34,22 @@ struct Message {
 int sock, uart;
 
 void send_to_all(struct list_type *list, const char *buffer, int size, int fd_except) {
-	struct list_entry *le;
-	ssize_t sz;
+	struct list_entry *le, *le_delete = NULL;
 
-	for(le = list->data; le; le = le->next)
+	for(le = list->data; le; le = le->next) {
 		if(le->fd != fd_except) {
-			if((sz = write(le->fd, buffer, size)) != size && conf.debug)
-				printf("   send_to_all(): write(%d, ..., %d) = %d\n", le->fd, size, sz);
-			if(conf.debug > 2)
-				printf("   sent to %d\n", le->fd);
+			if(write(le->fd, buffer, size) == -1) {
+				le_delete = le;
+				if(conf.debug)
+					printf("send_to_all(): write() = -1 (errno %d)\n", errno);
+			}
 		}
+	}
+
+	if(le_delete) {
+		socket_close(le_delete->fd);
+		list_remove(list, le_delete->fd);
+	}
 }
 
 #define bytewise(var, b) (((unsigned char*)&(var))[b])
@@ -93,13 +100,6 @@ void sigterm_handler(int signal) {
 	exit(0);
 }
 
-void sig_handler(int signal) {
-	printf("signal %d received\n", signal);
-	socket_close(sock);
-	serial_close(uart);
-	exit(0);
-}
-
 int main(int argc, char **argv) {
 	struct sockaddr_in server;
 	int pid, client, max, len, tlen, pos = 0, jam = 0;
@@ -111,7 +111,6 @@ int main(int argc, char **argv) {
 	char tbuf[sizeof(buf) * 2];
 	char *pbuf;
 	struct Message msgbuf_in, temp_msg;
-	int sel_type;
 
 	if(argc < 2) {
 		printf("Usage: %s <config file>\n", argv[0]);
@@ -133,9 +132,7 @@ int main(int argc, char **argv) {
 	}
 	
 	signal(SIGTERM, sigterm_handler);
-	for(i = 1; i < 32; i++)
-		if(i != SIGTERM && i != SIGSTOP && i != SIGKILL)
-			signal(i, sig_handler);
+	signal(SIGPIPE, SIG_IGN); // instead of SIGPIPE, get socket write errors as -1 / EPIPE
 
 	while(1) {
 		FD_ZERO(&fds);
@@ -146,14 +143,12 @@ int main(int argc, char **argv) {
 		FD_SET(uart, &fds);
 		if(uart > max)
 			max = uart;
-	
-		sel_type = 0;
+		
 		select(max + 1, &fds, NULL, NULL, NULL);
 		
 
 
 		if(FD_ISSET(sock, &fds)) { // new connection?
-			sel_type |= 1;
 			if(conf.debug > 2)
 				printf("new client connection\n");
 			client = accept(sock, NULL, 0);
@@ -167,7 +162,6 @@ int main(int argc, char **argv) {
 			if(!FD_ISSET(le->fd, &fds))
 				continue;
 
-			sel_type |= 2;
 			if(conf.debug > 2)
 				printf("incoming data from client socket\n");
 
@@ -178,7 +172,7 @@ int main(int argc, char **argv) {
 			if((len = read(client, buf, sizeof(buf))) == 0) { // connection closed?
 				if(conf.debug > 2)
 					printf("client closed the connection\n");
-				socket_close(client); // TODO: check if this works out
+				socket_close(client);
 				list_remove(&list, client);
 			} else {
 				if(len >= sizeof(struct Message)) {
@@ -203,11 +197,7 @@ int main(int argc, char **argv) {
 							tcdrain(uart);
 						} else {*/
 							tlen = create_protocol_transmit(tbuf, pbuf);
-							if(conf.debug > 2)
-								printf("create_protocol_transmit() finished\n");
 							send_to_all(&list, (const char *) pbuf, sizeof(struct Message), client); // send to all except ourselves
-							if(conf.debug > 2)
-								printf("send_to_all() finished\n");
 							
 							pbuf += sizeof(struct Message);
 							len -= sizeof(struct Message);
@@ -227,7 +217,6 @@ int main(int argc, char **argv) {
 		}
 
 		if(FD_ISSET(uart, &fds)) { // incoming data from uart?
-			sel_type |= 4;
 			if(conf.debug > 2)
 				printf("incoming from uart\n");
 			len = read(uart, buf, sizeof(buf));
@@ -280,8 +269,6 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
-		if(sel_type == 0)
-			printf("select() returned without used slot\n");
 	}
 
 	// not that we would ever get here
