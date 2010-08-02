@@ -283,12 +283,12 @@ int main() {
 			uart_putc(0x55);
 			uart_putc(0x03);
 			wb_reported = 1;
-			tr_wb_report_can = XOFF;
+			//tr_wb_report_can = XOFF; // TODO: flow control
 		} else if(wb_is_not_full() && wb_reported) {
 			uart_putc(0x55);
 			uart_putc(0x13);
 			wb_reported = 0;
-			tr_wb_report_can = XON;
+			//tr_wb_report_can = XON;
 		}
 		
 		if(rb_is_full() && !rb_reported) {
