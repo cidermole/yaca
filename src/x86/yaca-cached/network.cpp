@@ -71,6 +71,7 @@ int read_message(int sock, struct Message *buffer) {
 	ssize_t rv = 0;
 	char *p = (char *) buffer;
 	struct timeval timeout = {1, 0};
+	fd_set fds;
 
 	FD_ZERO(&fds);
 	FD_SET(sock, &fds);
