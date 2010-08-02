@@ -1,0 +1,49 @@
+__vector_1: b0e - bc8 = 186 / 2 = 93 + 1 = 94 commands
+  22x 1 clock-cycle command
+
+94 * 2 - 22 = ~ 166 clock cycles
+
++ mcp2515_rdstatus  154
++ _read_frame  1228
+
+= 1548 clocks    (__vector_1)
+  ===========
+
+(96.75 us @ 16 MHz)
+
+250.000 baud ^= 40 us byte time
+
+_spi_putc: 1/8 SPI clock of main clock -> 8 * 8 = 64 cycles (66, "gcd"(X, 3 clocks busywait)) + 5 = 71 clock cycles
+                                                                                                    ===============
+
+mcp2515_rdstatus: 12 clocks + 2 * _spi_putc (71) = 154 clocks
+                                                   ==========
+
+_read_frame: a3a - b0c = 210 / 2 = 105 + 1 = 106 commands, + for loop 637 ((20 instr + 71 _spi_putc) * 7 loops)
+ 47 x 1 cycle command
+106 * 2 - 47 = ~ 165 clocks
+
++ for loop 637 (see above)
++ 6 x _spi_putc 71 = 426
+
+= 1228 clocks
+  ===========
+
+--------------------
+
+SPI x4   -> ~ 48 clocks per SPI byte
+
+15 SPI bytes -> ~ 720 cycles saved, 828 remaining (103.5 us @ 8 MHz, 51.75 us @ 16 MHz)
+
+125.000 baud ^= 80 us byte time
+
+
+
+USART RxC interrupt (__vector_11) 722 - 76c = 74 + 2 = 76 - 6 single cycle = 70
++ fifo2_put 61
+
+= 131 clocks  (8.19 us @ 16 MHz)
+  ==========
+
+fifo2_put: 834 - 878 = 68 + 2 = 70 - 9 single cycle = 61
+
