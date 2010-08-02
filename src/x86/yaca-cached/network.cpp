@@ -70,6 +70,13 @@ int read_message(int sock, struct Message *buffer) {
 	int sum = 0;
 	ssize_t rv = 0;
 	char *p = (char *) buffer;
+	struct timeval timeout = {1, 0};
+
+	FD_ZERO(&fds);
+	FD_SET(sock, &fds);
+	select(sock + 1, &fds, NULL, NULL, &timeout);
+	if(!FD_ISSET(sock, &fds))
+		return 0;
 
 	while(sum < sizeof(struct Message) && rv != -1) {
 		if((rv = read(sock, p, sizeof(struct Message) - sum)) != -1) {
