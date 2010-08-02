@@ -66,7 +66,6 @@ enum DisplayMode {
 };
 
 Time curtime;
-uint8_t pump_from_hour, pump_to_hour;
 uint16_t ph_value, ph_raw, ph_buffer[MEASURE_BUF]; // pH * 100
 int16_t temp_value, temp_buffer[MEASURE_BUF]; // temp * 10
 uint32_t ph_sum;
@@ -106,10 +105,12 @@ void enter_bootloader_hook() {
 
 void time_changed() {
 	if(curtime.min == 0 && (curtime.sec < 5)) {
-		if(curtime.hour == pump_from_hour) {
+		if(curtime.hour == eeprom_read_byte(YC_EE_PUMP_FROM_HOUR)) {
 			set_bit(PUMP_PORT, PUMP_BIT);
-		} else if(curtime.hour == pump_to_hour) {
+			yc_status(RelayStatus);
+		} else if(curtime.hour == eeprom_read_byte(YC_EE_PUMP_TO_HOUR)) {
 			clear_bit(PUMP_PORT, PUMP_BIT);
+			yc_status(RelayStatus);
 		}
 	}
 }
@@ -325,8 +326,6 @@ int main() {
 
 	sei();
 	sevenseg_display(1001, 0); // "---"
-	pump_from_hour = eeprom_read_byte(YC_EE_PUMP_FROM_HOUR);
-	pump_to_hour = eeprom_read_byte(YC_EE_PUMP_TO_HOUR);
 	curtime.local_clock = 0;
 	curtime.year = 0;
 
