@@ -174,7 +174,7 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	curtime.local_clock = 0;
 	time_changed();
 
-	if(oldyr == 0 && curtime.hour >= pump_from_hour && curtime.hour < pump_to_hour) {
+	if(oldyr == 0 && curtime.hour >= eeprom_read_byte(YC_EE_PUMP_FROM_HOUR) && curtime.hour < eeprom_read_byte(YC_EE_PUMP_TO_HOUR)) {
 		set_bit(PUMP_PORT, PUMP_BIT);
 		yc_status(RelayStatus);
 	}
