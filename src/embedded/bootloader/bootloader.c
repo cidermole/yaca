@@ -53,7 +53,7 @@ int __attribute__((noreturn)) main() {
 
 	// 1.000.000 / 8 = 125.000 / (125 * MHz) = 1.000 ticks/sec.
 	TCCR1B = (1 << CS11) | (1 << WGM12); // Timer1 presc. = 8, CTC mode
-	OCR1A = (125 * (F_CPU / 1000000UL));
+	OCR1A = (uint16_t)((125UL * F_CPU) / 1000000UL);
 	TIMSK |= (1 << OCIE1A); // enable CTC interrupt
 
 	sei();
