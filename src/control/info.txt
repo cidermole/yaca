@@ -29,3 +29,7 @@ exec chat -v\
 # routing
 echo 1 > /proc/sys/net/ipv4/ip_forward
 iptables -A POSTROUTING -t nat -j MASQUERADE -s 192.168.55.0/24
+
+# /etc/ppp/ip-up.d/00-route-ppc
+#!/bin/sh
+iptables -A forwarding_rule -j ACCEPT -i ppp0
