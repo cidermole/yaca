@@ -15,6 +15,7 @@ TODO
 -> yaca-cached: currently serves 1 client only
 
 -> yaca-timed, yaca-cached, (yaca-ppp?) should be integrated into yaca-gw
+-> yaca-cached: fixed bug introduced by merging in new network.cpp (needs further elaboration)
 
 
 CHECK / should be fixed
