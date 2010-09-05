@@ -13,6 +13,7 @@ Nodes
 801 MainPower: Stromversorgung Hausbus
 802 PoolControl
 803 ControlPanel: PocketPC serial <-> CAN
+804 RadioBase: RFM12 base station in living room
 
 RPCs
 ----
