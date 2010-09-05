@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <fstream>
 #include "Template.h"
+#include <unistd.h>
 #include "Utils.h"
 #include "Message.h"
 #include "Globals.h"
@@ -121,8 +122,8 @@ int main(int argc, char** argv) {
 		}*/
 	}
 
-	Globals::setStr("tmpfile", "/tmp/yacac1"); // TODO: add PID here, below too
-	Globals::setStr("tmpfile2", "/tmp/yacac2");
+	Globals::setStr("tmpfile", es + "/tmp/yacac1." + itos((int) getpid()));
+	Globals::setStr("tmpfile2", es + "/tmp/yacac2." + itos((int) getpid()));
 	Globals::setStr("sizeofTemplate", es + yaca_path + "/src/x86/yaca-c/templates/sizeof.tpl");
 	Globals::setStr("MsgNormalTemplate", es + yaca_path + "/src/x86/yaca-c/templates/msg-normal.tpl");
 	Globals::setStr("MsgBootTemplate", es + yaca_path + "/src/x86/yaca-c/templates/msg-bootstrap.tpl");
