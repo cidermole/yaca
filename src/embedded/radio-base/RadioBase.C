@@ -3,6 +3,11 @@
 #include "librfm12/rfm12.h"
 #include <yaca.h>
 #include <avr/io.h>
+#ifndef F_CPU
+#define F_CPU 2000000UL
+#endif
+#include <util/delay.h>
+#include <string.h>
 
 volatile uint8_t radio_data[19*2], ird = 0, update = 1; // *2: just to be on the safe side
 int16_t temperature, voltage;
@@ -48,14 +53,26 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 }
 
 int main() {
+	Message msg;
+
+	msg.id = 407;
+	msg.rtr = 0;
+	msg.length = 8;
+
 	sei();
 	RFM12_David_init();
 	RFM12_PHY_init();
 
 	while(1) {
-		if(ird >= 19) {
-			temperature = (radio_data[3] - '0') * 100 + (radio_data[4] - '0') * 10 + (radio_data[6] - '0');
-			voltage = (radio_data[10] - '0') * 1000 + (radio_data[12] - '0') * 100 + (radio_data[13] - '0') * 10 + (radio_data[14] - '0');
+		if(ird == 0 && !update) { // hopefully, we can now transmit without RFM12 interrupt
+			temperature = ((int16_t)(radio_data[0] - '0')) * 100;
+			temperature += (radio_data[1] - '0') * 10;
+			temperature += (radio_data[3] - '0');
+
+			voltage = ((uint16_t)(radio_data[7] - '0')) * 1000;
+			voltage += ((uint16_t)(radio_data[9] - '0')) * 100;
+			voltage += (radio_data[10] - '0') * 10;
+			voltage += (radio_data[11] - '0');
 
 			// hack: temp sensor doesn't have '-' sign -> -0.1 deg. C ^= 535 (65535)
 			// winter: -23.6 / 30.0
@@ -63,8 +80,28 @@ int main() {
 			if((winter && temperature > 300) || (!winter && temperature > 500))
 				temperature -= 536;
 
-		} else if(ird == 0 && !update) { // hopefully, we can now transmit without RFM12 interrupt
 			yc_status(TempStatus);
+
+			yc_dispatch_auto();
+
+			msg.info = 0;
+			memcpy(&msg.data, (const void*)&radio_data[0], 8);
+			if(yc_transmit(&msg) == PENDING) {
+				_delay_us(100);
+				while(yc_poll_transmit(&msg) == PENDING)
+					_delay_us(100);
+			}
+
+			yc_dispatch_auto();
+
+			msg.info = 0;
+			memcpy(&msg.data, (const void*)&radio_data[8], 8);
+			if(yc_transmit(&msg) == PENDING) {
+				_delay_us(100);
+				while(yc_poll_transmit(&msg) == PENDING)
+					_delay_us(100);
+			}
+
 			update = 1;
 		}
 		yc_dispatch_auto();
