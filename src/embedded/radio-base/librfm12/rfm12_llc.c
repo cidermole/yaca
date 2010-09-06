@@ -46,6 +46,9 @@ bool RFM12_LLC_receiveCallback(uint8_t data)
 	if(data == RFM12_MAC_EOF) {
 //		uart_puts_P(PSTR("EOF\r\n"));
 		counter = 0;
+		rxCallback = RFM12_LLC_protocols[_RFM12_LLC_tx.header.protID].rxCallback;
+		if(rxCallback)
+			rxCallback(-1);
 		return false;
 	}
 
