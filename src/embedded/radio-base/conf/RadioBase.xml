@@ -5,4 +5,7 @@
 		</message>
 	</messages>
 	<settings/>
+	<build>
+		<link lib="rfm12" path="librfm12" />
+	</build>
 </node-config>

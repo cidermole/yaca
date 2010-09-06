@@ -1,5 +1,6 @@
 #include "RadioBase.h"
 #include "RRadioBase.h"
+#include "librfm12/rfm12.h"
 #include <yaca.h>
 #include <avr/io.h>
 
@@ -13,5 +14,7 @@ void DR(Wtf()) {
 void init() {
 	DDRB |= (1 << PB1);
 	PORTB |= (1 << PB1); // disable CS of RFM12
+
+	RFM12_PHY_init();
 }
 
