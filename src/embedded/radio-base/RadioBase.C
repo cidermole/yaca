@@ -53,12 +53,6 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 }
 
 int main() {
-	Message msg;
-
-	msg.id = 407;
-	msg.rtr = 0;
-	msg.length = 8;
-
 	sei();
 	RFM12_David_init();
 	RFM12_PHY_init();
@@ -81,27 +75,6 @@ int main() {
 				temperature -= 536;
 
 			yc_status(TempStatus);
-
-			yc_dispatch_auto();
-
-			msg.info = 0;
-			memcpy(&msg.data, (const void*)&radio_data[0], 8);
-			if(yc_transmit(&msg) == PENDING) {
-				_delay_us(100);
-				while(yc_poll_transmit(&msg) == PENDING)
-					_delay_us(100);
-			}
-
-			yc_dispatch_auto();
-
-			msg.info = 0;
-			memcpy(&msg.data, (const void*)&radio_data[8], 8);
-			if(yc_transmit(&msg) == PENDING) {
-				_delay_us(100);
-				while(yc_poll_transmit(&msg) == PENDING)
-					_delay_us(100);
-			}
-
 			update = 1;
 		}
 		yc_dispatch_auto();
