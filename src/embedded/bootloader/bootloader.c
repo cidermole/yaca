@@ -62,6 +62,18 @@ int __attribute__((noreturn)) main() {
 	((uint16_t *)(&tempid))[0] = eeprom_read_word(EE_TEMPID);
 	((uint16_t *)(&tempid))[1] = eeprom_read_word(EE_TEMPID + 1); // save ~100 bytes
 
+/* DEBUG: send a message
+
+	msg.data[0] = 0x79;
+	msg.id = tempid;
+	msg.info = 0;
+	msg.length = 1;
+	i = yc_transmit(&msg);
+	while(i == PENDING) {
+		delay_ms(1);
+		i = yc_poll_transmit(&msg);
+	}
+*/
 	// If the Power-on Reset Flag is not set, we came from the app
 	if(!(MCUCSR & (1 << PORF)))
 		goto _from_app;
