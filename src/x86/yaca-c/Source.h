@@ -50,6 +50,8 @@ public:
 	list<Message> getSends(); // throws const char*
 
 	static int sizeOf(string type); // throws const char*
+	static string parseLinkerOptions(string configFile); // throws const char*
+
 };
 
 #endif /* _SOURCE_H_ */

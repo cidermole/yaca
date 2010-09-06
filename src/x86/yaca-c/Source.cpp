@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #ifdef _MSC_VER
 #include <windows.h>
 #else
@@ -320,5 +321,37 @@ void Source::cleanup(string file) {
 		if(Globals::getInt("verbose") >= 1)
 			cerr << "Warning: Source::cleanup(): Could not remove temporary file \"" << file << "\"" << endl;
 	}
+}
+
+string Source::parseLinkerOptions(string configFile) {
+	throwable();
+	XmlTree config;
+	list<XmlTree *>::iterator build, el;
+	string linkerOptions;
+
+	try {
+		config.read(configFile.c_str());
+	} catch(XmlError err) {
+		throw_error("Error parsing XML file " + configFile + ": XmlTree error " + itos(err.code) + " (" + string(err.desc) + ")");
+	}
+
+	assert(config.size());
+	assert((*config.begin())->name() == "node-config");
+
+	for(build = (*config.begin())->begin(); build != (*config.begin())->end() && (*build)->name() != "build"; build++);
+	assert((*build)->name() == "build");
+
+	for(el = (*build)->begin(); el != (*build)->end(); el++) {
+		if((*el)->name() == "link") {
+			if((*el)->attribute("path").length())
+				linkerOptions += " -L" + (*el)->attribute("path");
+			linkerOptions += " -l" + (*el)->attribute("lib");
+		}
+	}
+
+	if(linkerOptions.length())
+		linkerOptions = " -L." + linkerOptions;
+
+	return linkerOptions;
 }
 

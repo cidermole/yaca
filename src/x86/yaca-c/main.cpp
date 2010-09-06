@@ -87,6 +87,7 @@ int main(int argc, char** argv) {
 			<< "Options include:" << endl << endl
 			<< "-v    Increase verbosity level, can be used several times" << endl
 			<< "-new <config xml>: Programs a new node" << endl
+			<< "-config <config xml>: Supply detailed info" << endl
 			<< "-clean" << endl
 			<< "-save-temps" << endl;
 		return 0;
@@ -98,6 +99,10 @@ int main(int argc, char** argv) {
 		else if(param == "-new") {
 			assert(i + 1 < argc);
 			newMode = true;
+			configFile = argv[i + 1];
+			i++;
+		} else if(param == "-config") {
+			assert(i + 1 < argc);
 			configFile = argv[i + 1];
 			i++;
 		} else if(param == "-clean")
@@ -139,7 +144,7 @@ int main(int argc, char** argv) {
 		try {
 			run();
 
-			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T " + yaca_path + "/src/x86/yaca-c/link-" + Globals::getStr("mcu") + ".txt -lyaca -mmcu=" + Globals::getStr("mcu");
+			cmd = es + "avr-gcc -o " + nodeName + "-app.o -L" + yaca_path + "/build/embedded/lib R" + nodeName + ".o " + nodeName + ".o ftable.o -Wl,-T " + yaca_path + "/src/x86/yaca-c/link-" + Globals::getStr("mcu") + ".txt -lyaca -mmcu=" + Globals::getStr("mcu") + (configFile.size() ? Source::parseLinkerOptions(configFile) : string());
 			if(verbose > 1)
 				cout << "Info: running command \"" << cmd << "\"" << endl;
 			if(system(cmd.c_str()))
