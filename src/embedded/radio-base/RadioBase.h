@@ -1,9 +1,12 @@
 #include "Messages.h"
 #include <inttypes.h>
 
-namespace RadioBase {
-	void HDS(Wtf(uint8_t c));
+#define YC_EE_TEMPSTATUS_ID YE(508) // int32
 
-	void HDR(Wtf());
+namespace RadioBase {
+	void HDS(TempStatus(int16_t temp_deci, uint16_t millivolt));
+	void HDR(TempStatus());
+
+	void HDM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags));
 }
 
