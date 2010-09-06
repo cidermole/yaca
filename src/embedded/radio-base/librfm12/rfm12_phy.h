@@ -40,15 +40,15 @@
 
 /*********************** CONFIG *************************************/
 
-#define RFM12_select() 			PORTB &= ~(1 << PB2)
-#define RFM12_unselect() 		PORTB |= (1 << PB2)
+#define RFM12_select() 			PORTB &= ~(1 << PB1)
+#define RFM12_unselect() 		PORTB |= (1 << PB1)
 
-// configure INT2 on falling edge
+// configure INT1 on falling edge
 #include <avr/interrupt.h>
-#define RFM12_INT_init()		MCUCR &= ~(_BV(ISC01) | _BV(ISC00))
-#define RFM12_INT_on()			GICR |= _BV(INT0)
-#define RFM12_INT_off()			GICR &= ~_BV(INT0)
-#define RFM12_INT_vect()		ISR(INT0_vect)
+#define RFM12_INT_init()		MCUCR &= ~(_BV(ISC11) | _BV(ISC10))
+#define RFM12_INT_on()			GICR |= _BV(INT1)
+#define RFM12_INT_off()			GICR &= ~_BV(INT1)
+#define RFM12_INT_vect()		ISR(INT1_vect)
 
 /*********************** DEFINITIONS ********************************/
 

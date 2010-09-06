@@ -86,6 +86,8 @@ bool RFM12_MAC_receiveCallback(uint8_t data)
 
 	if(data == RFM12_MAC_EOF)
 		return true;
+
+	return false;
 }
 
 uint8_t RFM12_MAC_transmitCallback(void)

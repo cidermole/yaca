@@ -24,11 +24,8 @@
 #if defined(__AVR__)
 #include <avr/io.h>
 
-#if defined(__AVR_ATmega8__)	//          MOSI        SCK         SS                  MISO
-#  define SPI_confMaster() 		{ DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB2); DDRB &= ~_BV(DDB4); }
-#elif defined(__AVR_ATmega32__)	//          MOSI        SCK         SS                  MISO
-#  define SPI_confMaster() 		{ DDRB |= _BV(DDB5) | _BV(DDB7) | _BV(DDB0); DDRB &= ~_BV(DDB6); }
-#endif
+//                                          MOSI        SCK         SS                  MISO
+#define SPI_confMaster() 		{ DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB1); DDRB &= ~_BV(DDB4); }
 
 #define SPI_enable()		{ SPCR |= _BV(SPE); }
 #define SPI_disable()		{ SPCR &= ~_BV(SPE); }
@@ -48,7 +45,7 @@
 #define SPI_cphaSampFall()	{ SPCR |= _BV(CPHA); }
 #define SPI_cphaSampRise()	{ SPCR &= ~_BV(CPHA); }
 
-#define SPI_setFrequency()	{ SPCR &= ~_BV(SPR1); SPCR |= _BV(SPR0); SPSR &= ~(1 << SPI2X); }	// F_CPU/16 SPI speed
+#define SPI_setFrequency()	{ SPCR &= ~(_BV(SPR1) | _BV(SPR0)); SPSR |= (1 << SPI2X); }	// F_CPU/2 SPI speed
 
 /**
  *******************************************************************************

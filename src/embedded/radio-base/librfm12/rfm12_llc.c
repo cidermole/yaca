@@ -3,7 +3,6 @@
 #include "hamming.h"
 #include "rfm12_llc.h"
 #include "rfm12_mac.h"
-#include "uart.h"
 
 typedef uint8_t RFM12_LLC_CRC_t;
 
@@ -45,7 +44,7 @@ bool RFM12_LLC_receiveCallback(uint8_t data)
 	uart_puts_P(PSTR("\r\n"));*/
 
 	if(data == RFM12_MAC_EOF) {
-		uart_puts_P(PSTR("EOF\r\n"));
+//		uart_puts_P(PSTR("EOF\r\n"));
 		counter = 0;
 		return false;
 	}
