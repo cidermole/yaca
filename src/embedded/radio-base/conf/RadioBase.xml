@@ -1,4 +1,8 @@
 <node-config id="804">
-	<messages/>
+	<messages>
+		<message name="Wtf">
+			<id>406</id>
+		</message>
+	</messages>
 	<settings/>
 </node-config>
