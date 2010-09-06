@@ -48,10 +48,9 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 }
 
 int main() {
-	RFM12_PHY_init();
-	RFM12_David_init();
-
 	sei();
+	RFM12_David_init();
+	RFM12_PHY_init();
 
 	while(1) {
 		if(ird >= 19) {
