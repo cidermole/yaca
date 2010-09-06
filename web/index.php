@@ -146,6 +146,11 @@ div {
 	left: 0px;
 	top: 80px;
 }
+
+#outdoor {
+	left: 0px;
+	top: 100px;
+}
 <?php } ?>
 
 </style>
