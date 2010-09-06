@@ -25,7 +25,8 @@
 #include <avr/io.h>
 
 //                                          MOSI        SCK         SS                  MISO
-#define SPI_confMaster() 		{ DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB1); DDRB &= ~_BV(DDB4); }
+//#define SPI_confMaster() 		{ DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB1); DDRB &= ~_BV(DDB4); }
+#define SPI_confMaster() 		{ DDRB |=                         _BV(DDB1); }
 
 #define SPI_enable()		{ SPCR |= _BV(SPE); }
 #define SPI_disable()		{ SPCR &= ~_BV(SPE); }

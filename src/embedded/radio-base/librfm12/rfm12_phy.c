@@ -13,12 +13,16 @@ static volatile RFM12_PHY_State_t _RFM12_PHY_state = RFM12_LISTEN;
 static uint16_t _RFM12_trans(uint16_t wert)
 {
 	uint16_t timeout = 0;
+	uint8_t sreg;
 	CONVERTW val;
 	val.w=wert;
+	sreg = SREG;
+	cli();
 	RFM12_select();
 	SPI_trans(val.b[1], timeout);
 	SPI_trans(val.b[0], timeout);
 	RFM12_unselect();
+	SREG = sreg;
 	return val.w;
 }
 
@@ -33,14 +37,13 @@ static bool _RFM12_waitForFIFO(void)
 void RFM12_PHY_init(void)
 {
 	SPI_confMaster();	// Configure PINs as SPI master
-
-	SPI_master();		// Master mode
+/*	SPI_master();		// Master mode
 	SPI_disableINT();	// Disable SPI interrupt
 	SPI_dordMSB();		// Data Order: MSB first
 	SPI_cpolIdleLow();	// Clock Polarity: SCK low when idle
 	SPI_cphaSampRise(); // Clock Phase: sample on rising SCK edge
 	SPI_setFrequency(); // SPI frequency: ~ 3 MHz
-	SPI_enable();
+	SPI_enable();*/
 
 	_delay_ms(200);				// wait until POR done
 	_RFM12_trans(0xC0E0);			// AVR CLK: 10MHz
