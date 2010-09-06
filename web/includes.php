@@ -13,7 +13,8 @@ $common = new Common("192.168.1.2", 1111);
 //$mp = new MainPower($common, array('canid_powerstatus' => 400, 'canid_charge' => 2));
 $time = new Time($common, array('canid_time' => 401));
 $pool = new PoolControl($common, array('canid_phstatus' => 402, 'canid_tempstatus' => 403, 'canid_relaystatus' => 201));
-$controlpanel_temp = new Temp($common, array('canid_tempstatus' => 404));
+$controlpanel_temp = new Temp($common, array('canid_tempstatus' => 404, 'label' => 'Innen: '));
+$outdoor_temp = new Temp($common, array('canid_tempstatus' => 405, 'label' => 'Au&szlig;en: '));
 
 $common->handleRequests();
 usleep(100 * 1000);

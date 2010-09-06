@@ -161,5 +161,8 @@ div {
 <div id="panel">
 <?php $controlpanel_temp->render(); ?>
 </div>
+<div id="outdoor">
+<?php $outdoor_temp->render(); ?>
+</div>
 </body>
 </html>
