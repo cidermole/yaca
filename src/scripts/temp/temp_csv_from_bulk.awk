@@ -17,7 +17,7 @@ function hex2dec(h,i,x,v){
   return v
 }
 
-/405]/ {
+/405]   / {
   if(needdata) {
     num=indoor_sum / (indoor_count * 10)
     printf(",%s,%s\n", num, date)
