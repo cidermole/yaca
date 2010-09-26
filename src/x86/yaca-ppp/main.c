@@ -35,7 +35,8 @@ int main(int argc, char **argv) {
 	char config_file[1024], buf[sizeof(struct Message) * 20], *pbuf;
 	char *pppd_args[100], *p, *start, ppp_name[] = "/usr/sbin/pppd"; // _params
 	struct Message *mp, msg;
-	pid_t child;
+	struct timeval timeout;
+	pid_t child, temp_pid;
 	fd_set fds;
 
 	init_yaca_path();
@@ -77,7 +78,9 @@ int main(int argc, char **argv) {
 		FD_SET(sock, &fds);
 		FD_SET(tty, &fds);
 		max = sock > tty ? sock : tty;
-		select(max + 1, &fds, NULL, NULL, NULL);
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+		select(max + 1, &fds, NULL, NULL, &timeout); // timeout: wake up every second
 
 		if(FD_ISSET(sock, &fds)) {
 			len = read(sock, buf, sizeof(buf));
@@ -107,8 +110,25 @@ int main(int argc, char **argv) {
 				pbuf += msg.length;
 				len -= msg.length;
 			}
-		} else {
-			printf("select() returned empty... hmmm?\n");
+		}
+
+		temp_pid = waitpid(child, NULL, WNOHANG); // check if pppd is still running
+
+		if(temp_pid > 0) { // pppd exited
+			close(tty);
+			/* create pseudo-tty for communication with pppd, fork() and execvp() */
+			child = forkpty(&tty, NULL, NULL, NULL);
+			if(child == -1) {
+				fprintf(stderr, "fork() failed\n");
+				return 1;
+			} else if(child == 0) {
+				// child
+				execv(ppp_name, pppd_args);
+				fprintf(stderr, "child: execv() failed: %d\n", errno);
+				return 1;
+			}
+		} else if(temp_pid == -1) { // error
+			fprintf(stderr, "waitpid() returned -1, errno %d\n", errno);
 		}
 	}
 
