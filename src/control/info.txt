@@ -4,7 +4,9 @@ pppd /dev/ttyUSB0 9600 nocrtscts noipdefault noauth connect /etc/ppp/my-chat-scr
 # /etc/ppp/my-chat-script
 #!/bin/sh
 exec chat -v\
+     TIMEOUT 120\
      ATZ OK\
+     TIMEOUT 5\
      AT OK\
      ATE0V1\&C1\&D2 OK\
      ATS7=120 OK\
