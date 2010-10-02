@@ -131,8 +131,10 @@
 #define I r19
 
 
-.global aes_key_expand  ; (uint8_t *buf /* r25:r24 */, const prog_char *key /* r23:r22 */)
-aes_key_expand:
+; destroys content of Z pointer
+push_orgy:
+	pop ZL              ; fetch return address
+	pop ZH
 	push YH
 	push YL
 	push r2
@@ -151,27 +153,12 @@ aes_key_expand:
 	push r15
 	push r16
 	push r17
+	ijmp                ; equivalent to ret with this function's prologue
 
-	movw YL, r24        ; Y = buf
-	movw ZL, r22        ; Z = key
-	lpm ST11, Z+        ; load key into ST11-ST44
-	lpm ST21, Z+
-	lpm ST31, Z+
-	lpm ST41, Z+
-	lpm ST12, Z+
-	lpm ST22, Z+
-	lpm ST32, Z+
-	lpm ST42, Z+
-	lpm ST13, Z+
-	lpm ST23, Z+
-	lpm ST33, Z+
-	lpm ST43, Z+
-	lpm ST14, Z+
-	lpm ST24, Z+
-	lpm ST34, Z+
-	lpm ST44, Z+
-	rcall key_expand
-
+; destroys content of Z pointer
+pop_orgy:
+	pop ZL              ; fetch return address
+	pop ZH
 	pop r17
 	pop r16
 	pop r15
@@ -190,28 +177,32 @@ aes_key_expand:
 	pop YL
 	pop YH
 	clr r1
+	ijmp                ; equivalent to ret with this function's prologue
+
+
+.global aes_key_expand  ; (uint8_t *buf /* r25:r24 */, const prog_char *key /* r23:r22 */)
+aes_key_expand:
+	rcall push_orgy
+
+	movw YL, r24        ; Y = buf
+	movw ZL, r22        ; Z = key
+
+	ldi r16, 16
+	clr XH
+	clr XL              ; X -> r0
+1:	lpm r17, Z+
+	st X+, r17          ; copy key to register file
+	dec r16
+	brne 1b
+
+	rcall key_expand
+
+	rcall pop_orgy
 	ret
 
 .global aes_encrypt     ; (uint8_t *expanded_key /* r25:r24 */, uint8_t *data /* r23:r22 */, uint8_t *buf /* r21:r20 */, uint8_t *state /* r19:r18 */)
 aes_encrypt:
-	push YH
-	push YL
-	push r2
-	push r3
-	push r4
-	push r5
-	push r6
-	push r7
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r15
-	push r16
-	push r17
+	rcall push_orgy
 
 	movw ZL, r22        ; Z = data
 	movw XL, r18        ; X = state
@@ -244,26 +235,55 @@ aes_encrypt:
 	dec r16
 	brne 1b
 
-	pop r17
-	pop r16
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop r11
-	pop r10
-	pop r9
-	pop r8
-	pop r6
-	pop r5
-	pop r4
-	pop r3
-	pop r2
-	pop YL
-	pop YH
-	clr r1
+	rcall pop_orgy
 	ret
 
+
+.global aes_decrypt     ; (uint8_t *expanded_key /* r25:r24 */, uint8_t *data /* r23:r22 */, uint8_t *buf /* r21:r20 */, uint8_t *state /* r19:r18 */)
+aes_decrypt:
+	rcall push_orgy
+
+	movw ZL, r22        ; Z = data
+	movw XL, r18        ; X = state
+
+	ldi r16, 16
+	clr YH
+	clr YL              ; Y -> r0
+1:	ld r17, Z+
+	st Y+, r17          ; copy data to register file
+	dec r16
+	brne 1b
+
+	movw YL, r24        ; Y = expanded_key
+	subi YL, -16*11     ; add 16*11 to Y
+	sbci YH, -1
+	rcall decrypt
+
+	ldi r16, 16
+	movw YL, r20        ; Y = buf
+	clr ZH              ; Z -> r0
+	clr ZL
+                        ; X already points to -> state, backup it
+	push XH
+	push XL
+1:	ld r17, Z+
+	ld r18, X+
+	eor r17, r18        ; r17 (plaintext) = result[Z] ^ state[X];
+	st Y+, r17          ; store plaintext to buf
+	dec r16
+	brne 1b
+
+	ldi r16, 16
+	movw ZL, r22        ; Z = data
+	pop XL              ; X = state
+	pop XH
+1:	ld r17, Z+
+	st X+, r17
+	dec r16
+	brne 1b
+
+	rcall pop_orgy
+	ret
 
 .global main
 main:
