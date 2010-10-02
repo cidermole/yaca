@@ -133,8 +133,8 @@
 
 ; destroys content of Z pointer
 push_orgy:
-	pop ZL              ; fetch return address
-	pop ZH
+	pop ZH              ; fetch return address
+	pop ZL
 	push YH
 	push YL
 	push r2
@@ -157,8 +157,8 @@ push_orgy:
 
 ; destroys content of Z pointer
 pop_orgy:
-	pop ZL              ; fetch return address
-	pop ZH
+	pop ZH              ; fetch return address
+	pop ZL
 	pop r17
 	pop r16
 	pop r15
@@ -169,6 +169,7 @@ pop_orgy:
 	pop r10
 	pop r9
 	pop r8
+	pop r7
 	pop r6
 	pop r5
 	pop r4
@@ -278,84 +279,13 @@ aes_decrypt:
 	pop XL              ; X = state
 	pop XH
 1:	ld r17, Z+
-	st X+, r17
+	st X+, r17          ; copy ciphertext (data) to state
 	dec r16
 	brne 1b
 
 	rcall pop_orgy
 	ret
 
-.global main
-main:
-	cli			; initialize stack
-	ldi r31,hi8(RAMEND)
-	out _SFR_IO_ADDR(SPH),r31
-	ldi r31,lo8(RAMEND)
-	out _SFR_IO_ADDR(SPL),r31
-
-	ldi ZH, hi8(key)	; load key into ST11-ST44
-	ldi ZL, lo8(key)
-	lpm ST11, Z+
-	lpm ST21, Z+
-	lpm ST31, Z+
-	lpm ST41, Z+
-	lpm ST12, Z+
-	lpm ST22, Z+
-	lpm ST32, Z+
-	lpm ST42, Z+
-	lpm ST13, Z+
-	lpm ST23, Z+
-	lpm ST33, Z+
-	lpm ST43, Z+
-	lpm ST14, Z+
-	lpm ST24, Z+
-	lpm ST34, Z+
-	lpm ST44, Z+
-	
-	ldi YH, 0x00		; expand key to the memory
-	ldi YL, 0x60		; locations $60..$60+(16*11-1)
-	rcall key_expand
-
-	ldi ZH, hi8(text)	; load plaintext into ST11-ST44
-	ldi ZL, lo8(text)
-	lpm ST11, Z+
-	lpm ST21, Z+
-	lpm ST31, Z+
-	lpm ST41, Z+
-	lpm ST12, Z+
-	lpm ST22, Z+
-	lpm ST32, Z+
-	lpm ST42, Z+
-	lpm ST13, Z+
-	lpm ST23, Z+
-	lpm ST33, Z+
-	lpm ST43, Z+
-	lpm ST14, Z+
-	lpm ST24, Z+
-	lpm ST34, Z+
-	lpm ST44, Z+
-
-	; now the registers ST11-ST44 contain the plaintext given below
-	
-	ldi YH, 0		; initialize YH:YL to
-	ldi YL, 0x60		; expanded key and call
-	rcall encrypt		; encryption routine
-
-	; now the registers ST11-ST44 contain the enciphered text
-
-	ldi YH, hi8(0x60+16*11) ; initialize YH:YL to point BEHIND 
-	ldi YL, lo8(0x60+16*11)	; decryption key material and
-	rcall decrypt		; call decryption routine
-
-	; now the registers ST11-ST44 contain the plaintext again
-
-main0:	rjmp main0		; stop
-	
-
-text:
-.byte 0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34
-key:
-.byte 0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c
 
 
 ;;; ***************************************************************************
@@ -816,10 +746,9 @@ decryp1:ldi ZH, hi8(isbox)	; SubBytes + ShiftRows
 ;;;
 ;;; The order of the sboxes is totally arbitrary. They even do not have to be
 ;;; allocated in adjacent memory areas.
-	
-/*.CSEG	
-.ORG $800 TODO */
-	
+
+.section .tables
+
 sbox:
 .byte 0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76 
 .byte 0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0 

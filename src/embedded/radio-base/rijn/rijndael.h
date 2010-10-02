@@ -1,5 +1,5 @@
 #ifndef RIJNDAEL_H
-#ifndef RIJNDAEL_H
+#define RIJNDAEL_H
 
 #include <stdint.h>
 #include <avr/pgmspace.h>
