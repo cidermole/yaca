@@ -215,18 +215,34 @@ aes_encrypt:
 
 	movw ZL, r22        ; Z = data
 	movw XL, r18        ; X = state
+	push XH
+	push XL
 
 	ldi r16, 16
 	clr YH
 	clr YL              ; Y -> r0
 1:	ld r17, Z+
+	ld r18, X+
+	eor r17, r18        ; r17 = data[Z] ^ state[X];
 	st Y+, r17          ; copy data to register file
 	dec r16
 	brne 1b
 
 	movw YL, r24        ; Y = expanded_key
 	rcall encrypt
-	; TODO: write result to buf [r21:r20], update state [X]
+
+	ldi r16, 16
+	movw YL, r20        ; Y = buf
+	clr ZH              ; Z -> r0
+	clr ZL
+	pop XL              ; X = state
+	pop XH
+
+1:	ld r17, Z+
+	st Y+, r17          ; copy result from register file to buf and state
+	st X+, r17
+	dec r16
+	brne 1b
 
 	pop r17
 	pop r16
