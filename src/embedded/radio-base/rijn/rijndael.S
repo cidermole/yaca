@@ -181,7 +181,7 @@ pop_orgy:
 	ijmp                ; equivalent to ret with this function's prologue
 
 
-.global aes_key_expand  ; (uint8_t *buf /* r25:r24 */, const prog_char *key /* r23:r22 */)
+.global aes_key_expand  ; (uint8_t *buf /* r25:r24 */, const prog_char *key /* r23:r22 */, key_mem_t key_mem /* r20 */)
 aes_key_expand:
 	rcall push_orgy
 
@@ -191,12 +191,21 @@ aes_key_expand:
 	ldi r16, 16
 	clr XH
 	clr XL              ; X -> r0
+	tst r20
+	brne 2f
+
 1:	ld r17, Z+
 	st X+, r17          ; copy key to register file
 	dec r16
 	brne 1b
+	rjmp 3f
 
-	rcall key_expand
+2:	lpm r17, Z+
+	st X+, r17          ; copy key to register file
+	dec r16
+	brne 2b
+
+3:	rcall key_expand
 
 	rcall pop_orgy
 	ret

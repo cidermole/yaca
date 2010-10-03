@@ -14,6 +14,10 @@ extern "C" {
 
 */
 
+typedef enum {
+	AES_KEY_SRAM = 0,
+	AES_KEY_FLASH = 1
+} key_mem_t;
 
 /**
 
@@ -21,9 +25,10 @@ extern "C" {
 
 	\param[out] buf target SRAM buffer, 176 bytes
 	\param[in] key source key pointer
+	\param[in] key_mem memory type, AES_KEY_SRAM or AES_KEY_FLASH
 
 */
-void aes_key_expand(uint8_t *buf, const uint8_t *key);
+void aes_key_expand(uint8_t *buf, const uint8_t *key, key_mem_t key_mem);
 
 /**
 
