@@ -43,23 +43,13 @@ typedef void (RFM12_L3_rxCallback)(int data);
  */
 typedef int16_t (RFM12_L3_txCallback)(void);
 
-/**
- * Callback when ACK or NAC was received.
- * @return ack	true on ack, false on nack or timeout.
- */
-typedef void (RFM12_L3_ackCallback)(bool ack);
-
-typedef struct {
-	RFM12_L3_rxCallback*	rxCallback;
-	RFM12_L3_txCallback*	txCallback;
-	RFM12_L3_ackCallback*	ackCallback;
-} RFM12_L3_Protocol_t;
 
 /******************** Layer 2: Data Link **********************/
 
 /*********** LLC ***********/
 
-extern RFM12_L3_Protocol_t RFM12_LLC_protocols[16];
+extern RFM12_L3_rxCallback *RFM12_LLC_protocol_rxCallback;
+extern RFM12_L3_txCallback *RFM12_LLC_protocol_txCallback;
 
 /**
  * Decode next byte.

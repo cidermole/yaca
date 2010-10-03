@@ -27,28 +27,12 @@
 
 #define RFM12_LLC_RX_BUFFER_SIZE	2
 
-typedef enum RFM12_FrameType {
-	TYPE_MANAGEMENT,
-	TYPE_SERIAL
-} RFM12_FrameType_t;
-
-typedef struct RFM12_FrameHeader {
-	uint8_t receiver;
-	uint8_t sender;
-	uint8_t requireACK:1;
-	uint8_t isACK:1;
-	uint8_t protID:4;
-} RFM12_LLC_FrameHeader_t;
-
-
 /**
  *******************************************************************************
  * Register a handler for a protocol ID.
- * @param typeID	the ID of the protocol
- * @param proto		the protocol handler
  *******************************************************************************
  */
-void RFM12_LLC_registerType(RFM12_ProtocolID_t typeID, RFM12_L3_Protocol_t proto);
+void RFM12_LLC_registerType(RFM12_L3_rxCallback *rxCallback, RFM12_L3_txCallback *txCallback);
 
 
 
@@ -59,6 +43,6 @@ void RFM12_LLC_registerType(RFM12_ProtocolID_t typeID, RFM12_L3_Protocol_t proto
  * @return ACK, NACK, or TIMEOUT
  *******************************************************************************
  */
-uint8_t RFM12_LLC_sendFrame(RFM12_ProtocolID_t proto, uint8_t receiver, bool requireACK);
+uint8_t RFM12_LLC_sendFrame();
 
 #endif /*RFM12_LLC_H_*/

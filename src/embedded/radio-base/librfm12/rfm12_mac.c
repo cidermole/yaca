@@ -5,7 +5,7 @@
 #include "rfm12_phy.h"
 //#include "../led.h"
 
-const uint8_t	_RFM12_MAC_preamble[] = {0xAA, 0xAA, 0x2D, 0xD4};
+const uint8_t	_RFM12_MAC_preamble[] = {0xAA, 0xAA, 0xAA, 0x2D, 0xD4};
 
 
 typedef struct {
