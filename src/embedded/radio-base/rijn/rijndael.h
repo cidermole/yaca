@@ -2,7 +2,6 @@
 #define RIJNDAEL_H
 
 #include <stdint.h>
-#include <avr/pgmspace.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,13 +17,13 @@ extern "C" {
 
 /**
 
-	\brief Expand AES key from flash to (16*11=176 bytes) SRAM
+	\brief Expand AES key to (16*11=176 bytes) of SRAM
 
 	\param[out] buf target SRAM buffer, 176 bytes
-	\param[in] key source key address in flash
+	\param[in] key source key pointer
 
 */
-void aes_key_expand(uint8_t *buf, const prog_char *key);
+void aes_key_expand(uint8_t *buf, const uint8_t *key);
 
 /**
 
@@ -38,7 +37,7 @@ void aes_key_expand(uint8_t *buf, const prog_char *key);
 	\param[out] state state buffer / IV (first round), 16 bytes
 
 */
-void aes_encrypt(uint8_t *expanded_key, uint8_t *data, uint8_t *buf, uint8_t *state);
+void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state);
 
 /**
 
@@ -52,7 +51,7 @@ void aes_encrypt(uint8_t *expanded_key, uint8_t *data, uint8_t *buf, uint8_t *st
 	\param[out] state state buffer / IV (first round), 16 bytes
 
 */
-void aes_decrypt(uint8_t *expanded_key, uint8_t *data, uint8_t *buf, uint8_t *state);
+void aes_decrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state);
 
 
 #ifdef __cplusplus

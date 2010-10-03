@@ -191,7 +191,7 @@ aes_key_expand:
 	ldi r16, 16
 	clr XH
 	clr XL              ; X -> r0
-1:	lpm r17, Z+
+1:	ld r17, Z+
 	st X+, r17          ; copy key to register file
 	dec r16
 	brne 1b
