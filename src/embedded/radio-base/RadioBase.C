@@ -30,12 +30,7 @@ int16_t _RFM12_David_txCallback(void) {
 }
 
 void RFM12_David_init(void) {
-	RFM12_L3_Protocol_t proto;
-	proto.rxCallback = &_RFM12_David_rxCallback;
-	proto.txCallback = &_RFM12_David_txCallback;
-	proto.ackCallback = 0;
-
-	RFM12_LLC_registerType(TYPE_SERIAL, proto);
+	RFM12_LLC_registerType(&_RFM12_David_rxCallback, &_RFM12_David_txCallback);
 }
 
 void DR(TempStatus()) {
