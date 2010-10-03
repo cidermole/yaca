@@ -152,8 +152,6 @@ RFM12_INT_vect()
 	if(status & RFM12_FFIT_RGIT) {		// FIFO trigger
 		switch(_RFM12_PHY_state) {
 		case RFM12_LISTEN:
-//			RFM12_RX_LED_on();
-			PORTD |= (1 << PD3);
 			_RFM12_PHY_state = RFM12_RX;
 		case RFM12_RX:
 			buf = RFM12_fifoRead();
@@ -161,8 +159,6 @@ RFM12_INT_vect()
 					RFM12_MAC_receiveCallback(buf) ) {		// end of frame
 				RFM12_PHY_modeRX();
 				_RFM12_PHY_state = RFM12_LISTEN;
-//				RFM12_RX_LED_off();
-				PORTD &= ~(1 << PD3);
 			}
 			break;
 		case RFM12_TX:
