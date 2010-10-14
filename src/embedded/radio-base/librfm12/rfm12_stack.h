@@ -35,7 +35,7 @@ typedef uint8_t	RFM12_ProtocolID_t;
  * Callback when a byte was received.
  * @param data	byte that was received
  */
-typedef void (RFM12_L3_rxCallback)(int data);
+typedef void (RFM12_L3_rxCallback)(int16_t data);
 
 /**
  * Callback when next byte can be sent.
