@@ -19,9 +19,12 @@ typedef enum {
 	AES_KEY_FLASH = 1
 } key_mem_t;
 
+
+#define AES_EXPKEY_SIZE (16*11)
+
 /**
 
-	\brief Expand AES key to (16*11=176 bytes) of SRAM
+	\brief Expand AES key to AES_EXPKEY_SIZE (16*11=176 bytes) of SRAM
 
 	\param[out] buf target SRAM buffer, 176 bytes
 	\param[in] key source key pointer

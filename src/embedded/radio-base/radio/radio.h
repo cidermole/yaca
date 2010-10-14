@@ -35,6 +35,9 @@ typedef enum {
 } radio_state_t;
 
 void radio_init(uint8_t radio_id_node);
+uint8_t radio_poll_receive();
+void radio_receive(RadioMessage *msg);
+tstatus radio_transmit(RadioMessage *msg, uint8_t radio_id_target);
 
 #endif /* RADIO_H */
 

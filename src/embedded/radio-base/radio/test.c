@@ -33,6 +33,7 @@ uint8_t RFM12_LLC_sendFrame() {
 		rxC(buffer[i]);
 	}
 	rxC(RFM12_L3_EOD);
+	return 0;
 }
 
 int main() {

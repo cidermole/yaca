@@ -515,7 +515,7 @@ uchar expkey[4 * Nb * (Nr + 1)];
 FILE *fd = fopen (name, "rb");
 int ch, idx = 0;
 
-	strncpy (key, mykey, sizeof(key));
+	strncpy ((char *) key, mykey, sizeof(key));
 	ExpandKey (key, expkey);
 
 	while( ch = getc(fd), ch != EOF ) {
@@ -537,7 +537,7 @@ uchar expkey[4 * Nb * (Nr + 1)];
 FILE *fd = fopen (name, "rb");
 int ch, idx = 0;
 
-	strncpy (key, mykey, sizeof(key));
+	strncpy ((char *) key, mykey, sizeof(key));
 	ExpandKey (key, expkey);
 
 	while( ch = getc(fd), ch != EOF ) {
@@ -644,6 +644,7 @@ int i;
 	}
 }
 
+/*
 int main (int argc, char *argv[])
 {
 #ifndef unix
@@ -661,6 +662,7 @@ extern int __cdecl _setmode (int, int);
 	case 't': tables(); break;
 	}
 }
+*/
 
 /*
  * The package generates far better random numbers than a linear
@@ -731,7 +733,7 @@ int idx, bit = len * 4;
 }
 
 void aes_key_expand(uint8_t *buf, const uint8_t *key, key_mem_t key_mem) {
-	ExpandKey(key, buf);
+	ExpandKey((uchar *) key, (uchar *) buf);
 }
 
 void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state) {
@@ -743,7 +745,7 @@ void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf,
 	for(i = 0; i < 16; i++)
 		mybuf[i] ^= state[i];
 
-	Encrypt(mybuf, expanded_key, buf);
+	Encrypt((uchar *) mybuf, (uchar *) expanded_key, (uchar *) buf);
 
 	memcpy(state, buf, sizeof(mybuf));
 }
@@ -751,7 +753,7 @@ void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf,
 void aes_decrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state) {
 	int i;
 
-	Decrypt(data, expanded_key, buf);
+	Decrypt((uchar *) data, (uchar *) expanded_key, (uchar *) buf);
 
 	for(i = 0; i < 16; i++)
 		buf[i] ^= state[i];
