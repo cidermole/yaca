@@ -14,7 +14,8 @@ TARGET = libradio.a
 #
 MCU = atmega8
 
-OBJECTS = radio.o
+#OBJECTS = radio.o rijndael.o
+OBJECTS = radio.o aestable.o
 
 #CC = avr-gcc
 CC = gcc
@@ -34,5 +35,12 @@ $(TARGET): $(OBJECTS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
+rijndael.o: rijndael.S
+	$(CC) $(CFLAGS) -c $<
+
 clean:
 	rm -f *.o *.map *.elf *.hex *.s *.i
+
+test:
+	#$(CC) $(CFLAGS) test.c -o ptest -Wl,-T linkerscript.txt -L. -lradio
+	$(CC) $(CFLAGS) test.c -o ptest -L. -lradio

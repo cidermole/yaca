@@ -10,6 +10,7 @@ RadioMessage msg_in, buf_out;
 uint8_t buf_out_index = 0, msg_in_full = 0;
 uint8_t radio_id, target_id;
 radio_state_t radio_state = ST_IDLE;
+uint8_t tx_key[16], rx_key[16], tx_state[16], rx_state[16];
 
 #define PREFIX
 
@@ -31,6 +32,16 @@ _crc16_update(uint16_t crc, uint8_t a)
     return crc;
 }
 #endif
+
+
+void radio_init(uint8_t radio_id_node) { // we will only receive this ID
+	uint8_t _tx_key[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+	uint8_t _rx_key[16] = {15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
+	uint8_t _tx_state[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint8_t _rx_state[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
+	radio_id = radio_id_node;
+}
 
 void _radio_rxc(int16_t data) {
 	static uint8_t id_in, buf_in_index = 0;
@@ -79,11 +90,6 @@ int16_t _radio_txc() {
 		buf_out_index = 0;
 		return RFM12_L3_EOD;
 	}
-}
-
-void radio_init(uint8_t radio_id_node) { // we will only receive this ID
-	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
-	radio_id = radio_id_node;
 }
 
 tstatus radio_transmit(RadioMessage *msg, uint8_t radio_id_target) {
