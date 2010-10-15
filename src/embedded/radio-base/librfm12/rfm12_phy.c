@@ -1,4 +1,5 @@
 #include <util/delay.h>
+#include <avr/interrupt.h>
 #include "spi.h"
 #include "rfm12_mac.h"
 #include "rfm12_phy.h"

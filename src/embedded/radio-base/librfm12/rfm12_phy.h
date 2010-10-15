@@ -44,7 +44,6 @@
 #define RFM12_unselect() 		PORTB |= (1 << PB1)
 
 // configure INT1 on falling edge
-#include <avr/interrupt.h>
 #define RFM12_INT_init()		MCUCR &= ~(_BV(ISC11) | _BV(ISC10))
 #define RFM12_INT_on()			GICR |= _BV(INT1)
 #define RFM12_INT_off()			GICR &= ~_BV(INT1)
