@@ -15,7 +15,7 @@ TARGET = libradio.a
 MCU = atmega8
 
 #OBJECTS = radio.o rijndael.o
-OBJECTS = radio.o aestable.o
+OBJECTS = radio.o aestable.o slave.o
 
 #CC = avr-gcc
 CC = gcc

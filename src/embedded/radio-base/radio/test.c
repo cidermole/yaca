@@ -116,7 +116,7 @@ int main() {
 	// XXX need init
 	aes_key_expand(aes_key, crypto_key, AES_KEY_SRAM);
 
-	fprintf(stderr, "radio_transmit() = %d\n", (int) radio_transmit(&msg, 1));
+	fprintf(stderr, "radio_transmit() = %d\n", (int) radio_transmit(1, &msg));
 	assert(radio_poll_receive());
 	radio_receive(&msg2);
 	msg2.info = 1;
@@ -127,7 +127,7 @@ int main() {
 	assert(memcmp(&msg, &msg2, sizeof(RadioMessage)) == 0);
 
 	msg.info = 0;
-	fprintf(stderr, "radio_transmit() = %d\n", (int) radio_transmit(&msg, 1));
+	fprintf(stderr, "radio_transmit() = %d\n", (int) radio_transmit(1, &msg));
 	assert(radio_poll_receive());
 	radio_receive(&msg2);
 	msg2.info = 1;
