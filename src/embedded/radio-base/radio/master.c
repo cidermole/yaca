@@ -22,7 +22,7 @@ int16_t _radio_txc();
 // TODO: move to EEP
 slot_assign_t slot_assignments[] = {
 	// radio_id, slot
-	{1, 0}
+	{2, 0}
 };
 
 slot_t slots[5]; // size: 51 bytes * elements
@@ -38,7 +38,7 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;
 
-	memset(slots, 0, sizeof(slots));
+	memset(slots, 0, sizeof(slots)); // set states and fc to 0
 }
 
 slot_t *find_slot(uint8_t radio_id) {
@@ -69,8 +69,10 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	slot_assign_t *sa;
 	RadioMessage plain;
 
-	if((slot = find_slot(radio_id)) == NULL) // if no slot found, we recv'd incorrect data
+	if((slot = find_slot(radio_id)) == NULL) { // if no slot found, we recv'd incorrect data
+		fprintf(stderr, "protocol_dispatch(): possible attack\n");
 		return;
+	}
 	sa = &slot_assignments[slot - slots];
 
 	if(msg->fc == slot->rx_fc) { // retransmission received?
@@ -88,6 +90,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		}
 	} else {
 		// possible attack
+		fprintf(stderr, "protocol_dispatch(): possible attack: rx_fc = %d, msg->fc = %d\n", slot->rx_fc, msg->fc);
 	}
 }
 

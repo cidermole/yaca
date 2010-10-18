@@ -50,4 +50,4 @@ clean:
 
 test:
 	#$(CC) $(CFLAGS) test.c -o ptest -Wl,-T linkerscript.txt -L. -lradio
-	$(CC) $(CFLAGS) test.c -o ptest -L. -lradio-slave
+	$(CC) $(CFLAGS) test.c -o ptest -L. -lradio-master
