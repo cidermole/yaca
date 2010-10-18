@@ -62,7 +62,6 @@ int main() {
 	msg.fc = 1;
 	buf[0] = 2; // radio_id
 	buf[1] = msg.fc;
-	msg.crc16 = 0x1234;
 	msg.crc16 = radio_crc(buf[0] /* radio_id */, &msg);
 	aes_encrypt(test_aes_key, &((uint8_t *) &msg)[2], &((uint8_t *) buf)[2], test_aes_state);
 	fprintf(stderr, "test transmission:");
