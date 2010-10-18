@@ -54,6 +54,7 @@ slot_t *find_slot(uint8_t radio_id) {
 void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	RadioMessage msg;
 	memset(&msg, 0, sizeof(msg));
+	// TODO: what does an ACK look like in protocol?
 
 	if(retr == RETRY) {
 		memcpy(slot->tx_state, slot->tx_state_old, sizeof(slot->tx_state));
@@ -70,7 +71,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	RadioMessage plain;
 
 	if((slot = find_slot(radio_id)) == NULL) { // if no slot found, we recv'd incorrect data
-		fprintf(stderr, "protocol_dispatch(): possible attack\n");
+		fprintf(stderr, PREFIX "protocol_dispatch(): no slot found\n");
 		return;
 	}
 	sa = &slot_assignments[slot - slots];
@@ -81,16 +82,19 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		// which we've already transmitted (no big deal).
 		_send_ack(radio_id, slot, RETRY);
 	} else if(msg->fc == slot->rx_fc + 1) {
-		aes_decrypt(aes_key, &((uint8_t *) &msg)[1], &((uint8_t *) &plain)[1], slot->rx_state);
+		aes_decrypt(aes_key, &((uint8_t *) &msg)[2], &((uint8_t *) &plain)[2], slot->rx_state);
+		plain.fc = msg->fc;
 		// verify CRC
-		if(radio_crc(radio_id, msg) == msg->crc16) {
-			fprintf(stderr, "protocol_dispatch(): CRC correct\n");
+		if(radio_crc(radio_id, &plain) == plain.crc16) {
+			fprintf(stderr, PREFIX "protocol_dispatch(): CRC correct\n");
 			slot->rx_fc++;
 			_send_ack(radio_id, slot, NORMAL);
+		} else {
+			fprintf(stderr, PREFIX "protocol_dispatch(): CRC error\n");
 		}
 	} else {
 		// possible attack
-		fprintf(stderr, "protocol_dispatch(): possible attack: rx_fc = %d, msg->fc = %d\n", slot->rx_fc, msg->fc);
+		fprintf(stderr, PREFIX "protocol_dispatch(): possible attack: rx_fc = %d, msg->fc = %d\n", slot->rx_fc, msg->fc);
 	}
 }
 
@@ -134,7 +138,8 @@ tstatus _master_radio_transmit(uint8_t radio_id, RadioMessage *msg, uint8_t *tx_
 	msg->crc16 = radio_crc(radio_id, msg);
 
 	// encrypt and queue message
-	aes_encrypt(aes_key, &((uint8_t *) msg)[1], &((uint8_t *) &buf_out)[1], tx_state);
+	aes_encrypt(aes_key, &((uint8_t *) msg)[2], &((uint8_t *) &buf_out)[2], tx_state);
+	buf_out.fc = msg->fc;
 	msg->info = 1;
 	target_id = radio_id;
 

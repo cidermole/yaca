@@ -15,8 +15,8 @@
 
 typedef struct {
 	uint8_t info; // not actually transmitted
+	uint8_t fc; // framecounter (not crypted)
 	uint32_t can_id;
-	uint8_t fc; // framecounter
 	struct {
 		uint8_t rtr: 1;
 		uint8_t can: 1; // 1: CAN message, 0: general radio message
