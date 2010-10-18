@@ -736,10 +736,36 @@ void aes_key_expand(uint8_t *buf, const uint8_t *key, key_mem_t key_mem) {
 	ExpandKey((uchar *) key, (uchar *) buf);
 }
 
+#include <stdio.h>
+
+void _dump(const char *str, const uint8_t *data, int len) {
+	int i;
+
+	fprintf(stderr, "%s:", str);
+	for(i = 0; i < len; i++) {
+		if(i % 16 == 0)
+			fprintf(stderr, "\n");
+		fprintf(stderr, " %02X", (int) data[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
+void _aes_debug(const char *str, const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state) {
+	fprintf(stderr, "\n************************ AES DEBUG DUMP ************************\n");
+	fprintf(stderr, "**** %s ****\n", str);
+
+	_dump("expanded_key", expanded_key, AES_EXPKEY_SIZE);
+	_dump("data", data, 16);
+	_dump("state", state, 16);
+
+	fprintf(stderr, "\n******************** END OF AES DEBUG DUMP *********************\n");
+}
+
 void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state) {
 	uint8_t mybuf[16];
 	int i;
 
+	_aes_debug("aes_encrypt()", expanded_key, data, buf, state);
 	memcpy(mybuf, data, sizeof(mybuf));
 
 	for(i = 0; i < 16; i++)
@@ -752,6 +778,8 @@ void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf,
 
 void aes_decrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state) {
 	int i;
+
+	_aes_debug("aes_decrypt()", expanded_key, data, buf, state);
 
 	Decrypt((uchar *) data, (uchar *) expanded_key, (uchar *) buf);
 
