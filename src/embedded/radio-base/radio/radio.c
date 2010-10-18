@@ -9,9 +9,9 @@
 
 RadioMessage msg_in, buf_out;
 uint8_t buf_out_index = 0, msg_in_full = 0;
-uint8_t radio_id, target_id;
+uint8_t our_radio_id, target_id;
 radio_state_t radio_state = ST_IDLE;
-uint8_t tx_state[16], rx_state[16], aes_key[AES_EXPKEY_SIZE];
+uint8_t aes_key[AES_EXPKEY_SIZE];
 
 #define PREFIX
 
@@ -36,20 +36,6 @@ _crc16_update(uint16_t crc, uint8_t a)
 
 void _radio_rxc(int16_t data);
 int16_t _radio_txc();
-
-void radio_init(uint8_t radio_id_node) { // we will only receive this ID
-	uint8_t _tx_key[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-	uint8_t _tx_state[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint8_t _rx_state[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	// TODO for base station: random from SRAM startup content (with CRC? with xrandom() from aestable.c?)
-
-	memcpy(tx_state, _tx_state, sizeof(_tx_state));
-	memcpy(rx_state, _rx_state, sizeof(_rx_state));
-	aes_key_expand(aes_key, _tx_key, AES_KEY_SRAM);
-
-	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
-	radio_id = radio_id_node;
-}
 
 uint16_t radio_crc(uint8_t radio_id, RadioMessage *msg) {
 	uint16_t crc16 = 0xffff;

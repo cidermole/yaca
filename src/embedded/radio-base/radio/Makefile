@@ -7,7 +7,9 @@ F_CPU = 2000000UL
 #
 # Target
 #
-TARGET = libradio.a
+TARGET_MASTER = libradio-master.a
+TARGET_SLAVE = libradio-slave.a
+TARGETS = $(TARGET_MASTER) $(TARGET_SLAVE)
 
 #
 # MCU
@@ -15,7 +17,9 @@ TARGET = libradio.a
 MCU = atmega8
 
 #OBJECTS = radio.o rijndael.o
-OBJECTS = radio.o aestable.o slave.o
+OBJECTS = radio.o aestable.o
+OBJECTS_SLAVE = $(OBJECTS) slave.o
+OBJECTS_MASTER = $(OBJECTS) master.o
 
 #CC = avr-gcc
 CC = gcc
@@ -27,10 +31,13 @@ COMMON = -g
 CFLAGS = $(COMMON) -Wall
 LDFLAGS = $(COMMON)
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(OBJECTS)
-	$(ARCHIVER) rcs $(TARGET) $(OBJECTS)
+$(TARGET_MASTER): $(OBJECTS_MASTER)
+	$(ARCHIVER) rcs $(TARGET_MASTER) $(OBJECTS_MASTER)
+
+$(TARGET_SLAVE): $(OBJECTS_SLAVE)
+	$(ARCHIVER) rcs $(TARGET_SLAVE) $(OBJECTS_SLAVE)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
@@ -43,4 +50,4 @@ clean:
 
 test:
 	#$(CC) $(CFLAGS) test.c -o ptest -Wl,-T linkerscript.txt -L. -lradio
-	$(CC) $(CFLAGS) test.c -o ptest -L. -lradio
+	$(CC) $(CFLAGS) test.c -o ptest -L. -lradio-slave
