@@ -91,12 +91,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 			_send_ack(radio_id, slot, NORMAL);
 		} else {
 			int i;
-			fprintf(stderr, PREFIX "protocol_dispatch(): CRC error\n");
-			fprintf(stderr, PREFIX "AES state: ");
-			for(i = 0; i < 16; i++) {
-				fprintf(stderr, PREFIX " %02X", (int)(_dbg_aes[i]));
-			}
-			fprintf(stderr, "\n");
+			fprintf(stderr, PREFIX "protocol_dispatch(): CRC error. radio_id: %d. CRC should be %04X\n", radio_id, (int) radio_crc(radio_id, &plain));
 			for(i = 0; i < sizeof(RadioMessage); i++) {
 				fprintf(stderr, PREFIX " %02X", (int)(((uint8_t *) msg)[i]));
 			}

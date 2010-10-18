@@ -23,7 +23,7 @@ typedef struct {
 	} flags;
 	uint8_t length;
 	uint8_t data[8];
-	uint16_t crc16; // crc16 includes whole struct + radio id
+	uint16_t crc16; // crc16 includes whole struct + radio id + framecounter and must be the last item
 } STRUCT_PACKED RadioMessage;
 
 typedef enum {
