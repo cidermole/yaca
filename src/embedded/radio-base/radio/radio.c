@@ -40,11 +40,26 @@ int16_t _radio_txc();
 uint16_t radio_crc(uint8_t radio_id, RadioMessage *msg) {
 	uint16_t crc16 = 0xffff;
 	uint8_t i;
+/*
+	uint8_t _info_bak, _fc_bak;
+	uint16_t _crc_bak;
 
+	_crc_bak = msg->crc16;
+	_info_bak = msg->info;
+	_fc_bak = msg->fc;
+
+	msg->crc16 = 0;
+	msg->info = 0;
+	msg->fc = 0;
+*/
 	crc16 = _crc16_update(crc16, radio_id);
 	for(i = 1; i < sizeof(RadioMessage) - sizeof(msg->crc16); i++)
-		crc16 = _crc16_update(crc16, ((uint8_t *) &msg)[i]);
-
+		crc16 = _crc16_update(crc16, ((uint8_t *) msg)[i]);
+/*
+	msg->crc16 = _crc_bak;
+	msg->info = _info_bak;
+	msg->fc = _fc_bak;
+*/
 	return crc16;
 }
 
