@@ -49,8 +49,9 @@ void test_rxc(uint8_t *buf, uint8_t count) {
 
 int main() {
 	RadioMessage msg;
-	uint8_t buf[sizeof(RadioMessage) + 1];
+	uint8_t buf[sizeof(RadioMessage)];
 	uint8_t _key[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+	int i;
 
 	radio_init(1);
 	aes_key_expand(test_aes_key, _key, AES_KEY_SRAM);
@@ -63,6 +64,16 @@ int main() {
 	buf[1] = msg.fc;
 	msg.crc16 = radio_crc(buf[0] /* radio_id */, &msg);
 	aes_encrypt(test_aes_key, &((uint8_t *) &msg)[2], &((uint8_t *) buf)[2], test_aes_state);
+	fprintf(stderr, "test transmission:");
+	for(i = 0; i < sizeof(RadioMessage); i++) {
+		fprintf(stderr, " %02X", (int) ((uint8_t *) &msg)[i]);
+	}
+	fprintf(stderr, "\n");
+	fprintf(stderr, "test encrypted:   ");
+	for(i = 0; i < sizeof(RadioMessage); i++) {
+		fprintf(stderr, " %02X", (int) ((uint8_t *) buf)[i]);
+	}
+	fprintf(stderr, "\n");
 	test_rxc(buf, sizeof(buf));
 	return 0;
 }

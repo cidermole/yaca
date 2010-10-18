@@ -82,7 +82,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		// which we've already transmitted (no big deal).
 		_send_ack(radio_id, slot, RETRY);
 	} else if(msg->fc == slot->rx_fc + 1) {
-		aes_decrypt(aes_key, &((uint8_t *) &msg)[2], &((uint8_t *) &plain)[2], slot->rx_state);
+		aes_decrypt(aes_key, &((uint8_t *) msg)[2], &((uint8_t *) &plain)[2], slot->rx_state);
 		plain.fc = msg->fc;
 		// verify CRC
 		if(radio_crc(radio_id, &plain) == plain.crc16) {
@@ -90,7 +90,21 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 			slot->rx_fc++;
 			_send_ack(radio_id, slot, NORMAL);
 		} else {
+			int i;
 			fprintf(stderr, PREFIX "protocol_dispatch(): CRC error\n");
+			fprintf(stderr, PREFIX "AES state: ");
+			for(i = 0; i < 16; i++) {
+				fprintf(stderr, PREFIX " %02X", (int)(_dbg_aes[i]));
+			}
+			fprintf(stderr, "\n");
+			for(i = 0; i < sizeof(RadioMessage); i++) {
+				fprintf(stderr, PREFIX " %02X", (int)(((uint8_t *) msg)[i]));
+			}
+			fprintf(stderr, "\n");
+			for(i = 0; i < sizeof(RadioMessage); i++) {
+				fprintf(stderr, PREFIX " %02X", (int)(((uint8_t *) &plain)[i]));
+			}
+			fprintf(stderr, "\n");
 		}
 	} else {
 		// possible attack
