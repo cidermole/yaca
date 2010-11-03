@@ -765,7 +765,7 @@ void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf,
 	uint8_t mybuf[16];
 	int i;
 
-	//_aes_debug("aes_encrypt()", expanded_key, data, buf, state);
+	_aes_debug("aes_encrypt()", expanded_key, data, buf, state);
 	memcpy(mybuf, data, sizeof(mybuf));
 
 	for(i = 0; i < 16; i++)
@@ -779,7 +779,7 @@ void aes_encrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf,
 void aes_decrypt(const uint8_t *expanded_key, const uint8_t *data, uint8_t *buf, uint8_t *state) {
 	int i;
 
-	//_aes_debug("aes_decrypt()", expanded_key, data, buf, state);
+	_aes_debug("aes_decrypt()", expanded_key, data, buf, state);
 
 	Decrypt((uchar *) data, (uchar *) expanded_key, (uchar *) buf);
 
