@@ -53,8 +53,13 @@ slot_t *find_slot(uint8_t radio_id) {
 
 void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	RadioMessage msg;
+	int16_t time_feedback = 0; // TODO read timer
+
 	memset(&msg, 0, sizeof(msg));
-	// TODO: what does an ACK look like in protocol?
+	msg.flags.ack = 1;
+	msg.length = 2;
+	msg.data[0] = (uint8_t) time_feedback;
+	msg.data[1] = (uint8_t) (time_feedback >> 8);
 
 	if(retr == RETRY) {
 		memcpy(slot->tx_state, slot->tx_state_old, sizeof(slot->tx_state));
@@ -88,6 +93,10 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		if(radio_crc(radio_id, &plain) == plain.crc16) {
 			fprintf(stderr, PREFIX "protocol_dispatch(): CRC correct\n");
 			slot->rx_fc++;
+			if(!msg_in_full) {
+				memcpy(&msg_in, msg, sizeof(RadioMessage));
+				msg_in_full = 1;
+			}
 			_send_ack(radio_id, slot, NORMAL);
 		} else {
 			int i;

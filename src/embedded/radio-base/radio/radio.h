@@ -20,6 +20,7 @@ typedef struct {
 	struct {
 		uint8_t rtr: 1;
 		uint8_t can: 1; // 1: CAN message, 0: general radio message
+		uint8_t ack: 1;
 	} flags;
 	uint8_t length;
 	uint8_t data[8];
