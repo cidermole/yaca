@@ -37,6 +37,7 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 void _radio_rxc(int16_t data) {
 	static uint8_t id_in, buf_in_index = 0;
 	static RadioMessage buf_in;
+	uint8_t state[16];
 
 	if(data == RFM12_L3_EOD) {
 		fprintf(stderr, PREFIX " EOF. got %d bytes\n", (int)buf_in_index);
@@ -46,13 +47,15 @@ void _radio_rxc(int16_t data) {
 		fprintf(stderr, PREFIX " ID match\n");
 
 		// decrypt
-		aes_decrypt(aes_key, &((uint8_t *) &buf_in)[1], &((uint8_t *) &msg_in)[1], rx_state);
+		memcpy(state, rx_state, sizeof(state)); // backup state
+		aes_decrypt(aes_key, &((uint8_t *) &buf_in)[2], &((uint8_t *) &msg_in)[2], rx_state);
 
 		// verify CRC
-		if(radio_crc(id_in, &msg_in) == msg_in.crc16)
-		{
+		if(radio_crc(id_in, &msg_in) == msg_in.crc16) {
 			fprintf(stderr, PREFIX " CRC match\n");
 			msg_in_full = 1;
+		} else {
+			memcpy(rx_state, state, sizeof(state)); // restore state
 		}
 		buf_in_index = 0;
 		radio_state = ST_IDLE;

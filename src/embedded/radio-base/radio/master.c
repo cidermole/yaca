@@ -74,6 +74,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	slot_t *slot;
 	slot_assign_t *sa;
 	RadioMessage plain;
+	uint8_t state[16];
 
 	if((slot = find_slot(radio_id)) == NULL) { // if no slot found, we recv'd incorrect data
 		fprintf(stderr, PREFIX "protocol_dispatch(): no slot found\n");
@@ -87,6 +88,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		// which we've already transmitted (no big deal).
 		_send_ack(radio_id, slot, RETRY);
 	} else if(msg->fc == slot->rx_fc + 1) {
+		memcpy(state, slot->rx_state, sizeof(state)); // backup state
 		aes_decrypt(aes_key, &((uint8_t *) msg)[2], &((uint8_t *) &plain)[2], slot->rx_state);
 		plain.fc = msg->fc;
 		// verify CRC
@@ -100,6 +102,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 			_send_ack(radio_id, slot, NORMAL);
 		} else {
 			int i;
+			memcpy(slot->rx_state, state, sizeof(state)); // restore state
 			fprintf(stderr, PREFIX "protocol_dispatch(): CRC error. radio_id: %d. CRC should be %04X\n", radio_id, (int) radio_crc(radio_id, &plain));
 			for(i = 0; i < sizeof(RadioMessage); i++) {
 				fprintf(stderr, PREFIX " %02X", (int)(((uint8_t *) msg)[i]));
