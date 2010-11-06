@@ -44,6 +44,7 @@ uint8_t radio_poll_receive();
 void radio_receive(RadioMessage *msg);
 tstatus radio_transmit(uint8_t radio_id_target, RadioMessage *msg);
 uint16_t radio_crc(uint8_t radio_id, RadioMessage *msg);
+void protocol_dispatch(uint8_t radio_id, RadioMessage *msg);
 
 #endif /* RADIO_H */
 

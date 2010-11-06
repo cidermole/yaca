@@ -61,6 +61,25 @@ int16_t _radio_txc() {
 	}
 }
 
+void _radio_rxc(int16_t data) {
+	static uint8_t id_in, buf_in_index = 0;
+	static RadioMessage buf_in;
+
+	if(data == RFM12_L3_EOD) {
+		radio_state = ST_IDLE;
+		protocol_dispatch(id_in, &buf_in);
+		buf_in_index = 0;
+	} else {
+		radio_state = ST_RX;
+		if(buf_in_index == 0) {
+			id_in = data;
+			buf_in_index++;
+		} else if(buf_in_index < sizeof(RadioMessage)) {
+			((uint8_t *) &buf_in)[buf_in_index++] = data;
+		}
+	}
+}
+
 void radio_receive(RadioMessage *msg) {
 	memcpy(msg, &msg_in, sizeof(RadioMessage));
 	msg_in_full = 0;

@@ -119,26 +119,6 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	}
 }
 
-void _radio_rxc(int16_t data) {
-	static uint8_t id_in, buf_in_index = 0;
-	static RadioMessage buf_in;
-
-	if(data == RFM12_L3_EOD) {
-		fprintf(stderr, PREFIX " EOF. got %d bytes\n", (int)buf_in_index);
-		radio_state = ST_IDLE;
-		protocol_dispatch(id_in, &buf_in);
-		buf_in_index = 0;
-	} else {
-		radio_state = ST_RX;
-		if(buf_in_index == 0) {
-			id_in = data;
-			buf_in_index++;
-		} else if(buf_in_index < sizeof(RadioMessage)) {
-			((uint8_t *) &buf_in)[buf_in_index++] = data;
-		}
-	}
-}
-
 tstatus radio_transmit(uint8_t radio_id, RadioMessage *msg) {
 	slot_t *slot;
 
