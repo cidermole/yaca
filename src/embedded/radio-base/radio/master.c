@@ -64,7 +64,9 @@ void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	if(retr == RETRY) {
 		memcpy(slot->tx_state, slot->tx_state_old, sizeof(slot->tx_state));
 	} else {
-		msg.fc = ++slot->tx_fc;
+		if(++slot->tx_fc == 0xFF) // avoid special code FF
+			slot->tx_fc = 0;
+		msg.fc = slot->tx_fc;
 		memcpy(slot->tx_state_old, slot->tx_state, sizeof(slot->tx_state_old));
 	}
 	_master_radio_transmit(radio_id, &msg, slot->tx_state);
@@ -87,14 +89,15 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		// An attacker could hereby make us send the same ACK
 		// which we've already transmitted (no big deal).
 		_send_ack(radio_id, slot, RETRY);
-	} else if(msg->fc == slot->rx_fc + 1) {
+	} else if(msg->fc == slot->rx_fc + 1 || (slot->rx_fc == 0xFE && msg->fc == 0)) {
 		memcpy(state, slot->rx_state, sizeof(state)); // backup state
 		aes_decrypt(aes_key, &((uint8_t *) msg)[2], &((uint8_t *) &plain)[2], slot->rx_state);
 		plain.fc = msg->fc;
 		// verify CRC
 		if(radio_crc(radio_id, &plain) == plain.crc16) {
 			fprintf(stderr, PREFIX "protocol_dispatch(): CRC correct\n");
-			slot->rx_fc++;
+			if(++slot->rx_fc == 0xFF) // avoid special code FF
+				slot->rx_fc = 0;
 			if(!msg_in_full) {
 				memcpy(&msg_in, msg, sizeof(RadioMessage));
 				msg_in_full = 1;
@@ -113,6 +116,16 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 			}
 			fprintf(stderr, "\n");
 		}
+	} else if(msg->fc == 0xFF) { // resync (AES state request)
+		// TODO: we should only enable resync on user action
+		slot->rx_fc = 0;
+		slot->tx_fc = 0;
+		memcpy(&((uint8_t *) &buf_out)[1], slot->tx_state, sizeof(slot->tx_state));
+		memcpy(slot->rx_state, slot->tx_state, sizeof(slot->tx_state));
+		target_id = radio_id | 0x80; // MSB indicates AES state transmission
+
+		radio_state = ST_TX;
+		RFM12_LLC_sendFrame();
 	} else {
 		// possible attack
 		fprintf(stderr, PREFIX "protocol_dispatch(): possible attack: rx_fc = %d, msg->fc = %d\n", slot->rx_fc, msg->fc);

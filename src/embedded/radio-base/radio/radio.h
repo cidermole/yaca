@@ -39,12 +39,14 @@ typedef enum {
 	ST_RX
 } radio_state_t;
 
+void protocol_dispatch(uint8_t radio_id, RadioMessage *msg);
+uint16_t radio_crc(uint8_t radio_id, RadioMessage *msg);
+
 void radio_init(uint8_t radio_id_node);
 uint8_t radio_poll_receive();
 void radio_receive(RadioMessage *msg);
 tstatus radio_transmit(uint8_t radio_id_target, RadioMessage *msg);
-uint16_t radio_crc(uint8_t radio_id, RadioMessage *msg);
-void protocol_dispatch(uint8_t radio_id, RadioMessage *msg);
+void radio_slave_resync(); // call directly after radio_init()
 
 #endif /* RADIO_H */
 
