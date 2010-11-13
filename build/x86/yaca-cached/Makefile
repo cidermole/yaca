@@ -10,6 +10,7 @@ SRCDIR = ../../../src/x86/yaca-cached
 EXE = main
 #INCDIRS +=
 CFLAGS += -g
+LDFLAGS += -lrt
 
 CC = g++
 
@@ -26,7 +27,7 @@ mrproper: clean
 	rm ../../bin/yaca-cached
 
 $(EXE):	$(OBJS)
-	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS)
+	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS) $(LDFLAGS)
 	cp $(EXE) ../../bin/yaca-cached
 
 %.o: $(SRCDIR)/%.cpp

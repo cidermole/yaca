@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <time.h>
 #include <fcntl.h>
 #include <errno.h>
 
@@ -99,6 +100,7 @@ int main(int argc, char **argv) {
 	Message message;
 	struct sockaddr_in server;
 	bool fail;
+	struct timespec query_start, now;
 	
 	init_yaca_path();
 	sprintf(config_file, "%s/src/x86/yaca-cached/conf/yaca-cached.conf", yaca_path);
@@ -181,6 +183,8 @@ int main(int argc, char **argv) {
 					buffer.get(&message, message.id);
 				} else {
 					// no status info available, query to CAN
+					clock_gettime(CLOCK_REALTIME, &query_start);
+
 					message.rtr = 1;
 					id = message.id;
 					
@@ -192,6 +196,12 @@ int main(int argc, char **argv) {
 							break;
 						}
 						handle_message(&buffer, &message);
+
+						clock_gettime(CLOCK_REALTIME, &now);
+						if(now.tv_sec > query_start.tv_sec && now.tv_nsec > query_start.tv_nsec && (message.id != id || message.rtr)) { // 1 sec passed?
+							fail = true;
+							break;
+						}
 					}
 				}
 				message.rtr = 0;
