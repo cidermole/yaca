@@ -28,11 +28,12 @@ struct Buffer {
 	int canid[BUFFERS_MAX];
 	unsigned char data[BUFFERS_MAX][8];
 	int length[BUFFERS_MAX];
+	bool buf_ok[BUFFERS_MAX];
 	int nused;
 	
 	Buffer(): nused(0) {}
 	
-	bool used(int id) {
+	bool listening_for(int id) {
 		int i;
 		
 		for(i = 0; i < nused; i++)
@@ -41,7 +42,16 @@ struct Buffer {
 		return false;
 	}
 	
-	void set(int id, const Message *m) {
+	bool used(int id) {
+		int i;
+		
+		for(i = 0; i < nused; i++)
+			if(canid[i] == id)
+				return buf_ok[i];
+		return false;
+	}
+	
+	void set(int id, const Message *m, bool ok = true) {
 		int i, pos = -1;
 		
 		for(i = 0; i < nused; i++)
@@ -54,6 +64,7 @@ struct Buffer {
 		}
 		memcpy(data[pos], m->data, 8);
 		length[pos] = m->length;
+		buf_ok[pos] = ok;
 	}
 	
 	void get(Message *m, int id) {
@@ -62,7 +73,7 @@ struct Buffer {
 		for(i = 0; i < nused; i++)
 			if(canid[i] == id)
 				pos = i;
-		assert(pos != -1);
+		assert(pos != -1 && buf_ok[pos]);
 		memcpy(m->data, data[pos], 8);
 		m->length = length[pos];
 	}
@@ -165,7 +176,7 @@ int main(int argc, char **argv) {
 				return 1;
 			}
 			
-			if(!message.rtr && buffer.used(message.id)) {
+			if(!message.rtr && buffer.listening_for(message.id)) {
 				//handle_message(&buffer, &message);
 				buffer.set(message.id, &message);
 			}
@@ -209,6 +220,8 @@ int main(int argc, char **argv) {
 
 				if(!fail)
 					write(csock, &message, sizeof(Message));
+				else
+					buffer.set(id, &message, false); // not OK (set query to listen for later messages on this)
 			} else {
 				write(sock, &message, sizeof(Message));
 			}
