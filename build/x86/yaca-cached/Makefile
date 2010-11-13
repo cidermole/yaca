@@ -9,7 +9,7 @@ SRCDIR = ../../../src/x86/yaca-cached
 #
 EXE = main
 #INCDIRS +=
-CFLAGS +=
+CFLAGS += -g
 
 CC = g++
 
