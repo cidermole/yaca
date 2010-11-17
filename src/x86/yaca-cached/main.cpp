@@ -85,7 +85,7 @@ int my_max(int a, int b, int c) {
 }
 
 void handle_message(Buffer *buffer, Message *message) {
-	if(!message->rtr && buffer.listening_for(message.id))
+	if(!message->rtr && buffer->listening_for(message->id))
 		buffer->set(message->id, message);
 }
 
