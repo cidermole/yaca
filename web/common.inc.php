@@ -1,5 +1,10 @@
 <?php
 
+// message.info bits (flags)
+define("INFO_AUTOINFO", 0x01); // auto-info of state change (not implemented)
+define("INFO_FAIL",     0x02); // fail reply (multiple timeouts -> MAX_FAILS reached)
+
+
 class Common {
 	var $socket;
 	var $counters;
@@ -116,6 +121,8 @@ class Message {
 		if($info['timed_out'])
 			return false;
 		$this->decode($ret);
+		if($this->info & INFO_FAIL)
+			return false;
 		return true;
 	}
 	
