@@ -32,6 +32,8 @@ void process_key(const char *key, const char *val) {
 		conf.listen_port = atoi(val);
 	} else if(compare(key, "logfile")) {
 		strcpy(conf.logfile, val);
+	} else if(compare(key, "debug")) {
+		conf.debug = atoi(val);
 	}
 }
 
@@ -46,6 +48,7 @@ void load_conf(const char *file) {
 	conf.port = 1222;
 	conf.listen_port = 1111;
 	strcpy(conf.logfile, "$(YACA_PATH)/yaca-cached.log");
+	conf.debug = 0;
 	
 	if(!f) {
 		fprintf(stderr, "can't open config file \"%s\"\n", file);

@@ -14,6 +14,7 @@ typedef struct {
 	int port;
 	int listen_port;
 	char logfile[LINE_BUFFER];
+	int debug;
 } conf_t;
 
 extern conf_t conf;

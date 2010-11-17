@@ -85,17 +85,8 @@ int my_max(int a, int b, int c) {
 }
 
 void handle_message(Buffer *buffer, Message *message) {
-	int fifo_write;
-	
-	if(!message->rtr) {
+	if(!message->rtr && buffer.listening_for(message.id))
 		buffer->set(message->id, message);
-/*		message->info = 1; // auto-info of state change
-		if((fifo_write = open(write_pipe.c_str(), O_WRONLY)) != -1) {
-			write(fifo_write, message, sizeof(Message));
-			close(fifo_write);
-		}*/
-		// pipe opened with O_NONBLOCK does not work, this is disabled for now
-	}
 }
 
 // message.info = 1 -> auto-info of state change
@@ -146,13 +137,15 @@ int main(int argc, char **argv) {
 		perror("listen() failed");
 		return -3;
     }
-    
-	pid = fork();
-	if(pid < 0) {
-		fprintf(stderr, "fork() failed\n");
-		return 1;
-	} else if(pid > 0) { // parent
-		return 0;
+
+	if(conf.debug < 2) {
+		pid = fork();
+		if(pid < 0) {
+			fprintf(stderr, "fork() failed\n");
+			return 1;
+		} else if(pid > 0) { // parent
+			return 0;
+		}
 	}
     
     qsock = s;
@@ -176,10 +169,7 @@ int main(int argc, char **argv) {
 				return 1;
 			}
 			
-			if(!message.rtr && buffer.listening_for(message.id)) {
-				//handle_message(&buffer, &message);
-				buffer.set(message.id, &message);
-			}
+			handle_message(&buffer, &message);
 		}
 		if(FD_ISSET(csock, &fds)) {
 			// incoming data from fifo
