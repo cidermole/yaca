@@ -22,13 +22,21 @@
 
 using namespace std;
 
+#define MAX_FAILS   3 // max. number of timeouts after which no waiting is performed
+
 #define BUFFERS_MAX 1000
+
+// message.info bits (flags)
+#define INFO_AUTOINFO 0x01 // auto-info of state change (not implemented)
+#define INFO_FAIL     0x02 // fail reply (multiple timeouts -> MAX_FAILS reached)
+
 
 struct Buffer {
 	int canid[BUFFERS_MAX];
 	unsigned char data[BUFFERS_MAX][8];
 	int length[BUFFERS_MAX];
 	bool buf_ok[BUFFERS_MAX];
+	int fail_count[BUFFERS_MAX];
 	int nused;
 	
 	Buffer(): nused(0) {}
@@ -51,6 +59,15 @@ struct Buffer {
 		return false;
 	}
 	
+	int fails(int id) {
+		int i;
+		
+		for(i = 0; i < nused; i++)
+			if(canid[i] == id)
+				return fail_count[i];
+		return 0;
+	}
+	
 	void set(int id, const Message *m, bool ok = true) {
 		int i, pos = -1;
 		
@@ -60,7 +77,12 @@ struct Buffer {
 		if(pos == -1) {
 			pos = nused++;
 			canid[pos] = id;
+			fail_count[pos] = ok ? 0 : 1;
 			assert(nused < BUFFERS_MAX);
+		} else if(ok == false) {
+			fail_count[pos]++;
+		} else { // pos != -1 && ok == true
+			fail_count[pos] = 0;
 		}
 		memcpy(data[pos], m->data, 8);
 		length[pos] = m->length;
@@ -88,9 +110,6 @@ void handle_message(Buffer *buffer, Message *message) {
 	if(!message->rtr && buffer->listening_for(message->id))
 		buffer->set(message->id, message);
 }
-
-// message.info = 1 -> auto-info of state change
-// message.info = 0 -> reply to a query
 
 int main(int argc, char **argv) {
 	int sock = 0, qsock = 0, csock = 0, fifo_write = 0, id, pid;
@@ -182,6 +201,9 @@ int main(int argc, char **argv) {
 				fail = false;
 				if(buffer.used(message.id)) {
 					buffer.get(&message, message.id);
+				} else if(buffer.fails(message.id) >= MAX_FAILS) { // too many timeouts?
+					message.info = INFO_FAIL;
+					// variable 'fail' is still false -> actually write fail message
 				} else {
 					// no status info available, query to CAN
 					clock_gettime(CLOCK_REALTIME, &query_start);
