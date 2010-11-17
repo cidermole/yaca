@@ -201,6 +201,7 @@ int main(int argc, char **argv) {
 				fail = false;
 				if(buffer.used(message.id)) {
 					buffer.get(&message, message.id);
+					message.info = 0; // reply
 				} else if(buffer.fails(message.id) >= MAX_FAILS) { // too many timeouts?
 					message.info = INFO_FAIL;
 					// variable 'fail' is still false -> actually write fail message
@@ -226,9 +227,9 @@ int main(int argc, char **argv) {
 							break;
 						}
 					}
+					message.info = 0; // reply
 				}
 				message.rtr = 0;
-				message.info = 0; // reply
 
 				if(!fail)
 					write(csock, &message, sizeof(Message));
