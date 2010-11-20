@@ -36,6 +36,8 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	our_radio_id = radio_id_node;
 
 	memset(slots, 0, sizeof(slots)); // set states and fc to 0
+
+	RFM12_PHY_init();
 }
 
 slot_t *find_slot(uint8_t radio_id) {

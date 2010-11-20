@@ -25,6 +25,8 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;
 	_radio_sync = 0;
+
+	RFM12_PHY_init();
 }
 
 void radio_slave_resync() {
