@@ -1,8 +1,5 @@
-#include <stdio.h>
 #include <string.h>
-#if defined(__AVR__)
 #include <util/crc16.h>
-#endif
 #include "radio.h"
 #include "rijndael.h"
 #include "../librfm12/rfm12.h"
@@ -79,7 +76,6 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	uint8_t state[16];
 
 	if((slot = find_slot(radio_id)) == NULL) { // if no slot found, we recv'd incorrect data
-		fprintf(stderr, PREFIX "protocol_dispatch(): no slot found\n");
 		return;
 	}
 	sa = &slot_assignments[slot - slots];
@@ -95,7 +91,6 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		plain.fc = msg->fc;
 		// verify CRC
 		if(radio_crc(radio_id, &plain) == plain.crc16) {
-			fprintf(stderr, PREFIX "protocol_dispatch(): CRC correct\n");
 			if(++slot->rx_fc == 0xFF) // avoid special code FF
 				slot->rx_fc = 0;
 			if(!msg_in_full) {
@@ -106,15 +101,10 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		} else {
 			int i;
 			memcpy(slot->rx_state, state, sizeof(state)); // restore state
-			fprintf(stderr, PREFIX "protocol_dispatch(): CRC error. radio_id: %d. CRC should be %04X\n", radio_id, (int) radio_crc(radio_id, &plain));
 			for(i = 0; i < sizeof(RadioMessage); i++) {
-				fprintf(stderr, PREFIX " %02X", (int)(((uint8_t *) msg)[i]));
 			}
-			fprintf(stderr, "\n");
 			for(i = 0; i < sizeof(RadioMessage); i++) {
-				fprintf(stderr, PREFIX " %02X", (int)(((uint8_t *) &plain)[i]));
 			}
-			fprintf(stderr, "\n");
 		}
 	} else if(msg->fc == 0xFF) { // resync (AES state request)
 		// TODO: we should only enable resync on user action
@@ -128,7 +118,6 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		RFM12_LLC_sendFrame();
 	} else {
 		// possible attack
-		fprintf(stderr, PREFIX "protocol_dispatch(): possible attack: rx_fc = %d, msg->fc = %d\n", slot->rx_fc, msg->fc);
 	}
 }
 

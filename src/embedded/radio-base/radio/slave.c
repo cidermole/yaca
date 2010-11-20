@@ -1,8 +1,5 @@
-#include <stdio.h>
 #include <string.h>
-#if defined(__AVR__)
 #include <util/crc16.h>
-#endif
 #include "radio.h"
 #include "rijndael.h"
 #include "../librfm12/rfm12.h"
@@ -71,7 +68,6 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 
 	// verify CRC
 	if(radio_crc(radio_id, &msg_in) == msg_in.crc16) {
-		fprintf(stderr, PREFIX " CRC match\n");
 		if(++rx_fc == 0xFF) // avoid special code FF
 			rx_fc = 0;
 		msg_in_full = 1;
