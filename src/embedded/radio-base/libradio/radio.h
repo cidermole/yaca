@@ -47,6 +47,7 @@ uint8_t radio_poll_receive();
 void radio_receive(RadioMessage *msg);
 tstatus radio_transmit(uint8_t radio_id_target, RadioMessage *msg);
 void radio_slave_resync(); // call directly after radio_init()
+tstatus radio_retransmit(uint8_t radio_id, RadioMessage *msg);
 
 #endif /* RADIO_H */
 

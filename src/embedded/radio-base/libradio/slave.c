@@ -78,6 +78,16 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	}
 }
 
+tstatus radio_retransmit(uint8_t radio_id, RadioMessage *msg) {
+	if(radio_state != ST_IDLE)
+		return PENDING;
+	if(msg->info) // if we have already queued message and are done (idle)
+		return SUCCESS;
+
+	--tx_fc;
+	return radio_transmit(radio_id, msg);
+}
+
 tstatus radio_transmit(uint8_t radio_id, RadioMessage *msg) {
 	if(radio_state != ST_IDLE)
 		return PENDING;
