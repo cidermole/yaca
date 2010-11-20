@@ -16,19 +16,14 @@ TARGETS = $(TARGET_MASTER) $(TARGET_SLAVE)
 #
 MCU = atmega8
 
-#OBJECTS = radio.o rijndael.o
-OBJECTS = radio.o aestable.o
+OBJECTS = radio.o rijndael.o
 OBJECTS_SLAVE = $(OBJECTS) slave.o
 OBJECTS_MASTER = $(OBJECTS) master.o
 
-#CC = avr-gcc
-CC = gcc
-#ARCHIVER = avr-ar
-ARCHIVER = ar
-#COMMON = -mmcu=$(MCU)
-COMMON = -g
-#CFLAGS = $(COMMON) -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char
-CFLAGS = $(COMMON) -Wall
+CC = avr-gcc
+ARCHIVER = avr-ar
+COMMON = -mmcu=$(MCU)
+CFLAGS = $(COMMON) -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char
 LDFLAGS = $(COMMON)
 
 all: $(TARGETS)
@@ -47,11 +42,3 @@ rijndael.o: rijndael.S
 
 clean:
 	rm -f *.o *.map *.elf *.hex *.s *.i
-
-test:
-	#$(CC) $(CFLAGS) test.c -o ptest -Wl,-T linkerscript.txt -L. -lradio
-	$(CC) $(CFLAGS) test.c -o ptest -L. -lradio-master
-
-test-slave:
-	#$(CC) $(CFLAGS) test-slave.c -o ptest-slave -Wl,-T linkerscript.txt -L. -lradio-slave
-	$(CC) $(CFLAGS) test-slave.c -o ptest-slave -L. -lradio-slave
