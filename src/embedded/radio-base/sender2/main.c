@@ -6,39 +6,9 @@
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
-#include "global.h"
-#include "rf12.h"
 #include "one-wire.h"
-#include "ow-client.h"
 #include "main.h"
 
-
-uint8_t tx_key[16], rx_key[16], tx_state[16], rx_state[16];
-
-void crypto_init() {
-	uint8_t i;
-
-	owc_init();
-	owc_wait_reset();
-
-	for(i = 0; i < 16; i++)
-		tx_key[i] = owc_read();
-	for(i = 0; i < 16; i++)
-		tx_state[i] = owc_read();
-	for(i = 0; i < 16; i++)
-		rx_key[i] = owc_read();
-	for(i = 0; i < 16; i++)
-		rx_state[i] = owc_read();
-
-	for(i = 0; i < 16; i++)
-		owc_write(tx_key[i]);
-	for(i = 0; i < 16; i++)
-		owc_write(tx_state[i]);
-	for(i = 0; i < 16; i++)
-		owc_write(rx_key[i]);
-	for(i = 0; i < 16; i++)
-		owc_write(rx_state[i]);
-}
 
 int main(void) {
 	uint8_t i;
@@ -50,8 +20,6 @@ int main(void) {
 
 	for(i = 0; i < 100; i++)
 		_delay_ms(10);
-
-	crypto_init();
 
 	rf12_init();
 	rf12_setfreq(RFM12FREQ868(868));
