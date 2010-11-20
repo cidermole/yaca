@@ -145,6 +145,12 @@ bool RFM12_PHY_busy(void)
 	return _RFM12_PHY_state != RFM12_LISTEN;
 }
 
+void RFM12_PHY_timer(unsigned char mantissa, unsigned char exponent)
+{
+	_RFM12_trans(0xE000 | ((exponent & 0x1F) << 8) | mantissa); // set timer interval
+	_RFM12_trans(0x8203); // enable timer
+}
+
 RFM12_INT_vect()
 {
 	uint8_t buf;
