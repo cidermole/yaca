@@ -234,7 +234,6 @@ void RFM12_PHY_modeTX(void);
  */
 void RFM12_PHY_modeRX(void);
 
-void RFM12_PHY_sleep(void);
 void RFM12_PHY_wake(void);
 
 /**

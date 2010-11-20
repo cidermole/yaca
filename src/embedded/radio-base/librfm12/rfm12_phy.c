@@ -72,14 +72,10 @@ inline uint16_t RFM12_PHY_getStatus(void)
 	return _RFM12_trans(0x0000);
 }
 
-void RFM12_PHY_sleep(void)
-{
-	_RFM12_trans(0x8201);
-}
-
 void RFM12_PHY_wake(void)
 {
 	_RFM12_trans(0x8209);
+	_delay_ms(5);
 }
 
 void RFM12_PHY_modeRX(void)
