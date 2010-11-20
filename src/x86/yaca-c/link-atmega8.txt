@@ -156,6 +156,8 @@ SECTIONS
     KEEP (*(.fini1))
     *(.fini0)  /* Infinite loop after program termination.  */
     KEEP (*(.fini0))
+    . = ALIGN(256);
+    *(.tables)   /* tables with 256-byte (lower byte = 0) alignment, David */
      _etext = . ;
   }  > text
   .data	  : AT (ADDR (.text) + SIZEOF (.text))
