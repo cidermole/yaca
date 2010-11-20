@@ -84,7 +84,7 @@ void RFM12_PHY_wake(void)
 
 void RFM12_PHY_modeRX(void)
 {
-	_RFM12_trans(0x82C8);				// RX on
+	_RFM12_trans(0x82C9);				// RX on
 	_delay_ms(1);						// TODO: delay nötig?
 	_RFM12_trans(0xCA81);				// set FIFO mode
 	_RFM12_trans(0xCA83);				// enable FIFO: sync word search
@@ -97,8 +97,8 @@ void RFM12_PHY_modeRX(void)
 
 void RFM12_PHY_modeTX(void)
 {
-	_RFM12_trans(0x8208);			// RX off
-	_RFM12_trans(0x8238);			// TX on
+	_RFM12_trans(0x8209);			// RX off
+	_RFM12_trans(0x8239);			// TX on
 	_RFM12_PHY_state = RFM12_TX;
 }
 
