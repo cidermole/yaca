@@ -19,6 +19,7 @@ uint16_t voltage;
 int16_t temperature;
 uint32_t random_seed = 0;
 extern uint8_t aes_key[16];
+volatile uint16_t ms_timer_count = 0;
 
 void DR(TempStatus()) {
 	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
@@ -29,6 +30,21 @@ void DR(TempStatus()) {
 
 void hash_step(uint32_t *hash_val, uint8_t data) {
 	*hash_val = (((*hash_val) << 8) + ((uint32_t) data)) % HASH_PRIME;
+}
+
+
+extern "C" {
+	uint16_t ms_timer();
+}
+
+// for libradio-master
+uint16_t ms_timer() {
+	uint16_t t;
+	uint8_t sr = SREG;
+	cli();
+	t = ms_timer_count;
+	SREG = sr;
+	return t;
 }
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
@@ -45,8 +61,19 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	}
 }
 
+void enter_bootloader_hook() {
+    TCCR2 = 0;
+    TIMSK = 0;
+    cli();
+    yc_bld_reset();
+}
+
 int main() {
 	RadioMessage rmsg;
+
+	TCCR2 = (1 << CS21) | (1 << WGM21); // CTC mode, prescaler = 8
+	OCR2 = (uint16_t)((125UL * F_CPU) / 1000000UL); // 8 * 125 = 1000 ticks/s.
+	TIMSK = (1 << OCIE2); // enable OC match interrupt
 
 	sei();
 
@@ -70,5 +97,11 @@ int main() {
 		yc_dispatch_auto();
 	}
 	return 0;
+}
+
+//TODO: synchronize ms_timer with CAN bus time
+ISR(TIMER2_COMP_vect) {
+	if(++ms_timer_count == 60000)
+		ms_timer_count = 0;
 }
 
