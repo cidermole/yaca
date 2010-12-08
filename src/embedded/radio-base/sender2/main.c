@@ -81,10 +81,11 @@ int main(void) {
 					radio_receive(&ack);
 					time_feedback = (((uint16_t) ack.data[1]) << 8) | ack.data[0];
 					sync_time(time_feedback);
-				} else if(RFM12_PHY_busy()) {
+					break;
+				} else if(RFM12_PHY_busy()) { // still busy? (jamming)
 					RFM12_MAC_receiveCallback(RFM12_MAC_EOF); // signal EOF to reset buffers etc.
+					break;
 				}
-				break;
 			}
 		}
 
