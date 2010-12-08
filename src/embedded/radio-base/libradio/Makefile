@@ -1,44 +1,11 @@
-#
-#
-# F_CPU: Defines CPU frequency e.g. for <util/delay.h>
-#
-F_CPU = 2000000UL
-
-#
-# Target
-#
-TARGET_MASTER = libradio-master.a
-TARGET_SLAVE = libradio-slave.a
-TARGETS = $(TARGET_MASTER) $(TARGET_SLAVE)
-
-#
-# MCU
-#
-MCU = atmega8
-
-OBJECTS = radio.o rijndael.o
-OBJECTS_SLAVE = $(OBJECTS) slave.o
-OBJECTS_MASTER = $(OBJECTS) master.o
-
-CC = avr-gcc
-ARCHIVER = avr-ar
-COMMON = -mmcu=$(MCU)
-CFLAGS = $(COMMON) -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char
-LDFLAGS = $(COMMON)
-
-all: $(TARGETS)
-
-$(TARGET_MASTER): $(OBJECTS_MASTER)
-	$(ARCHIVER) rcs $(TARGET_MASTER) $(OBJECTS_MASTER)
-
-$(TARGET_SLAVE): $(OBJECTS_SLAVE)
-	$(ARCHIVER) rcs $(TARGET_SLAVE) $(OBJECTS_SLAVE)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $<
-
-rijndael.o: rijndael.S
-	$(CC) $(CFLAGS) -c $<
+all:
+	make -f Makefile.master
+	make clean
+	make -f Makefile.slave
+	make clean
 
 clean:
 	rm -f *.o *.map *.elf *.hex *.s *.i
+
+mrproper:
+	rm -f *.a
