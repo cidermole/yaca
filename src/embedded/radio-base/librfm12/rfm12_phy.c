@@ -35,6 +35,10 @@ static bool _RFM12_waitForFIFO(void)
 	return timeout != 0;
 }
 
+void RFM12_include(void)
+{
+}
+
 void RFM12_PHY_init(void)
 {
 	SPI_confMaster();	// Configure PINs as SPI master
