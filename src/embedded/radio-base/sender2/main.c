@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
 #include "one-wire.h"
@@ -38,14 +39,13 @@ int main(void) {
 	memset(&msg.flags, 0, sizeof(msg.flags));
 	msg.length = 4;
 
-	for(i = 0; i < 100; i++)
+	for(i = 0; i < 200; i++)
 		_delay_ms(10);
 
 	// expand AES key and init radio
 	radio_init(__radio_id);
 
-	for(i = 0; i < 100; i++)
-		_delay_ms(10);
+	sei();
 
 	radio_slave_resync();
 
