@@ -1,6 +1,16 @@
+BUG LIST
+--------
+
+-> libyaca-bl/yaca-bl.c: are MCP2515 CAN-ID registers written in a confused manner? TODO: check
+
+
+
+
 O "Omitted Zeros Problem": the bootloader .hex file is too large, but the last few blocks are just 0's. If you remove them, things like global vars are not initialized correctly with 0 (?)...
 	caused by BIOSRAM, this is not a problem as everything is properly initialized in yc_init()
 	
+
+NOTES
 
 -> Message.info must be 0 prior to transmission
 
