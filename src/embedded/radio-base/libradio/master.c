@@ -5,6 +5,9 @@
 #include "rijndael.h"
 #include "../librfm12/rfm12.h"
 #include "master.h"
+#include <avr/pgmspace.h>
+#include "/home/david/Info/yaca-aeskey.h"
+// yaca-aeskey.h only contains the following line: const uint8_t _flash_aes_key[16] PROGMEM = {...};
 
 #define PREFIX
 
@@ -28,6 +31,8 @@ slot_t slots[5]; // size: 51 bytes * elements
 
 void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	uint8_t i, j;
+
+	aes_key_expand(aes_key, _flash_aes_key, AES_KEY_FLASH);
 
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;
