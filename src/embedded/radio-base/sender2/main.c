@@ -44,6 +44,11 @@ int main(void) {
 	// expand AES key and init radio
 	radio_init(__radio_id);
 
+	for(i = 0; i < 100; i++)
+		_delay_ms(10);
+
+	radio_slave_resync();
+
 	while(1) {
 		measure();
 		RFM12_PHY_wake();
