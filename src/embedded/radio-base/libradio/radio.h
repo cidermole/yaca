@@ -42,7 +42,9 @@ typedef enum {
 void protocol_dispatch(uint8_t radio_id, RadioMessage *msg);
 uint16_t radio_crc(uint8_t radio_id, RadioMessage *msg);
 
+// for slave: AES key MUST be expanded to aes_key first!
 void radio_init(uint8_t radio_id_node);
+
 uint8_t radio_poll_receive();
 void radio_receive(RadioMessage *msg);
 tstatus radio_transmit(uint8_t radio_id_target, RadioMessage *msg);

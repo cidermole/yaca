@@ -18,10 +18,6 @@ int16_t _radio_txc();
 
 
 void radio_init(uint8_t radio_id_node) { // we will only receive this ID
-	// TODO: store in EEPROM
-	uint8_t _tx_key[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-	aes_key_expand(aes_key, _tx_key, AES_KEY_SRAM);
-
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;
 	_radio_sync = 0;
