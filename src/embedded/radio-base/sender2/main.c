@@ -8,13 +8,11 @@
 #include "flash.h"
 #include "../librfm12/rfm12.h"
 #include "../libradio/radio.h"
-#include "../libradio/rijndael.h"
 
 
 uint16_t voltage;
 int16_t temperature;
 uint8_t delay_big, delay_small; // big: 256 ms steps, small: 1 ms steps
-extern uint8_t aes_key[16];
 
 void ms_timer_on() {
 	TCNT0 = 0;
@@ -44,7 +42,6 @@ int main(void) {
 		_delay_ms(10);
 
 	// expand AES key and init radio
-	aes_key_expand(aes_key, _flash_aes_key, AES_KEY_FLASH);
 	radio_init(__radio_id);
 
 	while(1) {

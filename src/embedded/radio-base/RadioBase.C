@@ -3,6 +3,8 @@
 #include <yaca.h>
 #include "libradio/radio.h"
 #include "librfm12/rfm12.h"
+#include <stdlib.h>
+#include <stdint.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #ifndef F_CPU
@@ -10,8 +12,6 @@
 #endif
 #include <util/delay.h>
 #include <string.h>
-#include "/home/david/Info/yaca-aeskey.h"
-// yaca-aeskey.h only contains the following line: const uint8_t _flash_aes_key[16] PROGMEM = {...};
 
 #define HASH_PRIME 12211009UL // a prime < 2^24
 
@@ -56,7 +56,6 @@ int main() {
 	srandom(random_seed); // initialize non-standard avr-libc 32-bit random number generator
 
 	RFM12_include(); // dummy call to librfm12 to make linker happy
-	aes_key_expand(aes_key, _flash_aes_key, AES_KEY_FLASH);
 	radio_init(1);
 
 	while(1) {
