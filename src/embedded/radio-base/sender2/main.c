@@ -13,7 +13,6 @@ int16_t temperature;
 uint8_t delay_big, delay_small; // big: 256 ms steps, small: 1 ms steps
 
 void ms_timer_on() {
-	tenms_counter = 0;
 	TCNT0 = 0;
 	TCCR0 = (1 << CS02) | (1 << CS00); // timer0 on, prescaler = 1024
 }
@@ -24,38 +23,6 @@ void ms_timer_off() {
 
 uint8_t ms_timer_value() {
 	return TCNT0;
-}
-
-void sync_time(int16_t time_feedback) {
-	uint16_t delay;
-	int16_t new_delay_small;
-	static uint8_t synced_before = 0;
-
-	if(!synced_before) {
-		if(time_feedback < 0)
-			delay = 60000 - (uint16_t)(-time_feedback);
-		else
-			delay = (uint16_t) time_feedback;
-
-		// busy-wait the first time
-		while(delay > 0)
-			_delay_ms(1);
-
-		// set default delay values, approx. 1 min.
-		delay_big = 230; // 230 * 256 = 58.880 ms
-		delay_small = 220; // + 220 ms + measurements etc. (900 ms) = 60.000 ms
-	} else {
-		// fine tuning
-		new_delay_small = delay_small;
-		new_delay_small += time_feedback;
-
-		delay_big = (uint8_t) (((int8_t) delay_big) + (int8_t) (new_delay_small / 256)); // add to or borrow from from delay_big
-		new_delay_small %= 256;
-		delay_small = (uint8_t) new_delay_small;
-	}
-
-	if(!synced_before)
-		synced_before = 1;
 }
 
 int main(void) {
@@ -72,7 +39,7 @@ int main(void) {
 	for(i = 0; i < 100; i++)
 		_delay_ms(10);
 
-	radio_init();
+	radio_init(2); // TODO: radio ID of us
 
 	while(1) {
 		measure();
@@ -117,9 +84,12 @@ int main(void) {
 
 
 		// XXX: should we not: disable interrupts, set timer, get (=clear) status, then re-enable interrupts?
-		RFM12_PHY_timer(59, 10); // 59 * 2^10 = 60,416 s
+		RFM12_PHY_timer(delay_big, 8); // delay_big * 2^8 ms
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 		sleep_mode(); // wait for wakeup timer interrupt
+
+		for(i = 0; i < delay_small; i++)
+			_delay_ms(1);
 	}
 }
 
