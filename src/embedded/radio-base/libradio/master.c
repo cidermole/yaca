@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <util/crc16.h>
 #include "radio.h"
 #include "rijndael.h"
@@ -26,16 +27,21 @@ slot_t slots[5]; // size: 51 bytes * elements
 
 
 void radio_init(uint8_t radio_id_node) { // we will only receive this ID
-	uint8_t _tx_key[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}; // TODO should be in EEPROM
-	// TODO for base station: random from SRAM startup content (with CRC? with xrandom() from aestable.c?)
-	// TODO load states for every slot
-
-	aes_key_expand(aes_key, _tx_key, AES_KEY_SRAM);
+	uint8_t i, j;
 
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;
 
 	memset(slots, 0, sizeof(slots)); // set states and fc to 0
+	for(i = 0; i < sizeof(slots) / sizeof(slot_t); i++) {
+		slots[i].rx_fc = 0;
+		slots[i].tx_fc = 0;
+
+		for(j = 0; j < sizeof(slots[i].tx_state); j++)
+			slots[i].tx_state[j] = (uint8_t) random(); // non-standard avr-libc 32-bit random number generator
+
+		memcpy(slots[i].rx_state, slots[i].tx_state, sizeof(slots[i].rx_state));
+	}
 
 	RFM12_PHY_init();
 }
@@ -50,9 +56,18 @@ slot_t *find_slot(uint8_t radio_id) {
 	return NULL;
 }
 
+extern uint16_t ms_timer(); // implement this!
+
 void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	RadioMessage msg;
-	int16_t time_feedback = 0; // TODO read timer
+	int32_t target_time, cur_time = ms_timer();
+	slot_assign_t *sa = &slot_assignments[slot - slots];
+	int16_t time_feedback;
+
+	target_time = ((int32_t) sa->slot) * SLOT_LENGTH - cur_time;
+	if(target_time < -30000)
+		target_time += 60000;
+	time_feedback = (int16_t) target_time;
 
 	memset(&msg, 0, sizeof(msg));
 	msg.flags.ack = 1;
@@ -73,14 +88,12 @@ void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 
 void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	slot_t *slot;
-	slot_assign_t *sa;
 	RadioMessage plain;
 	uint8_t state[16];
 
 	if((slot = find_slot(radio_id)) == NULL) { // if no slot found, we recv'd incorrect data
 		return;
 	}
-	sa = &slot_assignments[slot - slots];
 
 	if(msg->fc == slot->rx_fc) { // retransmission received?
 		// We just assume that the frame is correct.

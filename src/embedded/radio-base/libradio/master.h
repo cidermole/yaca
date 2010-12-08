@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define SLOT_LENGTH 150 // slot length in ms
+
 // slot assignments in EEPROM
 typedef struct {
 	uint8_t radio_id;
