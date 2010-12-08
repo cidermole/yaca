@@ -1,6 +1,11 @@
 #ifndef RADIO_H
 #define RADIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 
 #if defined(__AVR__)
@@ -27,11 +32,15 @@ typedef struct {
 	uint16_t crc16; // crc16 includes whole struct + radio id + framecounter and must be the last item
 } STRUCT_PACKED RadioMessage;
 
+#ifndef _LIBYACA_H_ // yaca.h defines the same enum types
+
 typedef enum {
     PENDING = 2, ///< waiting for transmission queue, acknowledge or timeout
     SUCCESS = 1, ///< frame successfully sent
     FAILURE = 0 ///< error transmitting frame
 } tstatus;
+
+#endif
 
 typedef enum {
 	ST_IDLE,
@@ -50,6 +59,10 @@ void radio_receive(RadioMessage *msg);
 tstatus radio_transmit(uint8_t radio_id_target, RadioMessage *msg);
 void radio_slave_resync(); // call directly after radio_init()
 tstatus radio_retransmit(uint8_t radio_id, RadioMessage *msg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RADIO_H */
 
