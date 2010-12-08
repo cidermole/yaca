@@ -1,10 +1,11 @@
 #include <stdint.h>
+#include <string.h>
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
 #include "one-wire.h"
 #include "main.h"
-#include "../librfm12/rfm12_stack.h"
+#include "../librfm12/rfm12.h"
 #include "../libradio/radio.h"
 
 
@@ -33,7 +34,7 @@ int main(void) {
 	MCUCSR = 0;
 	ACSR |= (1 << ACD); // disable analog comparator
 	msg.can_id = 0;
-	msg.flags = 0;
+	memset(&msg.flags, 0, sizeof(msg.flags));
 	msg.length = 4;
 
 	for(i = 0; i < 100; i++)

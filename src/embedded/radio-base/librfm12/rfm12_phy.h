@@ -253,6 +253,7 @@ bool RFM12_PHY_busy(void);
 extern inline uint16_t RFM12_PHY_getStatus(void);
 
 
-void RFM12_PHY_timer(unsigned char mantissa, unsigned char exponent)
+void RFM12_PHY_timer(unsigned char mantissa, unsigned char exponent);
 
 #endif /*RFM12_H_*/
+
