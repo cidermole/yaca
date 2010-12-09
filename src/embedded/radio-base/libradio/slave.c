@@ -27,6 +27,8 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	our_radio_id = radio_id_node;
 	_radio_sync = 0;
 
+	// configure SPI
+	DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB1); DDRB &= ~_BV(DDB4);
 	RFM12_PHY_init();
 }
 

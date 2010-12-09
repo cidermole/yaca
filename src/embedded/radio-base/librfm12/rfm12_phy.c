@@ -41,7 +41,7 @@ void RFM12_include(void)
 
 void RFM12_PHY_init(void)
 {
-	SPI_confMaster();	// Configure PINs as SPI master
+//	SPI_confMaster();	// Configure PINs as SPI master
 /*	SPI_master();		// Master mode
 	SPI_disableINT();	// Disable SPI interrupt
 	SPI_dordMSB();		// Data Order: MSB first

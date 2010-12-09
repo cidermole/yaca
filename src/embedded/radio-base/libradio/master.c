@@ -48,6 +48,8 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 		memcpy(slots[i].rx_state, slots[i].tx_state, sizeof(slots[i].rx_state));
 	}
 
+	// configure SPI
+	DDRB |=                         _BV(DDB1);
 	RFM12_PHY_init();
 }
 
