@@ -50,6 +50,13 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 
 	// configure SPI
 	DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB2); DDRB &= ~_BV(DDB4);
+	SPI_master();		// Master mode
+	SPI_disableINT();	// Disable SPI interrupt
+	SPI_dordMSB();		// Data Order: MSB first
+	SPI_cpolIdleLow();	// Clock Polarity: SCK low when idle
+	SPI_cphaSampRise(); // Clock Phase: sample on rising SCK edge
+	SPI_setFrequency(); // SPI frequency: ~ 3 MHz
+	SPI_enable();
 	RFM12_PHY_init();
 	MCUCR &= ~(_BV(ISC01) | _BV(ISC00)); // RFM12_INT_init()
 	GICR |= _BV(INT0); // RFM12_INT_on()
