@@ -3,7 +3,9 @@
 #include "radio.h"
 #include "rijndael.h"
 #include "../librfm12/rfm12.h"
+#include "../librfm12/spi.h"
 #include <avr/pgmspace.h>
+#include <avr/interrupt.h>
 #include "/home/david/Info/yaca-aeskey.h"
 // yaca-aeskey.h only contains the following line: const uint8_t _flash_aes_key[16] PROGMEM = {...};
 
@@ -20,6 +22,25 @@ void _radio_rxc(int16_t data);
 int16_t _radio_txc();
 
 
+#define RFM12_select()          PORTB &= ~(1 << PB1)
+#define RFM12_unselect()        PORTB |= (1 << PB1)
+
+uint16_t _RFM12_trans(uint16_t wert)
+{
+	uint16_t timeout = 0;
+	uint8_t sreg;
+	CONVERTW val;
+	val.w=wert;
+	sreg = SREG;
+	cli();
+	RFM12_select();
+	SPI_trans(val.b[1], timeout);
+	SPI_trans(val.b[0], timeout);
+	RFM12_unselect();
+	SREG = sreg;
+	return val.w;
+}
+
 void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	aes_key_expand(aes_key, _flash_aes_key, AES_KEY_FLASH);
 
@@ -28,8 +49,10 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	_radio_sync = 0;
 
 	// configure SPI
-	DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB1); DDRB &= ~_BV(DDB4);
+	DDRB |= _BV(DDB3) | _BV(DDB5) | _BV(DDB2); DDRB &= ~_BV(DDB4);
 	RFM12_PHY_init();
+	MCUCR &= ~(_BV(ISC01) | _BV(ISC00)); // RFM12_INT_init()
+	GICR |= _BV(INT0); // RFM12_INT_on()
 }
 
 void radio_slave_resync() {
@@ -112,5 +135,9 @@ tstatus radio_transmit(uint8_t radio_id, RadioMessage *msg) {
 	RFM12_LLC_sendFrame();
 
 	return PENDING;
+}
+
+ISR(INT0_vect) {
+	_RFM12_ISR();
 }
 

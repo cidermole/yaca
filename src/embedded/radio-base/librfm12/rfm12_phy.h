@@ -40,14 +40,20 @@
 
 /*********************** CONFIG *************************************/
 
-#define RFM12_select() 			PORTB &= ~(1 << PB1)
-#define RFM12_unselect() 		PORTB |= (1 << PB1)
-
 // configure INT1 on falling edge
+/*
 #define RFM12_INT_init()		MCUCR &= ~(_BV(ISC11) | _BV(ISC10))
 #define RFM12_INT_on()			GICR |= _BV(INT1)
 #define RFM12_INT_off()			GICR &= ~_BV(INT1)
 #define RFM12_INT_vect()		ISR(INT1_vect)
+*/
+void _RFM12_ISR(void);
+
+
+typedef union conv_ {
+	unsigned int w;
+	unsigned char b[2];
+} CONVERTW;
 
 /*********************** DEFINITIONS ********************************/
 
@@ -255,6 +261,9 @@ extern inline uint16_t RFM12_PHY_getStatus(void);
 
 void RFM12_PHY_timer(unsigned char mantissa, unsigned char exponent);
 void RFM12_include(void);
+
+
+extern uint16_t _RFM12_trans(uint16_t wert);
 
 #endif /*RFM12_H_*/
 

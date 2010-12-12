@@ -1,9 +1,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <util/crc16.h>
+#include <avr/interrupt.h>
 #include "radio.h"
 #include "rijndael.h"
 #include "../librfm12/rfm12.h"
+#include "../librfm12/spi.h"
 #include "master.h"
 #include <avr/pgmspace.h>
 #include "/home/david/Info/yaca-aeskey.h"
@@ -29,6 +31,25 @@ slot_assign_t slot_assignments[] = {
 slot_t slots[5]; // size: 51 bytes * elements
 
 
+#define RFM12_select()          PORTB &= ~(1 << PB1)
+#define RFM12_unselect()        PORTB |= (1 << PB1)
+
+uint16_t _RFM12_trans(uint16_t wert)
+{
+	uint16_t timeout = 0;
+	uint8_t sreg;
+	CONVERTW val;
+	val.w=wert;
+	sreg = SREG;
+	cli();
+	RFM12_select();
+	SPI_trans(val.b[1], timeout);
+	SPI_trans(val.b[0], timeout);
+	RFM12_unselect();
+	SREG = sreg;
+	return val.w;
+}
+
 void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	uint8_t i, j;
 
@@ -51,6 +72,8 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	// configure SPI
 	DDRB |=                         _BV(DDB1);
 	RFM12_PHY_init();
+	MCUCR &= ~(_BV(ISC01) | _BV(ISC00)); // RFM12_INT_init()
+	GICR |= _BV(INT0); // RFM12_INT_on()
 }
 
 slot_t *find_slot(uint8_t radio_id) {
@@ -172,5 +195,9 @@ tstatus _master_radio_transmit(uint8_t radio_id, RadioMessage *msg, uint8_t *tx_
 	RFM12_LLC_sendFrame();
 
 	return PENDING;
+}
+
+ISR(INT1_vect) {
+	_RFM12_ISR();
 }
 
