@@ -22,8 +22,8 @@ void _radio_rxc(int16_t data);
 int16_t _radio_txc();
 
 
-#define RFM12_select()          PORTB &= ~(1 << PB1)
-#define RFM12_unselect()        PORTB |= (1 << PB1)
+#define RFM12_select()          PORTB &= ~(1 << PB2)
+#define RFM12_unselect()        PORTB |= (1 << PB2)
 
 uint16_t _RFM12_trans(uint16_t wert)
 {
