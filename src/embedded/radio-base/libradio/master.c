@@ -72,8 +72,8 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	// configure SPI
 	DDRB |=                         _BV(DDB1);
 	RFM12_PHY_init();
-	MCUCR &= ~(_BV(ISC01) | _BV(ISC00)); // RFM12_INT_init()
-	GICR |= _BV(INT0); // RFM12_INT_on()
+	MCUCR &= ~(_BV(ISC11) | _BV(ISC10)); // RFM12_INT_init()
+	GICR |= _BV(INT1); // RFM12_INT_on()
 }
 
 slot_t *find_slot(uint8_t radio_id) {

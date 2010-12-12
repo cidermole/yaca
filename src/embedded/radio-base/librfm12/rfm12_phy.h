@@ -47,6 +47,10 @@
 #define RFM12_INT_off()			GICR &= ~_BV(INT1)
 #define RFM12_INT_vect()		ISR(INT1_vect)
 */
+
+#define RFM12_INT_master_on()			GICR |= _BV(INT1)
+#define RFM12_INT_master_off()			GICR &= ~_BV(INT1)
+
 void _RFM12_ISR(void);
 
 

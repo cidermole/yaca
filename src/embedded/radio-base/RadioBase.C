@@ -23,9 +23,9 @@ volatile uint16_t ms_timer_count = 0;
 
 void DR(TempStatus()) {
 	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
-	RFM12_INT_off();
+	RFM12_INT_master_off();
 	yc_send(RadioBase, TempStatus(temperature, voltage));
-	RFM12_INT_on();
+	RFM12_INT_master_on();
 }
 
 void hash_step(uint32_t *hash_val, uint8_t data) {
