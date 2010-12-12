@@ -15,6 +15,8 @@ TARGET = libradio-master.a
 MCU = atmega8
 
 OBJECTS = radio.o rijndael.o master.o
+LIBRFM12_PATH = ../librfm12
+LIBRFM12_OBJECTS = $(LIBRFM12_PATH)/rfm12_phy.o $(LIBRFM12_PATH)/rfm12_mac.o $(LIBRFM12_PATH)/rfm12_llc.o $(LIBRFM12_PATH)/hamming.o
 
 CC = avr-gcc
 ARCHIVER = avr-ar
@@ -28,7 +30,7 @@ $(TARGET): $(OBJECTS)
 	make -C ../librfm12 clean
 	rm -f ../librfm12/librfm12.a
 	make -C ../librfm12 F_CPU=$(F_CPU)
-	$(ARCHIVER) rcs $(TARGET) $(OBJECTS)
+	$(ARCHIVER) rcs $(TARGET) $(OBJECTS) $(LIBRFM12_OBJECTS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<

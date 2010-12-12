@@ -21,7 +21,7 @@ CC = avr-gcc
 OBJCOPY = avr-objcopy
 CFLAGS = -mmcu=$(MCU) -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char -save-temps
 # use yaca linker script to get .tables section
-LDFLAGS = -L../librfm12 -L../libradio -lrfm12 -lradio-slave -Wl,-T ../../../x86/yaca-c/link-atmega8.txt
+LDFLAGS = -L../libradio -lradio-slave -Wl,-T ../../../x86/yaca-c/link-atmega8.txt
 
 all: $(TARGET).hex
 
