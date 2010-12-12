@@ -2,7 +2,7 @@
 #
 # F_CPU: Defines CPU frequency e.g. for <util/delay.h>
 #
-F_CPU = 2000000UL
+#F_CPU = 2000000UL
 
 #
 # Target

@@ -25,6 +25,9 @@ LDFLAGS = $(COMMON)
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
+	make -C ../librfm12 clean
+	rm -f ../librfm12/librfm12.a
+	make -C ../librfm12 F_CPU=$(F_CPU)
 	$(ARCHIVER) rcs $(TARGET) $(OBJECTS)
 
 %.o: %.c
