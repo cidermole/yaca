@@ -144,12 +144,12 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 			}
 			_send_ack(radio_id, slot, NORMAL);
 		} else {
-			int i;
+			//int i;
 			memcpy(slot->rx_state, state, sizeof(state)); // restore state
-			for(i = 0; i < sizeof(RadioMessage); i++) {
+			/*for(i = 0; i < sizeof(RadioMessage); i++) {
 			}
 			for(i = 0; i < sizeof(RadioMessage); i++) {
-			}
+			}*/
 		}
 	} else if(msg->fc == 0xFF) { // resync (AES state request)
 		// TODO: we should only enable resync on user action
