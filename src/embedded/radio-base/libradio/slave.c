@@ -77,6 +77,10 @@ void radio_slave_resync() {
 
 	// wait until resync message was sent
 	while(radio_state != ST_IDLE);
+
+	// wait until we are AES synced
+	// TODO: create timeout, after which we should re-transmit our request
+	while(!_radio_sync);
 }
 
 void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
