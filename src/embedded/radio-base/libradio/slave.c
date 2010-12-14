@@ -73,6 +73,9 @@ void radio_slave_resync() {
 
 	radio_state = ST_TX;
 	RFM12_LLC_sendFrame();
+
+	// wait until resync message was sent
+	while(radio_state != ST_IDLE);
 }
 
 void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
