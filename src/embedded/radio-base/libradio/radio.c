@@ -7,7 +7,7 @@
 RadioMessage msg_in, buf_out;
 uint8_t buf_out_index = 0, msg_in_full = 0;
 uint8_t our_radio_id, target_id;
-radio_state_t radio_state = ST_IDLE;
+volatile radio_state_t radio_state = ST_IDLE;
 uint8_t aes_key[AES_EXPKEY_SIZE];
 
 

@@ -14,7 +14,7 @@
 extern RadioMessage msg_in, buf_out;
 extern uint8_t buf_out_index, msg_in_full;
 extern uint8_t our_radio_id, target_id;
-extern radio_state_t radio_state;
+extern volatile radio_state_t radio_state;
 extern uint8_t aes_key[AES_EXPKEY_SIZE];
 uint8_t tx_state[16], rx_state[16], rx_fc = 0, tx_fc = 0, _radio_sync = 0;
 
