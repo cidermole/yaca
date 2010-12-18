@@ -65,12 +65,10 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 }
 
 void radio_slave_resync() {
-	RadioMessage msg;
-
 	while(radio_state != ST_IDLE);
 
 	// everything else except fc and radio_id doesn't matter atm
-	msg.fc = 0xFF;
+	buf_out.fc = 0xFF;
 	target_id = our_radio_id;
 
 	radio_state = ST_TX;
