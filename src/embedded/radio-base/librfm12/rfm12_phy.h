@@ -172,7 +172,7 @@ void RFM12_PHY_init(void);
 /**
  *
  */
-extern inline void RFM12_PHY_setPowerManagement(bool enRX, bool enBB, bool startTX, bool enSynth, bool enOSC, bool enBat, bool enWkT, bool clkOff);
+extern void RFM12_PHY_setPowerManagement(bool enRX, bool enBB, bool startTX, bool enSynth, bool enOSC, bool enBat, bool enWkT, bool clkOff);
 
 /**
  *******************************************************************************
@@ -260,7 +260,7 @@ bool RFM12_PHY_busy(void);
  * @return the status bits of the RFM12
  *******************************************************************************
  */
-extern inline uint16_t RFM12_PHY_getStatus(void);
+extern uint16_t RFM12_PHY_getStatus(void);
 
 
 void RFM12_PHY_timer(unsigned char mantissa, unsigned char exponent);
