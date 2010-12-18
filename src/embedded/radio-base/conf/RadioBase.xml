@@ -11,7 +11,7 @@
 		<setting name="tempstatus_id" value="405" />
 	</settings>
 	<build>
-		<link lib="rfm12" path="librfm12" />
+<!--		<link lib="rfm12" path="librfm12" />-->
 		<link lib="radio-master" path="libradio" />
 	</build>
 </node-config>
