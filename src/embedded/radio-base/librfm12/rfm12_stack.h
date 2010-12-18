@@ -56,13 +56,13 @@ extern RFM12_L3_txCallback *RFM12_LLC_protocol_txCallback;
  * @param data the received byte
  * @return true if packet end detected
  */
-extern inline bool RFM12_LLC_receiveCallback(uint8_t data);
+extern bool RFM12_LLC_receiveCallback(uint8_t data);
 
 /**
  * Get next byte to transmit.
  * @return next byte to transmit
  */
-extern inline uint8_t RFM12_LLC_transmitCallback(void);
+extern uint8_t RFM12_LLC_transmitCallback(void);
 
 /*********** MAC ***********/
 
