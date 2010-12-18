@@ -14,7 +14,7 @@ TARGET = libradio-slave.a
 #
 MCU = atmega8
 
-OBJECTS = radio.o rijndael.o slave.o
+OBJECTS = radio.o slave.o
 
 LIBRFM12_PATH = ../librfm12
 LIBRFM12_OBJECTS = $(LIBRFM12_PATH)/rfm12_phy.o $(LIBRFM12_PATH)/rfm12_mac.o $(LIBRFM12_PATH)/rfm12_llc.o $(LIBRFM12_PATH)/hamming.o
@@ -34,9 +34,6 @@ $(TARGET): $(OBJECTS)
 	$(ARCHIVER) rcs $(TARGET) $(OBJECTS) $(LIBRFM12_OBJECTS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $<
-
-rijndael.o: rijndael.S
 	$(CC) $(CFLAGS) -c $<
 
 clean:
