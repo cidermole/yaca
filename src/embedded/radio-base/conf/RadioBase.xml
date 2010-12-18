@@ -1,8 +1,5 @@
 <node-config id="804">
 	<messages>
-		<message name="Time">
-			<id>401</id>
-		</message>
 		<message name="TempStatus">
 			<id>405</id>
 		</message>
@@ -11,7 +8,6 @@
 		<setting name="tempstatus_id" value="405" />
 	</settings>
 	<build>
-<!--		<link lib="rfm12" path="librfm12" />-->
 		<link lib="radio-master" path="libradio" />
 	</build>
 </node-config>

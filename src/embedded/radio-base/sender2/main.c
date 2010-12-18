@@ -42,12 +42,9 @@ int main(void) {
 	for(i = 0; i < 200; i++)
 		_delay_ms(10);
 
-	// expand AES key and init radio
 	radio_init(__radio_id);
 
 	sei();
-
-	radio_slave_resync();
 
 	while(1) {
 		measure();
