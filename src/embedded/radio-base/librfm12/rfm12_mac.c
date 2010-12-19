@@ -105,7 +105,7 @@ uint8_t RFM12_MAC_transmitCallback(void)
 		return RFM12_MAC_EOF;
 	} else if(counter == (sizeof(_RFM12_MAC_preamble) + RFM12_MAC_MAX_DATA_LENGTH)) {   // EOF
 		counter++;
-		return RFM12_MAC_EOF; // TODO: additional 0xAA for current debugging prog, check
+		return RFM12_MAC_EOF;
 	} else {																			// EOF
 		counter = 0;
 		RFM12_MAC_endCtrlTransmission();
