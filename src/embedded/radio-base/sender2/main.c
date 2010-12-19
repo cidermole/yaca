@@ -13,7 +13,7 @@
 
 uint16_t voltage;
 int16_t temperature;
-uint8_t delay_big, delay_small; // big: 256 ms steps, small: 1 ms steps
+uint8_t delay_big = 230, delay_small = 220; // big: 256 ms steps, small: 1 ms steps
 
 void ms_timer_on() {
 	TCNT0 = 0;
