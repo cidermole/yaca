@@ -82,13 +82,13 @@ typedef enum {
  * @param data the received byte
  * @return true if packet end detected
  */
-extern inline bool RFM12_MAC_receiveCallback(uint8_t data);
+extern bool RFM12_MAC_receiveCallback(uint8_t data);
 
 /**
  * Get next byte to transmit.
  * @return next byte to transmit
  */
-extern inline uint8_t RFM12_MAC_transmitCallback(void);
+extern uint8_t RFM12_MAC_transmitCallback(void);
 
 /******************** Layer 1: Physical ***********************/
 
