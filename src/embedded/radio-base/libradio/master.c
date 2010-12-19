@@ -23,6 +23,12 @@ slot_assign_t slot_assignments[] = {
 	{2, 0}
 };
 
+typedef struct {
+	uint8_t radio_id;
+	slot_t *slot;
+	retr_e retr;
+} deferred_ack_t;
+
 slot_t slots[5]; // size: 51 bytes * elements
 
 
@@ -94,6 +100,23 @@ void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	_master_radio_transmit(radio_id, &msg);
 }
 
+extern void debug_tx(volatile uint8_t *p);
+
+volatile deferred_ack_t deferred_ack = {0, 0, 0};
+
+void _defer_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
+	deferred_ack.radio_id = radio_id;
+	deferred_ack.slot = slot;
+	deferred_ack.retr = retr;
+}
+
+void RFM12_LLC_receiveFinished() {
+	// if there is a deferred ack, execute it
+	if(deferred_ack.slot != NULL)
+		_send_ack(deferred_ack.radio_id, deferred_ack.slot, deferred_ack.retr);
+	deferred_ack.slot = NULL;
+}
+
 void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	slot_t *slot;
 
@@ -105,7 +128,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		// We just assume that the frame is correct.
 		// An attacker could hereby make us send the same ACK
 		// which we've already transmitted (no big deal).
-		_send_ack(radio_id, slot, RETRY);
+		_defer_ack(radio_id, slot, RETRY);
 	} else if(msg->fc == slot->rx_fc + 1) {
 		if(radio_crc(radio_id, msg) == msg->crc16) {
 			slot->rx_fc++;
@@ -113,7 +136,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 				memcpy(&msg_in, msg, sizeof(RadioMessage));
 				msg_in_full = 1;
 			}
-			_send_ack(radio_id, slot, NORMAL);
+			_defer_ack(radio_id, slot, NORMAL);
 		}
 	}
 }

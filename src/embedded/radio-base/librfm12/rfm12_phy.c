@@ -152,6 +152,7 @@ void _RFM12_ISR()
 					RFM12_MAC_receiveCallback(buf) ) {		// end of frame
 				RFM12_PHY_modeRX();
 				_RFM12_PHY_state = RFM12_LISTEN;
+				RFM12_LLC_receiveFinished();
 			}
 			break;
 		case RFM12_TX:

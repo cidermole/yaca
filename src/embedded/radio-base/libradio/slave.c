@@ -37,6 +37,8 @@ uint16_t _RFM12_trans(uint16_t wert)
 	return val.w;
 }
 
+void RFM12_LLC_receiveFinished() {}
+
 void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;

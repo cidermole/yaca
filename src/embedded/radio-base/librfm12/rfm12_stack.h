@@ -58,6 +58,8 @@ extern RFM12_L3_txCallback *RFM12_LLC_protocol_txCallback;
  */
 extern bool RFM12_LLC_receiveCallback(uint8_t data);
 
+extern void RFM12_LLC_receiveFinished();
+
 /**
  * Get next byte to transmit.
  * @return next byte to transmit
