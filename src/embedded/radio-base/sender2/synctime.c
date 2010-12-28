@@ -24,8 +24,10 @@ void sync_time(int16_t time_feedback) {
 
 #ifndef X86_TESTING
 		// busy-wait the first time
-		while(delay > 0)
+		while(delay > 0) {
 			_delay_ms(1);
+			delay--;
+		}
 #else
 		printf("busywait of %d ms\n", (int) delay);
 #endif /* X86_TESTING */
