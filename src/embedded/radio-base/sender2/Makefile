@@ -35,7 +35,7 @@ $(TARGET).elf: $(TARGET).o $(OBJECTS)
 	$(CC) $(CFLAGS) -c $<
 
 load: $(TARGET).hex
-	avrdude -q -u -C /usr/local/etc/avrdude.conf -p m8 -c usbasp -U flash:w:$(TARGET).hex:a -v
+	avrdude -q -u -C /usr/local/etc/avrdude.conf -p m88p -c usbasp -U flash:w:$(TARGET).hex:a -v
 
 clean:
 	rm -f *.o *.map *.elf *.hex *.s *.i
