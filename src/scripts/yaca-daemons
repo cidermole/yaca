@@ -1,0 +1,27 @@
+#!/bin/bash
+
+BIN_PATH=`cat /etc/yaca.path`/build/bin
+
+if [ "$1" == "check" ]; then
+	pidof yaca-cached > /dev/null 2>&1
+	[ $? -ne 0 ] && $BIN_PATH/yaca-cached
+
+	pidof yaca-logd > /dev/null 2>&1
+	[ $? -ne 0 ] && $BIN_PATH/yaca-logd
+
+	pidof yaca-timed > /dev/null 2>&1
+	[ $? -ne 0 ] && $BIN_PATH/yaca-timed
+
+	exit 0
+fi
+
+if [ "$1" == "down" -o "$1" == "stop" ]; then
+	killall yaca-logd
+	killall yaca-cached
+	killall yaca-timed
+	exit 0
+fi
+
+nohup $BIN_PATH/yaca-logd > /dev/null 2>&1
+nohup $BIN_PATH/yaca-cached > /dev/null 2>&1
+nohup $BIN_PATH/yaca-timed > /dev/null 2>&1

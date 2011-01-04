@@ -1,0 +1,51 @@
+#!/bin/bash
+
+HOST="softjobs.eu"
+PORT=25
+
+MAX_REPORTS=3
+
+tempfile="/tmp/softjobs-scan.$$"
+mytime=`date +%H:%M:%S`
+
+repfile="/tmp/softjobs-scan-`date +%Y-%m-%d`.repcount"
+repcount=`cat $repfile 2>/dev/null`
+fail=0
+maxrep=`expr $MAX_REPORTS - 1`
+
+if [ "$repcount" == "" ]; then
+	repcount=0
+fi
+if [ $repcount -gt $maxrep ]; then
+	echo No more reports for today
+	exit 0
+fi
+
+nmap -p $PORT "$HOST" > "$tempfile"
+
+function reps {
+	repcount=`expr $repcount + 1`
+	if [ $repcount -gt $maxrep ]; then
+		echo MAX_REPORTS reached
+		message="$message\n\nThis is the FINAL REPORT for today, because MAX_REPORTS were reached."
+	fi
+	echo $repcount > $repfile
+}
+
+if cat "$tempfile" | grep $PORT/tcp | grep closed > /dev/null; then
+	message="Today at $mytime, port $PORT at $HOST scanned as CLOSED. nmap reported:\n\n"
+	message="$message`tail $tempfile`"
+	reps
+	msg=`echo "$message" | sed -e 's/\\\\n/\\n/g'`
+	/home/yaca/yaca-mail "softjobs.eu mailserver down" "$msg"
+else
+	if cat "$tempfile" | grep "Host seems down" > /dev/null; then
+		message="Today at $mytime, $HOST could not be reached. nmap reported:\n\n"
+		message="$message`tail $tempfile`"
+		reps
+		msg=`echo "$message" | sed -e 's/\\\\n/\\n/g'`
+		/home/yaca/yaca-mail "softjobs.eu server down" "$msg"
+	fi
+fi
+
+rm -f "$tempfile"
