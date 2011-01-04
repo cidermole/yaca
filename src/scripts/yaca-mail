@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Usage: $0 <subject part> <body text>
+#
+
+FROM="Linux Server <root@linux.local>"
+LOCAL_RECIPIENT="mdavid@localhost"
+HEADER_TO="David Madl <david@madlnet.net>"
+SUBJECT_BEGIN="Yaca notification: "
+
+SUBJECT=$1
+BODY=$2
+
+date=`date "+%a, %d %b %Y %H:%M:%S %z"`
+random=`pwgen 16 1`
+
+echo "Date: $date
+From: $FROM
+To: $HEADER_TO
+Received: from h1752730.stratoserver.net (h1752730.stratoserver.net [85.214.80.9])
+   by 38015.vs.webtropia.com (8.13.1/8.13.1/SuSE Linux 0.7) with ESMTP id $random
+   for <david@madlnet.net>; $date
+Subject: $SUBJECT_BEGIN$SUBJECT
+
+Hello,
+
+the Linux Server in Kledering regrets to announce:
+
+$BODY
+
+Yours sincerely,
+The Server" | sendmail -i $LOCAL_RECIPIENT
