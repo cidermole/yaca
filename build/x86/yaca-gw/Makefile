@@ -11,7 +11,8 @@ EXE = main
 #INCDIRS +=
 #CFLAGS +=
 
-CC = /home/david/openwrt/trunk/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-gcc
+CROSS_COMPILE ?= /bulk/yaca-toolchains/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-
+CC = $(CROSS_COMPILE)gcc
 
 #########################################################################
 #########################################################################
