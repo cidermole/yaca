@@ -1,4 +1,4 @@
-TARGETS=yaca-c yaca-flash yaca-program yaca-hexmerge yaca-cached yaca-tr mpmon yaca-timed yaca-logd
+TARGETS=yaca-c yaca-flash yaca-program yaca-hexmerge yaca-cached yaca-tr mpmon yaca-timed yaca-logd yaca-ppp yaca-gw
 
 all:
 	for target in $(TARGETS); do \
