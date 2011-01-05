@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 	char *pppd_args[100], *p, *start, ppp_name[] = "/usr/sbin/pppd"; // _params
 	struct Message *mp, msg;
 	struct timeval timeout;
-	pid_t child, temp_pid;
+	pid_t child, temp_pid, pid;
 	fd_set fds;
 
 	init_yaca_path();
@@ -57,6 +57,15 @@ int main(int argc, char **argv) {
 	}
 	pppd_args[pppd_argc++] = start;
 	pppd_args[pppd_argc] = NULL;
+
+	/* fork daemon */
+	pid = fork();
+	if(pid < 0) {
+		fprintf(stderr, "fork() failed\n");
+		return 1;
+	} else if(pid > 0) { // parent
+		return 0;
+	}
 
 	/* create pseudo-tty for communication with pppd, fork() and execvp() */
 	child = forkpty(&tty, NULL, NULL, NULL);

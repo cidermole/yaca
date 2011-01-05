@@ -29,5 +29,5 @@ deploy-wrt:
 		make -C $$target deploy; \
 	done
 	ssh root@wrt '/yaca/bin/yaca-gw /yaca/src/x86/yaca-gw/conf/yaca-gw.conf'
-	# TODO: start yaca-ppp
+	ssh root@wrt '/yaca/bin/yaca-ppp'
 	ssh yaca@nas '/home/yaca/yaca-daemons start'
