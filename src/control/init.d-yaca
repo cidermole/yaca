@@ -1,0 +1,20 @@
+#!/bin/sh /etc/rc.common
+
+START=61
+
+start() {
+        setserial /dev/tts/1 spd_cust
+        setserial /dev/tts/1 divisor 10
+        /yaca/bin/yaca-gw /yaca/src/x86/yaca-gw/conf/yaca-gw.conf
+}
+
+stop() {
+        killall yaca-gw
+}
+
+reload() {
+        if [ ! `pidof yaca-gw` ]; then
+                start
+        fi
+}
+
