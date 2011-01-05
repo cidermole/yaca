@@ -23,7 +23,7 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-flash
+	rm -f ../../bin/yaca-flash
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)

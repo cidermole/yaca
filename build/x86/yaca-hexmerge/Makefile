@@ -23,7 +23,7 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-hexmerge
+	rm -f ../../bin/yaca-hexmerge
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS)

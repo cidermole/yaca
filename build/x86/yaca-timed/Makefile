@@ -25,7 +25,7 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-timed
+	rm -f ../../bin/yaca-timed
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS) $(LDFLAGS)

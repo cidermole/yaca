@@ -25,7 +25,7 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-logd
+	rm -f ../../bin/yaca-logd
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS) $(LDFLAGS)

@@ -23,7 +23,7 @@ clean:
 	rm -f *.o
 
 mrproper: clean
-	rm ../../bin/yaca-tr
+	rm -f ../../bin/yaca-tr
 
 $(EXE):	$(OBJS)
 	$(CC) -o $@ $(SRCDIR)/$(EXE).c $(OBJS)
