@@ -126,6 +126,9 @@ int main(int argc, char **argv) {
 
 		if(temp_pid > 0) { // pppd exited
 			close(tty);
+
+			usleep(1000000 * 10); // wait 10 s - prevent 'endless-pppd' loop with 100% CPU (seems to have occured?)
+
 			/* create pseudo-tty for communication with pppd, fork() and execvp() */
 			child = forkpty(&tty, NULL, NULL, NULL);
 			if(child == -1) {
