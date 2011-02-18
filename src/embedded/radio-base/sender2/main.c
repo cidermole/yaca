@@ -39,12 +39,11 @@ int main(void) {
 	memset(&msg.flags, 0, sizeof(msg.flags));
 	msg.length = 4;
 
-	for(i = 0; i < 200; i++)
-		_delay_ms(10);
-
 	radio_init(__radio_id);
 
 	sei();
+
+	_delay_ms(200);
 
 	while(1) {
 		measure();
