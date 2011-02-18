@@ -24,6 +24,11 @@ void DR(TempStatus()) {
 	RFM12_INT_master_on();
 }
 
+void debug_tx(volatile uint8_t *p) {
+	yc_send(RadioBase, Debug(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]));
+}
+
+
 extern "C" {
 	uint16_t ms_timer();
 }
