@@ -74,8 +74,9 @@ void RFM12_PHY_modeRX(void)
 void RFM12_PHY_modeTX(void)
 {
 	_RFM12_trans(0x8209);			// RX off
-	_RFM12_trans(0x8239);			// TX on
+	_delay_ms(0.5);
 	_RFM12_PHY_state = RFM12_TX;
+	_RFM12_trans(0x8239);			// TX on
 }
 
 void RFM12_PHY_setPowerManagement(bool enRX, bool enBB, bool startTX, bool enSynth, bool enOSC, bool enBat, bool enWkT, bool clkOff)
@@ -134,6 +135,7 @@ bool RFM12_PHY_busy(void)
 void RFM12_PHY_timer(unsigned char mantissa, unsigned char exponent)
 {
 	_RFM12_trans(0xE000 | ((exponent & 0x1F) << 8) | mantissa); // set timer interval
+	_RFM12_trans(0x8027); // turn off FIFO and data recv
 	_RFM12_trans(0x8203); // enable timer
 }
 
@@ -160,19 +162,20 @@ void _RFM12_ISR()
 			break;
 		}
 	}
-	if(status & RFM12_FFOV_RGUR) {		// FIFO over-/underflow
+	/*if(status & RFM12_FFOV_RGUR) {		// FIFO over-/underflow
 		 // TODO: else if(status & ...)
 	}
 	if(status & RFM12_POR) {			// Power On Reset
 		 // TODO: else if(status & ...)
-	}
+	}*/
 	if(status & RFM12_WKUP) {			// Wake-Up trigger
-		 // TODO: else if(status & ...)
+		_RFM12_trans(0x8201); // disable wakeup timer
+		_RFM12_trans(0x80E7);          // Enable FIFO, b1/b0 = 868 MHz (RF12 datasheet p. 14)
 	}
-	if(status & RFM12_LBD) {			// Low supply voltage
+	/*if(status & RFM12_LBD) {			// Low supply voltage
 		 // TODO: else if(status & ...)
 	}
 	if(status & RFM12_EXT) {			// External interrupt
 		 // TODO: else if(status & ...)
-	}
+	}*/
 }
