@@ -84,7 +84,20 @@ void yc_dispatch(Message* m, uint8_t* eep_idtable, void** flash_fps, uint8_t* fl
 
 			if(id == m_id) {
 				unpack(m, packstyle);
-				fp();
+				// XXX: breaks the register contents we have unpacked to (sets up address for icall), fix in asm below
+				//fp();
+
+				// 'Q' constraint (Y or Z ptr with displacement) needs avr-gcc >= 4.2.x
+				asm volatile(
+					"ldd  r30, %Q0" "\n\t"
+					"ldd  r31, %Q0+1" "\n\t"
+					"icall"
+						:
+						: "Q" (fp)
+						: "r30", "r31"
+				);
+				// XXX: watch out here, the clobber list (Z pointer) is incomplete, the function call might have invalidated other registers
+				// it is OK to return immediately though
 				return;
 			}
 		}
