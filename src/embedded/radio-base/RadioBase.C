@@ -47,17 +47,6 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	if(cal == 0)
 		cal = OSCCAL;
 
-	yc_prepare(796);
-	debug_msg[0] = hour;
-	debug_msg[1] = min;
-	debug_msg[2] = sec;
-	debug_msg[3] = ((uint8_t*)(&year))[1];
-	debug_msg[4] = ((uint8_t*)(&year))[0];
-	debug_msg[5] = month;
-	debug_msg[6] = day;
-	debug_msg[7] = flags;
-	debug_tx(debug_msg);
-
 	if(sec == SYNCPOINT_SECS && (timer_count / 1000 != SYNCPOINT_SECS || timer_sub < (500 - MAX_DEVIATION_MS) || timer_sub > (500 + MAX_DEVIATION_MS))) {
 		cli();
 		ms_timer_count = SYNCPOINT_SECS * 1000 + 500;
