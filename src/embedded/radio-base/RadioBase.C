@@ -24,14 +24,69 @@ void DR(TempStatus()) {
 	RFM12_INT_master_on();
 }
 
+extern "C" {
+	uint16_t ms_timer();
+}
+
 void debug_tx(volatile uint8_t *p) {
 	yc_send(RadioBase, Debug(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]));
 }
 
+#define MAX_DEVIATION_MS 200
+#define SYNCPOINT_SECS 30
+#define MAX_OSCCAL_DEVIATION 10
+//#define FINE_SYNC_MS 20
 
-extern "C" {
-	uint16_t ms_timer();
+void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
+	uint16_t timer_count = ms_timer(); // % 1000
+	uint16_t timer_sub = timer_count % 1000;
+	static uint8_t cal = 0;
+	uint8_t debug_msg[8];
+
+	// XXX: let's hope OSCCAL will never be 0 (static uint8_t cal = OSCCAL doesn't make compiler happy)
+	if(cal == 0)
+		cal = OSCCAL;
+
+	yc_prepare(796);
+	debug_msg[0] = hour;
+	debug_msg[1] = min;
+	debug_msg[2] = sec;
+	debug_msg[3] = ((uint8_t*)(&year))[1];
+	debug_msg[4] = ((uint8_t*)(&year))[0];
+	debug_msg[5] = month;
+	debug_msg[6] = day;
+	debug_msg[7] = flags;
+	debug_tx(debug_msg);
+
+	if(sec == SYNCPOINT_SECS && (timer_count / 1000 != SYNCPOINT_SECS || timer_sub < (500 - MAX_DEVIATION_MS) || timer_sub > (500 + MAX_DEVIATION_MS))) {
+		cli();
+		ms_timer_count = SYNCPOINT_SECS * 1000 + 500;
+		sei();
+
+		// debugging
+		yc_prepare(798);
+		//debug_msg[0] = 0x01;
+		debug_msg[0] = hour;
+		debug_msg[1] = min;
+		debug_msg[2] = sec;
+		debug_tx(debug_msg);
+	} else {
+		// fine sync
+		if(timer_sub > 500 && OSCCAL > cal - MAX_OSCCAL_DEVIATION) // too fast?
+			OSCCAL--;
+		else if(timer_sub < 500 && OSCCAL < cal + MAX_OSCCAL_DEVIATION) // too slow?
+			OSCCAL++;
+
+		// debugging
+		if((timer_sub > 500 && OSCCAL == cal - MAX_OSCCAL_DEVIATION) || (timer_sub < 500 && OSCCAL == cal + MAX_OSCCAL_DEVIATION)) {
+			yc_prepare(797);
+			debug_msg[0] = 0x02;
+			debug_msg[1] = timer_sub > 500;
+			debug_tx(debug_msg);
+		}
+	}
 }
+
 
 // for libradio-master
 uint16_t ms_timer() {

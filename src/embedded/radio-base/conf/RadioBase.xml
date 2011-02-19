@@ -1,5 +1,8 @@
 <node-config id="804">
 	<messages>
+		<message name="Time">
+			<id>401</id>
+		</message>
 		<message name="TempStatus">
 			<id>405</id>
 		</message>
