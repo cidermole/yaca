@@ -66,7 +66,7 @@ int8_t ts_tick(mscount_t ms) {
 	// wraparound expected, wraparound happened and time for next tick?
 	if((ms >= next_tick_ms && !next_tick_wrap) || (next_tick_wrap && ms < TIME_MAX_MS / 2 && ms >= next_tick_ms)) {
 		_ts_calculate_tick_dist();
-		added_ticks += tick_sign;
+		added_ticks += tick_sign ? 1 : -1;
 
 		if(tick_sign)
 			return 1;
