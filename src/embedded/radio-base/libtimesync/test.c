@@ -23,17 +23,20 @@ int main() {
 
 	_mscounter = JITTER_MS;
 
-	for(i = 0; i < 1; i++) {
+	for(i = 0; i < 10; i++) {
 		nr = 10000 + (rand() % (2 * JITTER_MS)) - JITTER_MS;
 		for(t = 0; t < 60000; t++) {
+			if(t % 1000 == 0)
+				//fprintf(stderr, "T M D: %d %d %d\n", (int) t, (int) mscounter(), (int) (t - mscounter()));
+				//fprintf(stderr, "%d;%d\n", i * 60000 + ((int) t), i * 60000 + ((int) mscounter()) + (t == 0 && mscounter() > 20000 ? -60000 : 0));
+				fprintf(stderr, "%d;%d\n", i * 60 + ((int) t / 1000), (int) ((mscounter() - t) > 30000 || (mscounter() - t) < -30000) ? 0 : (mscounter() - t));
 			tick = 0;
 			if(t == nr) {
-				printf("T M D: %d %d %d\n", (int) t, (int) mscounter(), (int) (t - mscounter()));
 				printf("ts_slot(%d)\n", (int) mscounter());
 				ts_slot(mscounter());
 				nr = ((((nr + JITTER_SAFE_MAX) / 10000) + 1) * 10000  + (rand() % (2 * JITTER_MS)) - JITTER_MS) % 60000;
 			} else {
-				//tick = ts_tick(mscounter());
+				tick = ts_tick(mscounter());
 			}
 
 			if(tick == 1)
