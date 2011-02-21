@@ -28,7 +28,7 @@
 
 
 #define SLOT_LEN_MS 10000
-#define SLOT_COUNT  60
+#define SLOT_COUNT  1
 #define TIME_MAX_MS 60000 // the modulus value of the time counter
 #define AVG_PERIOD  (((int32_t) SLOT_LEN_MS) * SLOT_COUNT)
 #define MSCOUNT_MAX UINT16_MAX

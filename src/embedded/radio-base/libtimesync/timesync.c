@@ -1,5 +1,6 @@
 #include "timesync.h"
 #include <string.h>
+#include <stdio.h>
 
 ringbuf_t drift_rb[SLOT_COUNT];
 rb_cnt_t drift_rb_i;
@@ -80,6 +81,7 @@ int8_t ts_tick(mscount_t ms) {
 void ts_slot(mscount_t ms) {
 	ringbuf_t ms_mod;
 	ringbuf_t slot_drift;
+	static ringbuf_t my = 0;
 
 	// calculate slot drift
 	ms_mod = ms % SLOT_LEN_MS;
@@ -88,6 +90,10 @@ void ts_slot(mscount_t ms) {
 	else
 		ms_mod = SLOT_LEN_MS - ms_mod;
 	slot_drift = added_ticks + ms_mod;
+	my += ms_mod;
+	if(my > 30000)
+		printf("my overrun\n");
+	slot_drift = ms_mod;
 
 	// update drift sum (used for averaging) and drift ring buffer
 	drift_sum -= drift_rb[drift_rb_i];
