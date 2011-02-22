@@ -9,7 +9,7 @@ mscount_t _ts_filter(mscount_t input) {
 	static mscount_t arr[SLOT_COUNT];
 	static filterindex_t in = 0;
 	static uint8_t init = 0;
-	mssum_t avg = AVG_PERIOD;
+	static mssum_t avg = AVG_PERIOD;
 	filterindex_t i;
 
 	if(init == 0) {
