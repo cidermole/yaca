@@ -27,16 +27,15 @@
 */
 
 
-#define SLOT_LEN_MS 10000
-#define SLOT_COUNT  1
+#define SLOT_LEN_MS 1000
+#define SLOT_COUNT  120
 #define TIME_MAX_MS 60000 // the modulus value of the time counter
 #define AVG_PERIOD  (((int32_t) SLOT_LEN_MS) * SLOT_COUNT)
 #define MSCOUNT_MAX UINT16_MAX
 
 typedef uint16_t mscount_t;
-typedef int16_t ringbuf_t; ///< ticks in a slot must fit here
-typedef int16_t rb_cnt_t; ///< SLOT_COUNT must fit here
-typedef int16_t rb_sum_t; ///< SLOT_COUNT * (ticks in a slot) must fit here
+typedef uint32_t mssum_t; ///< SLOT_COUNT * ~ 1000 must fit here
+typedef uint8_t filterindex_t; ///< SLOT_COUNT must fit here
 
 
 /**

@@ -1,15 +1,16 @@
 #include "timesync.h"
 
-uint16_t vts_soll, vts_missing;
-uint16_t vts_dist, vts_rem;
+mscount_t vts_soll, vts_missing;
+mscount_t vts_dist, vts_rem;
 int8_t vts_sign;
 
 
-uint16_t _ts_filter(uint16_t input) {
-	static uint16_t arr[SLOT_COUNT];
-	uint32_t avg = AVG_PERIOD;
-	static uint8_t in = 0, init = 0;
-	uint8_t i;
+mscount_t _ts_filter(mscount_t input) {
+	static mscount_t arr[SLOT_COUNT];
+	static filterindex_t in = 0;
+	static uint8_t init = 0;
+	mssum_t avg = AVG_PERIOD;
+	filterindex_t i;
 
 	if(init == 0) {
 		for(i = 0; i < SLOT_COUNT; i++)
@@ -33,7 +34,7 @@ void ts_init() {
 	vts_sign = 1;
 }
 
-uint16_t sub_ms(uint16_t a, uint16_t b) {
+mscount_t sub_ms(mscount_t a, mscount_t b) {
 	if(b > a) {
 		b -= a;
 		return TIME_MAX_MS - b;
@@ -42,17 +43,17 @@ uint16_t sub_ms(uint16_t a, uint16_t b) {
 	}
 }
 
-uint16_t add_ms(uint16_t a, uint16_t b) {
-	uint16_t sum = a + b;
+mscount_t add_ms(mscount_t a, mscount_t b) {
+	mscount_t sum = a + b;
 	if(sum >= TIME_MAX_MS && sum > a)
 		sum -= TIME_MAX_MS;
 	else if(sum < a)
-		sum = add_ms(sum, UINT16_MAX - TIME_MAX_MS);
+		sum = add_ms(sum, MSCOUNT_MAX - TIME_MAX_MS);
 	return sum;
 }
 
-void ts_slot(uint16_t ms, uint16_t corr_ms, uint16_t real_ms) {
-	static uint16_t last_ms = 0;
+void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms) {
+	static mscount_t last_ms = 0;
 
 	vts_soll = _ts_filter(sub_ms(ms, last_ms));
 
@@ -70,9 +71,10 @@ void ts_slot(uint16_t ms, uint16_t corr_ms, uint16_t real_ms) {
 	last_ms = ms;
 }
 
-int8_t ts_tick(uint16_t ms) {
-	static uint16_t next_ms = 0, next_wrap = 0;
-	uint16_t i;
+int8_t ts_tick(mscount_t ms) {
+	static mscount_t next_ms = 0;
+	mscount_t i;
+	uint8_t next_wrap = 0;
 
 	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < (TIME_MAX_MS / 2) && ms >= next_ms)) {
 		i = next_ms + vts_dist;
