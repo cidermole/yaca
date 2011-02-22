@@ -73,8 +73,8 @@ void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms) {
 
 int8_t ts_tick(mscount_t ms) {
 	static mscount_t next_ms = 0;
+	static uint8_t next_wrap = 0;
 	mscount_t i;
-	uint8_t next_wrap = 0;
 
 	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < (TIME_MAX_MS / 2) && ms >= next_ms)) {
 		i = next_ms + vts_dist;
