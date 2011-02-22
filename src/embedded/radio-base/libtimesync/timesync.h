@@ -34,7 +34,8 @@
 #define MSCOUNT_MAX UINT16_MAX
 
 typedef uint16_t mscount_t;
-typedef uint32_t mssum_t; ///< SLOT_COUNT * ~ 1000 must fit here
+typedef int16_t filter_t;
+typedef int32_t mssum_t; ///< SLOT_COUNT * ~ 100 must fit here
 typedef uint8_t filterindex_t; ///< SLOT_COUNT must fit here
 
 

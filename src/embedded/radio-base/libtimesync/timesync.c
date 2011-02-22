@@ -5,16 +5,17 @@ mscount_t vts_dist, vts_rem;
 int8_t vts_sign;
 
 
-mscount_t _ts_filter(mscount_t input) {
-	static mscount_t arr[SLOT_COUNT];
+filter_t _ts_filter(filter_t input) {
+	static filter_t arr[SLOT_COUNT];
 	static filterindex_t in = 0;
 	static uint8_t init = 0;
-	static mssum_t avg = AVG_PERIOD;
+	static mssum_t avg;
 	filterindex_t i;
 
 	if(init == 0) {
 		for(i = 0; i < SLOT_COUNT; i++)
-			arr[i] = SLOT_LEN_MS;
+			arr[i] = input;
+		avg = ((mssum_t) SLOT_COUNT) * input;
 		init = 1;
 	}
 
