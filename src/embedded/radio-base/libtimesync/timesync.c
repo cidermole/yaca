@@ -68,8 +68,8 @@ void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms) {
 	vts_sign = vts_missing >= 0 ? 1 : -1;
 	vts_missing = vts_sign == 1 ? vts_missing : -vts_missing;
 	vts_missing = vts_missing == 0 ? 1 : vts_missing;
-	vts_dist = (1000UL * FAC + vts_rem) / vts_missing;
-	vts_rem = (1000UL * FAC + vts_rem) % vts_missing;
+	vts_dist = (1000UL * I_FACTOR + vts_rem) / vts_missing;
+	vts_rem = (1000UL * I_FACTOR + vts_rem) % vts_missing;
 
 	last_ms = ms;
 }
