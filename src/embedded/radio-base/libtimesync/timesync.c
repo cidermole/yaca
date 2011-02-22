@@ -1,7 +1,6 @@
 #include "timesync.h"
 
-mscount_t vts_soll, vts_missing;
-mscount_t vts_dist, vts_rem;
+mscount_t vts_missing, vts_dist, vts_rem;
 int8_t vts_sign;
 
 
@@ -9,30 +8,30 @@ filter_t _ts_filter(filter_t input) {
 	static filter_t arr[SLOT_COUNT];
 	static filterindex_t in = 0;
 	static uint8_t init = 0;
-	static mssum_t avg;
+	static mssum_t sum;
 	filterindex_t i;
 
 	if(init == 0) {
 		for(i = 0; i < SLOT_COUNT; i++)
 			arr[i] = input;
-		avg = ((mssum_t) SLOT_COUNT) * input;
+		sum = ((mssum_t) SLOT_COUNT) * input;
 		init = 1;
 	}
 
-	avg -= arr[in];
-	avg += input;
+	sum -= arr[in];
+	sum += input;
 	arr[in] = input;
 	if(++in == SLOT_COUNT)
 		in = 0;
 
-	return avg / SLOT_COUNT;
+	return sum / SLOT_COUNT;
 }
 
 void ts_init() {
 	// XXX: static variables in functions are not affected
 	vts_missing = 1;
 	vts_rem = 0;
-	vts_sign = 1;
+	vts_sign = 0;
 }
 
 mscount_t sub_ms(mscount_t a, mscount_t b) {
@@ -55,19 +54,22 @@ mscount_t add_ms(mscount_t a, mscount_t b) {
 
 void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms) {
 	static mscount_t last_ms = 0;
+	mscount_t sd;
+	filter_t slot_diff, ipart;
 
-	vts_soll = _ts_filter(sub_ms(ms, last_ms));
+	sd = sub_ms(add_ms(last_ms, 1000), ms);
+	slot_diff = sd > 30000 ? -((filter_t)(60000 - sd)) : sd; // XXX
 
-	vts_missing = add_ms(sub_ms(SLOT_LEN_MS, vts_soll), sub_ms(real_ms, corr_ms));
+	sd = sub_ms(corr_ms, real_ms);
+	ipart = sd > 30000 ? -((filter_t)(60000 - sd)) : sd; // XXX
+	vts_missing = _ts_filter(slot_diff * I_FACTOR) - ipart;
+	//fprintf(stderr, "%d - ireg %d\n", real_time, (((int) mcu_time_corr) - next_msg)); // a measure for the error
 
-	vts_sign = vts_missing < (TIME_MAX_MS / 2) ? 1 : -1;
-	if(vts_sign == -1)
-		vts_missing = TIME_MAX_MS - vts_missing;
-	if(vts_missing == 0)
-		vts_missing = 1;
-
-	vts_dist = (SLOT_LEN_MS + vts_rem) / vts_missing;
-	vts_rem = (SLOT_LEN_MS + vts_rem) % vts_missing;
+	vts_sign = vts_missing >= 0 ? 1 : -1;
+	vts_missing = vts_sign == 1 ? vts_missing : -vts_missing;
+	vts_missing = vts_missing == 0 ? 1 : vts_missing;
+	vts_dist = (1000UL * FAC + vts_rem) / vts_missing;
+	vts_rem = (1000UL * FAC + vts_rem) % vts_missing;
 
 	last_ms = ms;
 }

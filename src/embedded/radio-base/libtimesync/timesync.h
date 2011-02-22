@@ -32,6 +32,7 @@
 #define TIME_MAX_MS 60000 // the modulus value of the time counter
 #define AVG_PERIOD  (((int32_t) SLOT_LEN_MS) * SLOT_COUNT)
 #define MSCOUNT_MAX UINT16_MAX
+#define I_FACTOR 100
 
 typedef uint16_t mscount_t;
 typedef int16_t filter_t;
