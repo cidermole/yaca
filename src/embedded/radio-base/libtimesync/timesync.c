@@ -1,118 +1,91 @@
 #include "timesync.h"
-#include <string.h>
-#include <stdio.h>
 
-ringbuf_t drift_rb[SLOT_COUNT];
-rb_cnt_t drift_rb_i;
-rb_sum_t drift_sum;
-mscount_t tick_dist;
-uint8_t tick_sign;
-rb_sum_t tick_rem;
-mscount_t next_tick_ms;
-uint8_t next_tick_wrap;
-ringbuf_t added_ticks;
+#define STEPS 120
+
+uint16_t vts_soll, vts_missing;
+uint16_t vts_dist, vts_rem;
+int8_t vts_sign;
 
 
-void _ts_calculate_tick_dist();
+uint16_t _ts_filter(uint16_t input) {
+	static uint16_t arr[STEPS];
+	uint32_t avg = 1000UL*STEPS;
+	static uint8_t in = 0, init = 0;
+	uint8_t i;
 
-void ts_init() {
-	memset(drift_rb, 0, sizeof(drift_rb));
-	drift_rb[0] = 1;
-	drift_rb_i = 0;
-	drift_sum = 1; // will be a divisor
-	tick_dist = MSCOUNT_MAX;
-	tick_rem = 0;
-	tick_sign = 1; // +
-	added_ticks = 0;
-	_ts_calculate_tick_dist();
+	if(init == 0) {
+		for(i = 0; i < STEPS; i++)
+			arr[i] = 1000;
+		init = 1;
+	}
+
+	avg -= arr[in];
+	avg += input;
+	arr[in] = input;
+	if(++in == STEPS)
+		in = 0;
+
+	return avg / STEPS;
 }
 
-mscount_t _ts_handle_wraparound(mscount_t sum, mscount_t orig) {
-	if(sum >= TIME_MAX_MS && sum > orig) { // TIME_MAX_MS wraparound?
-		sum -= TIME_MAX_MS;
-	} else if(sum < orig) { // integer wraparound?
-		orig = sum;
-		sum += MSCOUNT_MAX - TIME_MAX_MS; // add the int wraparound
-		return _ts_handle_wraparound(sum, orig);
+void ts_init() {
+	// XXX: static variables in functions are not affected
+	vts_missing = 1;
+	vts_rem = 0;
+	vts_sign = 1;
+}
+
+uint16_t sub_ms(uint16_t a, uint16_t b) {
+	if(b > a) {
+		b -= a;
+		return 60000 - b;
+	} else {
+		return a - b;
 	}
+}
+
+uint16_t add_ms(uint16_t a, uint16_t b) {
+	uint16_t sum = a + b;
+	if(sum >= 60000 && sum > a)
+		sum -= 60000;
+	else if(sum < a)
+		sum = add_ms(sum, UINT16_MAX - 60000);
 	return sum;
 }
 
-// calculate new tick distance, remainder, sign and next_tick
-void _ts_calculate_tick_dist() {
-	int32_t td;
-	mscount_t nt;
+void ts_slot(uint16_t ms, uint16_t corr_ms, uint16_t real_ms) {
+	static uint16_t last_ms = 0;
 
-	td = (AVG_PERIOD + tick_rem) / drift_sum;
-	tick_rem = (AVG_PERIOD + tick_rem) % drift_sum;
+	vts_soll = _ts_filter(sub_ms(ms, last_ms));
 
-	tick_sign = (td >= 0);
-	if(!tick_sign)
-		td = -td;
+	vts_missing = add_ms(sub_ms(1000, vts_soll), sub_ms(real_ms, corr_ms));
 
-	if(td > MSCOUNT_MAX)
-		td = MSCOUNT_MAX;
+	vts_sign = vts_missing < 30000 ? 1 : -1;
+	if(vts_sign == -1)
+		vts_missing = 60000 - vts_missing;
+	if(vts_missing == 0)
+		vts_missing = 1;
 
-	tick_dist = td;
+	vts_dist = (1000 + vts_rem) / vts_missing;
+	vts_rem = (1000 + vts_rem) % vts_missing;
 
-
-	// calculate next_tick_ms and wrap
-	nt = next_tick_ms + tick_dist;
-	next_tick_wrap = ((nt < next_tick_ms) || (nt >= TIME_MAX_MS));
-	next_tick_ms = _ts_handle_wraparound(nt, next_tick_ms);
+	last_ms = ms;
 }
 
-int8_t ts_tick(mscount_t ms) {
-	// time for next tick and no wraparound expected, or
-	// wraparound expected, wraparound happened and time for next tick?
-	if((ms >= next_tick_ms && !next_tick_wrap) || (next_tick_wrap && ms < TIME_MAX_MS / 2 && ms >= next_tick_ms)) {
-		_ts_calculate_tick_dist();
-		added_ticks += tick_sign ? 1 : -1;
+int8_t ts_tick(uint16_t ms) {
+	static uint16_t next_ms = 0, next_wrap = 0;
+	uint16_t i;
 
-		if(tick_sign)
-			return 1;
-		else
-			return -1;
-	} else {
-		return 0;
-	}
-}
+	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < 30000 && ms >= next_ms)) {
+		i = next_ms + vts_dist;
+		next_wrap = (i < next_ms || i >= 60000);
+		next_ms = add_ms(next_ms, vts_dist);
+		
+		vts_dist = (1000 + vts_rem) / vts_missing;
+		vts_rem = (1000 + vts_rem) % vts_missing;
 
-void ts_slot(mscount_t ms) {
-	ringbuf_t ms_mod;
-	ringbuf_t slot_drift;
-	static ringbuf_t my = 0;
-
-	// calculate slot drift
-	ms_mod = ms % SLOT_LEN_MS;
-	if(ms_mod < SLOT_LEN_MS / 2)
-		ms_mod = -ms_mod;
-	else
-		ms_mod = SLOT_LEN_MS - ms_mod;
-	slot_drift = added_ticks + ms_mod;
-	my += ms_mod;
-	if(my > 30000)
-		printf("my overrun\n");
-	slot_drift = ms_mod;
-
-	// update drift sum (used for averaging) and drift ring buffer
-	drift_sum -= drift_rb[drift_rb_i];
-	drift_sum += slot_drift;
-	drift_rb[drift_rb_i] = slot_drift;
-
-	if(drift_sum == 0) { // make sure we never divide by 0
-		drift_sum = 1;
-		drift_rb[drift_rb_i]++;
+		return vts_sign;
 	}
 
-	if(++drift_rb_i == SLOT_COUNT)
-		drift_rb_i = 0;
-
-
-	// recalculate tick distance
-	next_tick_ms = ms;
-	tick_rem = 0;
-	_ts_calculate_tick_dist();
-	added_ticks = 0;
+	return 0;
 }
-

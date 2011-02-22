@@ -79,9 +79,11 @@ int8_t ts_tick(mscount_t ms);
 	between ticks is recalculated)
 
 	\param[in] ms millisecond counter (current clock value)
+	\param[in] corr_ms corrected millisecond counter (where the ticks are added or "removed")
+	\param[in] real_ms milliseconds from the synchronization time stamp
 
 */
-void ts_slot(mscount_t ms);
+void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms);
 
 
 #endif /* TIMESYNC_H */
