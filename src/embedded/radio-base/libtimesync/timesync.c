@@ -1,31 +1,29 @@
 #include "timesync.h"
 
-#define STEPS 120
-
 uint16_t vts_soll, vts_missing;
 uint16_t vts_dist, vts_rem;
 int8_t vts_sign;
 
 
 uint16_t _ts_filter(uint16_t input) {
-	static uint16_t arr[STEPS];
-	uint32_t avg = 1000UL*STEPS;
+	static uint16_t arr[SLOT_COUNT];
+	uint32_t avg = AVG_PERIOD;
 	static uint8_t in = 0, init = 0;
 	uint8_t i;
 
 	if(init == 0) {
-		for(i = 0; i < STEPS; i++)
-			arr[i] = 1000;
+		for(i = 0; i < SLOT_COUNT; i++)
+			arr[i] = SLOT_LEN_MS;
 		init = 1;
 	}
 
 	avg -= arr[in];
 	avg += input;
 	arr[in] = input;
-	if(++in == STEPS)
+	if(++in == SLOT_COUNT)
 		in = 0;
 
-	return avg / STEPS;
+	return avg / SLOT_COUNT;
 }
 
 void ts_init() {
@@ -38,7 +36,7 @@ void ts_init() {
 uint16_t sub_ms(uint16_t a, uint16_t b) {
 	if(b > a) {
 		b -= a;
-		return 60000 - b;
+		return TIME_MAX_MS - b;
 	} else {
 		return a - b;
 	}
@@ -46,10 +44,10 @@ uint16_t sub_ms(uint16_t a, uint16_t b) {
 
 uint16_t add_ms(uint16_t a, uint16_t b) {
 	uint16_t sum = a + b;
-	if(sum >= 60000 && sum > a)
-		sum -= 60000;
+	if(sum >= TIME_MAX_MS && sum > a)
+		sum -= TIME_MAX_MS;
 	else if(sum < a)
-		sum = add_ms(sum, UINT16_MAX - 60000);
+		sum = add_ms(sum, UINT16_MAX - TIME_MAX_MS);
 	return sum;
 }
 
@@ -58,16 +56,16 @@ void ts_slot(uint16_t ms, uint16_t corr_ms, uint16_t real_ms) {
 
 	vts_soll = _ts_filter(sub_ms(ms, last_ms));
 
-	vts_missing = add_ms(sub_ms(1000, vts_soll), sub_ms(real_ms, corr_ms));
+	vts_missing = add_ms(sub_ms(SLOT_LEN_MS, vts_soll), sub_ms(real_ms, corr_ms));
 
-	vts_sign = vts_missing < 30000 ? 1 : -1;
+	vts_sign = vts_missing < (TIME_MAX_MS / 2) ? 1 : -1;
 	if(vts_sign == -1)
-		vts_missing = 60000 - vts_missing;
+		vts_missing = TIME_MAX_MS - vts_missing;
 	if(vts_missing == 0)
 		vts_missing = 1;
 
-	vts_dist = (1000 + vts_rem) / vts_missing;
-	vts_rem = (1000 + vts_rem) % vts_missing;
+	vts_dist = (SLOT_LEN_MS + vts_rem) / vts_missing;
+	vts_rem = (SLOT_LEN_MS + vts_rem) % vts_missing;
 
 	last_ms = ms;
 }
@@ -76,16 +74,17 @@ int8_t ts_tick(uint16_t ms) {
 	static uint16_t next_ms = 0, next_wrap = 0;
 	uint16_t i;
 
-	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < 30000 && ms >= next_ms)) {
+	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < (TIME_MAX_MS / 2) && ms >= next_ms)) {
 		i = next_ms + vts_dist;
-		next_wrap = (i < next_ms || i >= 60000);
+		next_wrap = (i < next_ms || i >= TIME_MAX_MS);
 		next_ms = add_ms(next_ms, vts_dist);
 		
-		vts_dist = (1000 + vts_rem) / vts_missing;
-		vts_rem = (1000 + vts_rem) % vts_missing;
+		vts_dist = (SLOT_LEN_MS + vts_rem) / vts_missing;
+		vts_rem = (SLOT_LEN_MS + vts_rem) % vts_missing;
 
 		return vts_sign;
 	}
 
 	return 0;
 }
+
