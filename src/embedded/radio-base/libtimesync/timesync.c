@@ -1,6 +1,7 @@
 #include "timesync.h"
 
-mscount_t vts_missing, vts_dist, vts_rem;
+int32_t vts_missing;
+uint16_t vts_dist, vts_rem;
 int8_t vts_sign;
 
 
@@ -34,15 +35,6 @@ void ts_init() {
 	vts_sign = 0;
 }
 
-mscount_t sub_ms(mscount_t a, mscount_t b) {
-	if(b > a) {
-		b -= a;
-		return TIME_MAX_MS - b;
-	} else {
-		return a - b;
-	}
-}
-
 mscount_t add_ms(mscount_t a, mscount_t b) {
 	mscount_t sum = a + b;
 	if(sum >= TIME_MAX_MS && sum > a)
@@ -52,40 +44,36 @@ mscount_t add_ms(mscount_t a, mscount_t b) {
 	return sum;
 }
 
-void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms) {
-	static mscount_t last_ms = 0;
-	mscount_t sd;
-	filter_t slot_diff, ipart;
+void ts_slot(int ms, int corr_ms, int real_ms) {
+	static int last_ms = 0;
 
-	sd = sub_ms(add_ms(last_ms, 1000), ms);
-	slot_diff = sd > 30000 ? -((filter_t)(60000 - sd)) : sd; // XXX
+	if(last_ms - ms > 10000)
+		last_ms = ms - 1000;
 
-	sd = sub_ms(corr_ms, real_ms);
-	ipart = sd > 30000 ? -((filter_t)(60000 - sd)) : sd; // XXX
-	vts_missing = _ts_filter(slot_diff * I_FACTOR) - ipart;
-	//fprintf(stderr, "%d - ireg %d\n", real_time, (((int) mcu_time_corr) - next_msg)); // a measure for the error
-
+	vts_missing = _ts_filter(I_FACTOR * (1000 - ms + last_ms)) - (corr_ms - real_ms);
 	vts_sign = vts_missing >= 0 ? 1 : -1;
 	vts_missing = vts_sign == 1 ? vts_missing : -vts_missing;
 	vts_missing = vts_missing == 0 ? 1 : vts_missing;
 	vts_dist = (1000UL * I_FACTOR + vts_rem) / vts_missing;
 	vts_rem = (1000UL * I_FACTOR + vts_rem) % vts_missing;
-
 	last_ms = ms;
 }
 
-int8_t ts_tick(mscount_t ms) {
+int8_t ts_tick(mscount_t ms, uint8_t reset) {
 	static mscount_t next_ms = 0;
 	static uint8_t next_wrap = 0;
 	mscount_t i;
+
+	if(reset)
+		next_ms = 0;
 
 	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < (TIME_MAX_MS / 2) && ms >= next_ms)) {
 		i = next_ms + vts_dist;
 		next_wrap = (i < next_ms || i >= TIME_MAX_MS);
 		next_ms = add_ms(next_ms, vts_dist);
 		
-		vts_dist = (SLOT_LEN_MS + vts_rem) / vts_missing;
-		vts_rem = (SLOT_LEN_MS + vts_rem) % vts_missing;
+		vts_dist = (((mssum_t) SLOT_LEN_MS) * I_FACTOR + vts_rem) / vts_missing;
+		vts_rem = (((mssum_t) SLOT_LEN_MS) * I_FACTOR + vts_rem) % vts_missing;
 
 		return vts_sign;
 	}

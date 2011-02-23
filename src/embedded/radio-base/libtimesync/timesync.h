@@ -62,11 +62,12 @@ void ts_init();
 	is to set a flag to ignore the next periodic clock increment.
 
 	\param[in] ms millisecond counter (current clock value)
+	\param[in] reset set to 1 to reset time (at midnight)
 
 	\return 1 to add a tick, -1 to "remove" a tick, 0 otherwise
 
 */
-int8_t ts_tick(mscount_t ms);
+int8_t ts_tick(mscount_t ms, uint8_t reset);
 
 /**
 
@@ -84,7 +85,7 @@ int8_t ts_tick(mscount_t ms);
 	\param[in] real_ms milliseconds from the synchronization time stamp
 
 */
-void ts_slot(mscount_t ms, mscount_t corr_ms, mscount_t real_ms);
+void ts_slot(int32_t ms, int32_t corr_ms, int32_t real_ms);
 
 
 #endif /* TIMESYNC_H */
