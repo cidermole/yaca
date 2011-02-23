@@ -18,7 +18,8 @@ uint16_t voltage;
 int16_t temperature;
 volatile int32_t timer_local = 0, timer_corr = 0;
 volatile uint8_t skip_corr = 0;
-int32_t old_time = 0;
+int32_t old_time = 0, helper_clock_diff = 0;
+uint8_t helper_clock_active = 1;
 
 void DR(TempStatus()) {
 	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
@@ -37,32 +38,67 @@ void debug_tx(volatile uint8_t *p) {
 	yc_send(RadioBase, Debug(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]));
 }
 
-#define MAX_DEVIATION_MS 200
+#define DEVIATION_HARD_RESYNC_MS 10000
+#define HELPER_CLOCK_ACTIVE_MS 200
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
-	//uint8_t debug_msg[8];
-	int32_t reported_time = 3600000UL * hour + 60000UL * min + 1000UL * sec;
 	static uint8_t old_day = 0;
+	uint8_t debug_msg[2];
+	int32_t reported_time = 3600000UL * hour + 60000UL * min + 1000UL * sec;
+	int32_t ms_corr = ms_timer_corr(), ms_local = ms_timer_local(), diff;
+	int16_t fb;
 
-	// TODO: coarse sync
+	// coarse sync
+	diff = ms_corr - reported_time;
+	if(diff < 0)
+		diff = -diff;
+
+	if(diff > DEVIATION_HARD_RESYNC_MS) {
+		cli();
+		timer_local = reported_time;
+		timer_corr = reported_time;
+		sei();
+		helper_clock_active = 1;
+		old_time = reported_time;
+		old_day = day;
+		ts_tick(reported_time % 60000, 1); // reset tick
+		yc_prepare(798);
+		debug_tx(debug_msg);
+		return;
+	}
+
+	helper_clock_diff = reported_time - ms_local;
 
 	if(old_day != day) {
 		// daily counter reset at midnight
 		cli();
 		timer_local = 0;
 		timer_corr = 0;
-		old_time = 0;
 		sei();
+		old_time = 0;
 		ts_tick(0, 1); // reset tick
 	} else {
-		ts_slot(ms_timer_local(), ms_timer_corr(), reported_time);
+		fb = ts_slot(ms_local, ms_corr, reported_time);
+		debug_msg[0] = ((uint8_t *) (&fb))[1];
+		debug_msg[1] = ((uint8_t *) (&fb))[0];
+
+		if(fb < 0)
+			fb = -fb;
+		helper_clock_active = (fb > HELPER_CLOCK_ACTIVE_MS);
+
+		yc_prepare(799);
+		debug_tx(debug_msg);
 	}
 }
 
 
 // for libradio-master
 uint16_t ms_timer() {
-	return ms_timer_corr() % 60000;
+	// always use more accurate time base
+	if(helper_clock_active)
+		return ms_timer_local() + helper_clock_diff;
+	else
+		return ms_timer_corr() % 60000;
 }
 
 int32_t ms_timer_local() {
@@ -115,7 +151,7 @@ int main() {
 		yc_dispatch_auto();
 
 		if(ms_timer_local() != old_time) {
-			fb = ts_tick(ms_timer(), 0);
+			fb = ts_tick(ms_timer_corr() % 60000, 0);
 			if(fb == 1) {
 				cli();
 				timer_corr++;

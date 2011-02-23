@@ -67,7 +67,7 @@ int8_t ts_tick(mscount_t ms, uint8_t reset) {
 	mscount_t i;
 
 	if(reset)
-		next_ms = 0;
+		next_ms = ms;
 
 	if((ms >= next_ms && !next_wrap) || (next_wrap && ms < (TIME_MAX_MS / 2) && ms >= next_ms)) {
 		i = next_ms + vts_dist;
