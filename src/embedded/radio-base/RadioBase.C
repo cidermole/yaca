@@ -53,15 +53,20 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	if(diff < 0)
 		diff = -diff;
 
-	if(diff > DEVIATION_HARD_RESYNC_MS) {
+	if(diff > DEVIATION_HARD_RESYNC_MS || old_day != day) {
 		cli();
 		timer_local = reported_time;
 		timer_corr = reported_time;
 		sei();
+
 		helper_clock_active = 1;
+		helper_clock_diff = reported_time - ms_local;
+
 		old_time = reported_time;
 		old_day = day;
+
 		ts_tick(reported_time % 60000, 1); // reset tick
+
 		yc_prepare(798);
 		debug_tx(debug_msg);
 		return;
@@ -69,26 +74,16 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 
 	helper_clock_diff = reported_time - ms_local;
 
-	if(old_day != day) {
-		// daily counter reset at midnight
-		cli();
-		timer_local = 0;
-		timer_corr = 0;
-		sei();
-		old_time = 0;
-		ts_tick(0, 1); // reset tick
-	} else {
-		fb = ts_slot(ms_local, ms_corr, reported_time);
-		debug_msg[0] = ((uint8_t *) (&fb))[1];
-		debug_msg[1] = ((uint8_t *) (&fb))[0];
+	fb = ts_slot(ms_local, ms_corr, reported_time);
+	debug_msg[0] = ((uint8_t *) (&fb))[1];
+	debug_msg[1] = ((uint8_t *) (&fb))[0];
 
-		if(fb < 0)
-			fb = -fb;
-		helper_clock_active = (fb > HELPER_CLOCK_ACTIVE_MS);
+	if(fb < 0)
+		fb = -fb;
+	helper_clock_active = (fb > HELPER_CLOCK_ACTIVE_MS);
 
-		yc_prepare(799);
-		debug_tx(debug_msg);
-	}
+	yc_prepare(799);
+	debug_tx(debug_msg);
 }
 
 
