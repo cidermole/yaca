@@ -1,6 +1,11 @@
 #ifndef TIMESYNC_H
 #define TIMESYNC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 
 /**
@@ -89,6 +94,10 @@ int8_t ts_tick(mscount_t ms, uint8_t reset);
 */
 int16_t ts_slot(int32_t ms, int32_t corr_ms, int32_t real_ms);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TIMESYNC_H */
 
