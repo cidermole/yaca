@@ -44,8 +44,8 @@ mscount_t add_ms(mscount_t a, mscount_t b) {
 	return sum;
 }
 
-void ts_slot(int ms, int corr_ms, int real_ms) {
-	static int last_ms = 0;
+int16_t ts_slot(int32_t ms, int32_t corr_ms, int32_t real_ms) {
+	static int32_t last_ms = 0;
 
 	if(last_ms - ms > 10000)
 		last_ms = ms - 1000;
@@ -57,6 +57,8 @@ void ts_slot(int ms, int corr_ms, int real_ms) {
 	vts_dist = (1000UL * I_FACTOR + vts_rem) / vts_missing;
 	vts_rem = (1000UL * I_FACTOR + vts_rem) % vts_missing;
 	last_ms = ms;
+
+	return corr_ms - real_ms;
 }
 
 int8_t ts_tick(mscount_t ms, uint8_t reset) {

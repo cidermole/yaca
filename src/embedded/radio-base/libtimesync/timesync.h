@@ -84,8 +84,10 @@ int8_t ts_tick(mscount_t ms, uint8_t reset);
 	\param[in] corr_ms corrected millisecond counter (where the ticks are added or "removed")
 	\param[in] real_ms milliseconds from the synchronization time stamp
 
+	\return current deviation value, unfiltered
+
 */
-void ts_slot(int32_t ms, int32_t corr_ms, int32_t real_ms);
+int16_t ts_slot(int32_t ms, int32_t corr_ms, int32_t real_ms);
 
 
 #endif /* TIMESYNC_H */

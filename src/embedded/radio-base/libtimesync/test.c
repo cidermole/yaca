@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	double val = 0, input = 0, soll, soll2; // soll: time feedback with jitter
 	double time_counter = 0, corrected_counter = 0;
 	double delayed_time_counter;
-	double DEVIATION = 0.99;
+	double DEVIATION = 1.02;
 	int max = 2000 * 1000;
 
 	srand(0);
@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
 	next_stamp_real = 0;
 	for(real_time = 0; real_time < max; real_time++, time_counter += DEVIATION, corrected_counter += DEVIATION) {
 		if(real_time == next_stamp) {
-			ts_slot(((int) time_counter), ((int) corrected_counter), next_stamp_real);
+			int dev = ts_slot(((int) time_counter), ((int) corrected_counter), next_stamp_real);
+			printf("%d;%d\n", next_stamp_real, dev);
 			next_stamp_real += 1000;
 			next_stamp = next_stamp_real + (JITTER / 2) - rnd() * JITTER;
 		}
