@@ -21,6 +21,7 @@ typedef enum {
 } dcf_sync_state_t;
 
 typedef enum {
+	DCF_INIT,
 	DCF_BULK,
 	DCF_STATUS,
 	DCF_MINUTE,
@@ -33,7 +34,7 @@ typedef enum {
 } dcf_state_t;
 
 volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
-volatile dcf_state_t dcf_state = DCF_BULK;
+volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
 volatile uint8_t dcf_msg = 0;
 
@@ -84,6 +85,11 @@ uint8_t dcf_parity(uint8_t symbol) {
 void dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t min, hour, day, month, year, date_par = 0;
+
+	if(dcf_state == DCF_INIT) {
+		dcf_init_symbol();
+		dcf_state = DCF_BULK;
+	}
 
 	if(dcf_bit)
 		dcf_symbol |= dcf_shift;
@@ -209,7 +215,7 @@ ISR(TIMER1_COMPA_vect) {
 		if(dcf_ticks == 0) {
 			if(dcf_count >= 198 && dcf_count <= 202) { // minute marker?
 				dcf_sync_state = DCF_SYNC;
-				dcf_state = DCF_BULK;
+				dcf_state = DCF_INIT;
 				dcf_msg = 0x01;
 				bits = 0;
 			}
