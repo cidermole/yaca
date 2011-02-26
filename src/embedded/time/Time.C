@@ -1,3 +1,4 @@
+#include "RTime.h"
 #include "Time.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -34,6 +35,11 @@ typedef enum {
 volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
 volatile dcf_state_t dcf_state = DCF_BULK;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
+volatile uint8_t dcf_msg = 0;
+
+void debug_tx(volatile uint8_t *p) {
+	yc_send(Time, Debug(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]));
+}
 
 void init() {
 	set_bit(DDRC, PC0); // set LED output
@@ -158,13 +164,24 @@ void dcf_dispatch_bit() {
 }
 
 int main() {
+	uint8_t dbg[8];
+
 	init();
+	sei();
 
 	while(1) {
 		if(bit_is_set(PIND, PD7))
 			LED_on();
 		else
 			LED_off();
+
+		if(dcf_msg) {
+			yc_prepare(799);
+			dbg[0] = dcf_msg;
+			debug_tx(dbg);
+			dcf_msg = 0;
+		}
+
 		yc_dispatch_auto();
 	}
 	return 0;
@@ -180,6 +197,7 @@ ISR(TIMER1_COMPA_vect) {
 			if(dcf_count >= 198 && dcf_count <= 202) { // minute marker?
 				dcf_sync_state = DCF_SYNC;
 				dcf_state = DCF_BULK;
+				dcf_msg = 0x01;
 				bits = 0;
 			}
 			dcf_count = 0;
