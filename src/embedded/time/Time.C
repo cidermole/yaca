@@ -37,6 +37,8 @@ volatile dcf_state_t dcf_state = DCF_BULK;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
 volatile uint8_t dcf_msg = 0;
 
+volatile uint8_t dbg[8];
+
 void debug_tx(volatile uint8_t *p) {
 	yc_send(Time, Debug(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]));
 }
@@ -47,7 +49,7 @@ void init() {
 	set_bit(PORTD, PD7); // enable DCF77 pull-up
 
 	TCCR1B = (1 << WGM12) | (1 << CS10); // CTC mode, top = OCR1A, prescaler 1
-	OCR1A = 10000;
+	OCR1A = 20000;
 	TIMSK |= (1 << OCIE1A); // enable CTC interrupt
 }
 
@@ -155,6 +157,13 @@ void dcf_dispatch_bit() {
 		date_par += dcf_parity(dcf_symbol);
 		if(date_par % 2 != 0)
 			dcf_sync_state = DCF_RESET;
+		dcf_msg = 0x02;
+		dbg[1] = dcf_sync_state;
+		dbg[2] = hour;
+		dbg[3] = min;
+		dbg[4] = day;
+		dbg[5] = month;
+		dbg[6] = year;
 		dcf_state = DCF_BULK;
 		dcf_init_symbol();
 		break;
@@ -164,7 +173,6 @@ void dcf_dispatch_bit() {
 }
 
 int main() {
-	uint8_t dbg[8];
 
 	init();
 	sei();
@@ -180,6 +188,11 @@ int main() {
 			dbg[0] = dcf_msg;
 			debug_tx(dbg);
 			dcf_msg = 0;
+		}
+
+		if(dcf_handle_bit) {
+			dcf_dispatch_bit();
+			dcf_handle_bit = 0;
 		}
 
 		yc_dispatch_auto();
@@ -211,9 +224,10 @@ ISR(TIMER1_COMPA_vect) {
 		dcf_bit = 1;
 		if(dcf_sync_state == DCF_SYNC)
 			dcf_handle_bit = 1;
-	} else {
+	} else if(dcf_ticks != 0) {
 		// error
 		dcf_sync_state = DCF_RESET;
+		dcf_msg = 0xFF;
 	}
 
 	if(bit_is_clear(PIND, PD7))
