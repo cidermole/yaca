@@ -97,6 +97,7 @@ void dcf_dispatch_bit() {
 	dcf_shift_count++;
 
 	switch(dcf_state) {
+	case DCF_INIT:
 	case DCF_BULK:
 		if(dcf_shift_count == 14) {
 			dcf_state = DCF_STATUS;
