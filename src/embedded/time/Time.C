@@ -44,6 +44,7 @@ uint8_t min, hour, day, month, dcf_time_ok = 0;
 uint16_t year;
 volatile uint32_t timer_local = 0, timer_corr = 0;
 volatile uint8_t sec = 0, skip_corr = 0, timer_dms = 0;
+int32_t old_time = 0;
 
 volatile uint8_t dbg[8];
 
@@ -206,6 +207,8 @@ void dcf_dispatch_bit() {
 			if(dcf_symbol)
 				timer_local += 100;
 			timer_corr = timer_local;
+			old_time = timer_local;
+			ts_tick(timer_local % 60000, 1); // reset tick
 			sei();
 		}
 		dcf_time_ok = 1;
@@ -219,6 +222,7 @@ void dcf_dispatch_bit() {
 int main() {
 	uint8_t last_state = bit_is_set(PIND, PD7);
 	int16_t fb;
+	int8_t tfb;
 	int32_t reported_time, ct;
 	uint16_t ctm;
 
@@ -244,6 +248,20 @@ int main() {
 			}
 		}
 		last_state = bit_is_set(PIND, PD7);
+
+		if(ms_timer_local() != old_time) {
+			tfb = ts_tick(ms_timer_corr() % 60000, 0);
+			if(tfb == 1) {
+				cli();
+				timer_corr++;
+				sei();
+			} else if(tfb == -1) {
+				cli();
+				skip_corr = 1;
+				sei();
+			}
+			old_time++;
+		}
 
 		if(bit_is_set(PIND, PD7))
 			LED_on();
