@@ -41,7 +41,8 @@ volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
 volatile uint8_t dcf_msg = 0;
 uint8_t min, hour, day, month, dcf_time_ok = 0;
-uint16_t year;
+uint8_t lmin, lhour, lday, lmonth;
+uint16_t year, lyear;
 volatile uint32_t timer_local = 0, timer_corr = 0;
 volatile uint8_t sec = 0, skip_corr = 0, timer_dms = 0;
 int32_t old_time = 0;
@@ -114,6 +115,7 @@ uint8_t dcf_parity(uint8_t symbol) {
 void dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t date_par = 0;
+	int32_t diff, reported_time;
 
 	if(dcf_state == DCF_INIT) {
 		dcf_init_symbol();
@@ -201,15 +203,23 @@ void dcf_dispatch_bit() {
 		dbg[5] = month;
 		dbg[6] = year - 2000;
 		dcf_state = DCF_BULK;
-		if(dcf_time_ok == 0) {
+
+		// TODO overflow
+		reported_time = 3600000UL * hour + 60000UL * (min + 1) - 2000UL + 100UL;
+		diff = ms_timer_corr() - reported_time;
+		if(diff < 0)
+			diff = -diff;
+		if(dcf_time_ok == 0 || (diff > 6000)) {
 			cli();
-			timer_local = 3600000UL * hour + 60000UL * min - 1000UL + 100UL;
+			sec = 58;
+			timer_local = reported_time;
 			if(dcf_symbol)
 				timer_local += 100;
 			timer_corr = timer_local;
 			old_time = timer_local;
 			ts_tick(timer_local % 60000, 1); // reset tick
 			sei();
+			dcf_msg = 0x03;
 		}
 		dcf_time_ok = 1;
 		dcf_init_symbol();
@@ -223,7 +233,7 @@ int main() {
 	uint8_t last_state = bit_is_set(PIND, PD7);
 	int16_t fb;
 	int8_t tfb;
-	int32_t reported_time, ct;
+	int32_t reported_time, ct, last_sec = 0, diff;
 	uint16_t ctm;
 
 	init();
@@ -233,19 +243,47 @@ int main() {
 		// sync seconds
 		if(!last_state && bit_is_set(PIND, PD7) && dcf_time_ok) {
 			ct = ms_timer_corr();
+			reported_time = 3600000UL * hour + 60000UL * min + 1000UL * (sec + 1);
+
+			diff = ct - reported_time;
+			if(diff < 0)
+				diff = -diff;
+
+			if(dcf_time_ok && diff > 6000) {
+				cli();
+				timer_local = reported_time;
+				timer_corr = timer_local;
+				old_time = timer_local;
+				ts_tick(timer_local % 60000, 1); // reset tick
+				sei();
+				dcf_msg = 0x04;
+			}
+
+
 			ctm = ct % 1000;
-			if(ctm >= 998 || ctm <= 2) { // spike filter
-				reported_time = 3600000UL * hour + 60000UL * min + 1000UL * sec;
+//			if(ctm >= 998 || ctm <= 2) { // spike filter
+			if(ct - last_sec > 900) {
 				fb = ts_slot(ms_timer_local(), ct, reported_time);
-				if(++sec == 60)
+				if(++sec == 60) {
 					sec = 0;
+					min++; // TODO
+				}
 
 				dbg[0] = ((uint8_t *) (&fb))[1];
 				dbg[1] = ((uint8_t *) (&fb))[0];
+				dbg[2] = sec;
+				dbg[3] = 0x00;
 				yc_prepare(798);
 				debug_tx(dbg);
 				yc_dispatch_auto();
+			} else {
+				yc_prepare(798);
+				dbg[2] = sec;
+				dbg[3] = 0xFF;
+				debug_tx(dbg);
+				yc_dispatch_auto();
 			}
+			last_sec = ct;
 		}
 		last_state = bit_is_set(PIND, PD7);
 
