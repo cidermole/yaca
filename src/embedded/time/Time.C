@@ -281,6 +281,64 @@ void advance_time() {
 	}
 }
 
+void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t _month, uint8_t _day, uint8_t flags)) {
+	int32_t reported_time, diff;
+	//int32_t reported_time;
+
+	if(dcf_time_ok == 0 && _sec != 59) {
+		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
+		year = _year;
+		month = _month;
+		day = _day;
+		hour = _hour;
+		min = _min;
+
+		cli();
+		timer_local = reported_time;
+		timer_corr = timer_local;
+		old_time = timer_local;
+		ts_tick(timer_local % 60000, 1); // reset tick
+		lyear = year;
+		sei();
+		lmonth = month;
+		lday = day;
+		lhour = hour;
+		lmin = min;
+		lsec = _sec + 1;
+
+		dcf_time_ok = 1;
+
+		yc_prepare(797);
+		debug_tx((uint8_t*)&reported_time);
+
+	} else if(_sec != 59) {
+		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
+		diff = ms_timer_corr() - reported_time;
+		if(diff < 0)
+			diff = -diff;
+		if(diff > 6000) {
+			year = _year;
+			month = _month;
+			day = _day;
+			hour = _hour;
+			min = _min;
+
+			cli();
+			timer_local = reported_time;
+			timer_corr = timer_local;
+			old_time = timer_local;
+			ts_tick(timer_local % 60000, 1); // reset tick
+			lyear = year;
+			sei();
+			lmonth = month;
+			lday = day;
+			lhour = hour;
+			lmin = min;
+			lsec = _sec + 1;
+		}
+	}
+}
+
 int main() {
 	uint8_t last_state = bit_is_set(PIND, PD7);
 	int16_t fb;
@@ -293,9 +351,10 @@ int main() {
 
 	while(1) {
 		// sync seconds
-		if(!last_state && bit_is_set(PIND, PD7) && dcf_time_ok) {
+		if(!last_state && bit_is_set(PIND, PD7)) {
 			ct = ms_timer_corr();
-			if(ct - last_sec > 900) { // spike filter
+			diff = ms_timer_local() - last_sec;
+			if((diff > 990 && diff < 1010) || (diff > 1990 && diff < 2010)) { // spike filter
 
 				if(dcf_minute) {
 					reported_time = 3600000UL * hour + 60000UL * min;
@@ -314,7 +373,7 @@ int main() {
 						lday = day;
 						lhour = hour;
 						lmin = min;
-						lsec = 0;
+						lsec = 0; // outside? (every minute) TODO: sanity sync
 						dcf_msg = 0x03;
 					}
 					dcf_time_ok = 1;
@@ -322,18 +381,22 @@ int main() {
 				}
 				reported_time = 3600000UL * hour + 60000UL * min + 1000UL * lsec;
 
-				fb = ts_slot(ms_timer_local(), ct, reported_time);
-				dbg[0] = ((uint8_t *) (&fb))[1];
-				dbg[1] = ((uint8_t *) (&fb))[0];
-				dbg[2] = lsec;
-				dbg[3] = 0x00;
-				yc_prepare(798);
-				debug_tx(dbg);
-				yc_dispatch_auto();
+				if(dcf_time_ok) {
+					fb = ts_slot(ms_timer_local(), ct, reported_time);
+					dbg[0] = ((uint8_t *) (&fb))[1];
+					dbg[1] = ((uint8_t *) (&fb))[0];
+					dbg[2] = lsec;
+					dbg[3] = 0x00;
+					yc_prepare(798);
+					debug_tx(dbg);
+					yc_dispatch_auto();
+				}
 
 				advance_time();
+			} else {
+				dcf_msg = 0x04;
 			}
-			last_sec = ct;
+			last_sec = ms_timer_local();
 		}
 		last_state = bit_is_set(PIND, PD7);
 
