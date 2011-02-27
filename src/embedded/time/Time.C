@@ -1,6 +1,7 @@
 #include "RTime.h"
 #include "Time.h"
 #include "libtimesync/timesync.h"
+#include "../yaca-serial/calendar.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sfr_defs.h>
@@ -41,10 +42,10 @@ volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
 volatile uint8_t dcf_msg = 0;
 uint8_t min, hour, day, month, dcf_time_ok = 0;
-uint8_t lmin, lhour, lday, lmonth;
+uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
 uint16_t year, lyear;
 volatile uint32_t timer_local = 0, timer_corr = 0;
-volatile uint8_t sec = 0, skip_corr = 0, timer_dms = 0;
+volatile uint8_t skip_corr = 0, timer_dms = 0;
 int32_t old_time = 0;
 
 volatile uint8_t dbg[8];
@@ -112,10 +113,10 @@ uint8_t dcf_parity(uint8_t symbol) {
 	return parity % 2;
 }
 
-void dcf_dispatch_bit() {
+uint8_t dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t date_par = 0;
-	int32_t diff, reported_time;
+	uint8_t rv = 0;
 
 	if(dcf_state == DCF_INIT) {
 		dcf_init_symbol();
@@ -204,9 +205,10 @@ void dcf_dispatch_bit() {
 		dbg[6] = year - 2000;
 		dcf_state = DCF_BULK;
 
-		// TODO overflow
-		reported_time = 3600000UL * hour + 60000UL * (min + 1) - 2000UL + 100UL;
-		diff = ms_timer_corr() - reported_time;
+		//reported_time = 3600000UL * hour + 60000UL * min + 1000UL + 100UL;
+		rv = 1;
+
+/*		diff = ms_timer_corr() - reported_time;
 		if(diff < 0)
 			diff = -diff;
 		if(dcf_time_ok == 0 || (diff > 6000)) {
@@ -221,12 +223,62 @@ void dcf_dispatch_bit() {
 			sei();
 			dcf_msg = 0x03;
 		}
-		dcf_time_ok = 1;
+		dcf_time_ok = 1;*/
 		dcf_init_symbol();
 		break;
 	}
 
 	dcf_handle_bit = 0;
+	return rv;
+}
+
+// TODO: dst
+void advance_time() {
+	lsec++;
+	if(lsec >= 60) {
+		lsec = 0;
+		lmin++;
+	} else {
+		return;
+	}
+	
+	if(lmin >= 60) {
+		lmin = 0;
+		lhour++;
+		
+		// CEST starts on the last Sunday of March at 02:00 CET
+		if(lmonth == 3 && lhour == 2 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
+			dst = 1;
+			lhour = 3;
+		}
+		
+		// CEST ends on the last Sunday of October at 03:00 CEST
+		if(dst == 1 && lmonth == 10 && lhour == 3 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
+			dst = 0;
+			lhour = 2;
+		}
+	} else {
+		return;
+	}
+	
+	if(lhour >= 24) {
+		lhour = 0;
+		lday++;
+	} else {
+		return;
+	}
+	
+	if(lday > days_in_month(lmonth, lyear)) {
+		lday = 1;
+		lmonth++;
+	} else {
+		return;
+	}
+	
+	if(lmonth > 12) {
+		lmonth = 1;
+		lyear++;
+	}
 }
 
 int main() {
@@ -234,7 +286,7 @@ int main() {
 	int16_t fb;
 	int8_t tfb;
 	int32_t reported_time, ct, last_sec = 0, diff;
-	uint16_t ctm;
+	uint8_t dcf_minute = 0;
 
 	init();
 	sei();
@@ -243,45 +295,43 @@ int main() {
 		// sync seconds
 		if(!last_state && bit_is_set(PIND, PD7) && dcf_time_ok) {
 			ct = ms_timer_corr();
-			reported_time = 3600000UL * hour + 60000UL * min + 1000UL * (sec + 1);
+			if(ct - last_sec > 900) { // spike filter
 
-			diff = ct - reported_time;
-			if(diff < 0)
-				diff = -diff;
-
-			if(dcf_time_ok && diff > 6000) {
-				cli();
-				timer_local = reported_time;
-				timer_corr = timer_local;
-				old_time = timer_local;
-				ts_tick(timer_local % 60000, 1); // reset tick
-				sei();
-				dcf_msg = 0x04;
-			}
-
-
-			ctm = ct % 1000;
-//			if(ctm >= 998 || ctm <= 2) { // spike filter
-			if(ct - last_sec > 900) {
-				fb = ts_slot(ms_timer_local(), ct, reported_time);
-				if(++sec == 60) {
-					sec = 0;
-					min++; // TODO
+				if(dcf_minute) {
+					reported_time = 3600000UL * hour + 60000UL * min;
+					diff = ms_timer_corr() - reported_time;
+					if(diff < 0)
+						diff = -diff;
+					if(dcf_time_ok == 0 || (diff > 6000)) {
+						cli();
+						timer_local = reported_time;
+						timer_corr = timer_local;
+						old_time = timer_local;
+						ts_tick(timer_local % 60000, 1); // reset tick
+						lyear = year;
+						sei();
+						lmonth = month;
+						lday = day;
+						lhour = hour;
+						lmin = min;
+						lsec = 0;
+						dcf_msg = 0x03;
+					}
+					dcf_time_ok = 1;
+					dcf_minute = 0;
 				}
+				reported_time = 3600000UL * hour + 60000UL * min + 1000UL * lsec;
 
+				fb = ts_slot(ms_timer_local(), ct, reported_time);
 				dbg[0] = ((uint8_t *) (&fb))[1];
 				dbg[1] = ((uint8_t *) (&fb))[0];
-				dbg[2] = sec;
+				dbg[2] = lsec;
 				dbg[3] = 0x00;
 				yc_prepare(798);
 				debug_tx(dbg);
 				yc_dispatch_auto();
-			} else {
-				yc_prepare(798);
-				dbg[2] = sec;
-				dbg[3] = 0xFF;
-				debug_tx(dbg);
-				yc_dispatch_auto();
+
+				advance_time();
 			}
 			last_sec = ct;
 		}
@@ -314,7 +364,7 @@ int main() {
 		}
 
 		if(dcf_handle_bit) {
-			dcf_dispatch_bit();
+			dcf_minute = dcf_dispatch_bit();
 			dcf_handle_bit = 0;
 		}
 
@@ -346,7 +396,6 @@ ISR(TIMER1_COMPA_vect) {
 				dcf_state = DCF_INIT;
 				dcf_msg = 0x01;
 				bits = 0;
-				sec = 0;
 			}
 			dcf_count = 0;
 		}
@@ -378,4 +427,6 @@ ISR(TIMER1_COMPA_vect) {
 		bits++;
 	}
 }
+
+#include "../yaca-serial/calendar.c"
 
