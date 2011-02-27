@@ -1,5 +1,7 @@
 <node-config id="805">
 	<messages/>
 	<settings/>
-	<build/>
+	<build>
+		<link lib="timesync" path="libtimesync" />
+	</build>
 </node-config>

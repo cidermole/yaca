@@ -1,9 +1,12 @@
 #include "RTime.h"
 #include "Time.h"
+#include "libtimesync/timesync.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sfr_defs.h>
 #include <yaca.h>
+
+#define CENTURY 2000
 
 /*
 
@@ -37,6 +40,10 @@ volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
 volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
 volatile uint8_t dcf_msg = 0;
+uint8_t min, hour, day, month, dcf_time_ok = 0;
+uint16_t year;
+volatile uint32_t timer_local = 0, timer_corr = 0;
+volatile uint8_t sec = 0, skip_corr = 0, timer_dms = 0;
 
 volatile uint8_t dbg[8];
 
@@ -49,8 +56,10 @@ void init() {
 	clear_bit(DDRD, PD7);
 	set_bit(PORTD, PD7); // enable DCF77 pull-up
 
+	ts_init();
+
 	TCCR1B = (1 << WGM12) | (1 << CS10); // CTC mode, top = OCR1A, prescaler 1
-	OCR1A = 20000;
+	OCR1A = 2000;
 	TIMSK |= (1 << OCIE1A); // enable CTC interrupt
 }
 
@@ -59,6 +68,25 @@ void enter_bootloader_hook() {
 	TIMSK = 0;
 	cli();
 	yc_bld_reset();
+}
+
+
+int32_t ms_timer_local() {
+	int32_t t;
+	uint8_t sr = SREG;
+	cli();
+	t = timer_local;
+	SREG = sr;
+	return t;
+}
+
+int32_t ms_timer_corr() {
+	int32_t t;
+	uint8_t sr = SREG;
+	cli();
+	t = timer_corr;
+	SREG = sr;
+	return t;
 }
 
 
@@ -84,7 +112,7 @@ uint8_t dcf_parity(uint8_t symbol) {
 
 void dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
-	static uint8_t min, hour, day, month, year, date_par = 0;
+	static uint8_t date_par = 0;
 
 	if(dcf_state == DCF_INIT) {
 		dcf_init_symbol();
@@ -154,7 +182,7 @@ void dcf_dispatch_bit() {
 		break;
 	case DCF_YEAR:
 		if(dcf_shift_count == 8) {
-			year = dcf_decode_bcd(dcf_symbol);
+			year = CENTURY + dcf_decode_bcd(dcf_symbol);
 			date_par += dcf_parity(dcf_symbol);
 			dcf_state = DCF_DATEPAR;
 			dcf_init_symbol();
@@ -170,8 +198,17 @@ void dcf_dispatch_bit() {
 		dbg[3] = min;
 		dbg[4] = day;
 		dbg[5] = month;
-		dbg[6] = year;
+		dbg[6] = year - 2000;
 		dcf_state = DCF_BULK;
+		if(dcf_time_ok == 0) {
+			cli();
+			timer_local = 3600000UL * hour + 60000UL * min - 1000UL + 100UL;
+			if(dcf_symbol)
+				timer_local += 100;
+			timer_corr = timer_local;
+			sei();
+		}
+		dcf_time_ok = 1;
 		dcf_init_symbol();
 		break;
 	}
@@ -180,11 +217,34 @@ void dcf_dispatch_bit() {
 }
 
 int main() {
+	uint8_t last_state = bit_is_set(PIND, PD7);
+	int16_t fb;
+	int32_t reported_time, ct;
+	uint16_t ctm;
 
 	init();
 	sei();
 
 	while(1) {
+		// sync seconds
+		if(!last_state && bit_is_set(PIND, PD7) && dcf_time_ok) {
+			ct = ms_timer_corr();
+			ctm = ct % 1000;
+			if(ctm >= 998 || ctm <= 2) { // spike filter
+				reported_time = 3600000UL * hour + 60000UL * min + 1000UL * sec;
+				fb = ts_slot(ms_timer_local(), ct, reported_time);
+				if(++sec == 60)
+					sec = 0;
+
+				dbg[0] = ((uint8_t *) (&fb))[1];
+				dbg[1] = ((uint8_t *) (&fb))[0];
+				yc_prepare(798);
+				debug_tx(dbg);
+				yc_dispatch_auto();
+			}
+		}
+		last_state = bit_is_set(PIND, PD7);
+
 		if(bit_is_set(PIND, PD7))
 			LED_on();
 		else
@@ -208,9 +268,20 @@ int main() {
 }
 
 
-// tick every 10 ms
+// tick every ms
 ISR(TIMER1_COMPA_vect) {
 	static uint8_t bits = 0;
+
+	if(skip_corr)
+		skip_corr = 0;
+	else
+		timer_corr++;
+	timer_local++;
+
+	if(++timer_dms != 10) // continue in this function every 10 ms
+		return;
+
+	timer_dms = 0;
 
 	if(bit_is_set(PIND, PD7)) {
 		if(dcf_ticks == 0) {
@@ -219,6 +290,7 @@ ISR(TIMER1_COMPA_vect) {
 				dcf_state = DCF_INIT;
 				dcf_msg = 0x01;
 				bits = 0;
+				sec = 0;
 			}
 			dcf_count = 0;
 		}
