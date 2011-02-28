@@ -46,7 +46,7 @@ uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
 uint16_t year, lyear;
 volatile uint32_t timer_local = 0, timer_corr = 0;
 volatile uint8_t skip_corr = 0, timer_dms = 0;
-int32_t old_time = 0;
+int32_t old_time = 0, slot_start, last_minute;
 
 volatile uint8_t dbg[8];
 
@@ -309,9 +309,13 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 		dcf_time_ok = 1;
 
 		yc_prepare(797);
-		debug_tx((uint8_t*)&reported_time);
+		*((int32_t*)(&dbg[0])) = reported_time;
+		dbg[4] = _hour;
+		dbg[5] = _min;
+		dbg[6] = _sec;
+		debug_tx(dbg);
 
-	} else if(_sec != 59) {
+	}/* else if(_sec != 59) {
 		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
 		diff = ms_timer_corr() - reported_time;
 		if(diff < 0)
@@ -336,7 +340,7 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 			lmin = min;
 			lsec = _sec + 1;
 		}
-	}
+	}*/
 }
 
 int main() {
@@ -382,11 +386,18 @@ int main() {
 				reported_time = 3600000UL * hour + 60000UL * min + 1000UL * lsec;
 
 				if(dcf_time_ok) {
-					fb = ts_slot(ms_timer_local(), ct, reported_time);
+					diff = ms_timer_local();
+					fb = ts_slot(diff, ct, reported_time);
 					dbg[0] = ((uint8_t *) (&fb))[1];
 					dbg[1] = ((uint8_t *) (&fb))[0];
 					dbg[2] = lsec;
 					dbg[3] = 0x00;
+					*((int32_t*)(&dbg[4])) = diff;
+					yc_prepare(798);
+					debug_tx(dbg);
+					yc_dispatch_auto();
+					*((int32_t*)(&dbg[0])) = ct;
+					*((int32_t*)(&dbg[4])) = reported_time;
 					yc_prepare(798);
 					debug_tx(dbg);
 					yc_dispatch_auto();
