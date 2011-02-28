@@ -348,8 +348,8 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 int main() {
 	uint8_t last_state = bit_is_set(PIND, PD7);
 	int32_t diff, last_sec = 0, reported_time, minutes;
-	int32_t vts_dist = INT_MAX, vts_rem = 0, vts_missing, vts_next = 0;
-	int8_t tfb, vts_sign = 1;
+	int32_t vts_dist = 60000, vts_rem = 0, vts_missing = 1000, vts_next = 0;
+	int8_t vts_sign = 1;
 
 	init();
 	sei();
@@ -387,8 +387,8 @@ int main() {
 						vts_sign = vts_missing >= 0 ? 1 : -1;
 						if(vts_sign == -1)
 							vts_missing = -vts_missing;
-						vts_dist = 60000000UL / missing;
-						vts_rem = 60000000UL % missing;
+						vts_dist = 60000000UL / vts_missing;
+						vts_rem = 60000000UL % vts_missing;
 						if(vts_next < slot_start)
 							vts_next = slot_start + vts_dist;
 
@@ -405,16 +405,16 @@ int main() {
 
 				advance_time(); // ???
 			} else {
-				dcf_msg = 0x04;
+				dcf_msg = 0xFE;
 			}
 			last_sec = ms_timer_local();
 		}
 		last_state = bit_is_set(PIND, PD7);
 
-		if(ms_timer_local() >= vts_next) {
+		if(ms_timer_local() >= vts_next && dcf_time_ok) {
 			vts_next += vts_dist;
-			vts_dist = (60000000UL + vts_rem) / missing;
-			vts_rem = (60000000UL + vts_rem) % missing;
+			vts_dist = (60000000UL + vts_rem) / vts_missing;
+			vts_rem = (60000000UL + vts_rem) % vts_missing;
 			if(vts_sign == 1) {
 				cli();
 				timer_corr++;
