@@ -347,8 +347,9 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 
 int main() {
 	uint8_t last_state = bit_is_set(PIND, PD7);
-	int32_t old_time = 0, diff, last_sec = 0, reported_time;
-	int8_t tfb;
+	int32_t diff, last_sec = 0, reported_time, minutes;
+	int32_t vts_dist = INT_MAX, vts_rem = 0, vts_missing, vts_next = 0;
+	int8_t tfb, vts_sign = 1;
 
 	init();
 	sei();
@@ -358,14 +359,14 @@ int main() {
 		if(!last_state && bit_is_set(PIND, PD7)) {
 			diff = ms_timer_local() - last_sec;
 			if((diff > 990 && diff < 1010) || (diff > 1990 && diff < 2010)) { // spike filter
-
+				slot_start = ms_timer_local();
 				if(dcf_minute) {
 					reported_time = 3600000UL * hour + 60000UL * min;
 					if(dcf_time_ok == 0) {
 						cli();
 						timer_local = reported_time;
+						slot_start = timer_local;
 						timer_corr = timer_local;
-						old_time = timer_local;
 						lyear = year;
 						sei();
 						lmonth = month;
@@ -375,6 +376,29 @@ int main() {
 						lsec = 0;
 						dcf_msg = 0x03;
 					}
+
+					if(dcf_time_ok) {
+						// minutes, difference
+						diff = slot_start - last_minute;
+						minutes = ((diff + 30000) / 60000);
+						vts_missing = (60000000UL * minutes - diff * 1000) / minutes;
+						if(vts_missing == 0)
+							vts_missing = 1;
+						vts_sign = vts_missing >= 0 ? 1 : -1;
+						if(vts_sign == -1)
+							vts_missing = -vts_missing;
+						vts_dist = 60000000UL / missing;
+						vts_rem = 60000000UL % missing;
+						if(vts_next < slot_start)
+							vts_next = slot_start + vts_dist;
+
+						diff = ms_timer_corr() - reported_time;
+						dcf_msg = 0x05;
+						dbg[1] = ((uint8_t*)(&diff))[1];
+						dbg[2] = ((uint8_t*)(&diff))[0];
+					}
+					last_minute = slot_start;
+
 					dcf_time_ok = 1;
 					dcf_minute = 0;
 				}
@@ -387,18 +411,17 @@ int main() {
 		}
 		last_state = bit_is_set(PIND, PD7);
 
-		if(ms_timer_local() != old_time) {
-			tfb = ts_tick(ms_timer_corr() % 60000, 0); // TODO
-			if(tfb == 1) {
+		if(ms_timer_local() >= vts_next) {
+			vts_next += vts_dist;
+			vts_dist = (60000000UL + vts_rem) / missing;
+			vts_rem = (60000000UL + vts_rem) % missing;
+			if(vts_sign == 1) {
 				cli();
 				timer_corr++;
 				sei();
-			} else if(tfb == -1) {
-				cli();
+			} else {
 				skip_corr = 1;
-				sei();
 			}
-			old_time++;
 		}
 
 		if(bit_is_set(PIND, PD7))
