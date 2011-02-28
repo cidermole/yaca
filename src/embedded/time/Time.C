@@ -40,13 +40,13 @@ typedef enum {
 volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
 volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
-volatile uint8_t dcf_msg = 0;
+volatile uint8_t dcf_msg = 0, dcf_minute = 0;
 uint8_t min, hour, day, month, dcf_time_ok = 0;
 uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
 uint16_t year, lyear;
 volatile uint32_t timer_local = 0, timer_corr = 0;
 volatile uint8_t skip_corr = 0, timer_dms = 0;
-int32_t old_time = 0, slot_start, last_minute;
+int32_t slot_start, last_minute;
 
 volatile uint8_t dbg[8];
 
@@ -282,7 +282,7 @@ void advance_time() {
 }
 
 void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t _month, uint8_t _day, uint8_t flags)) {
-	int32_t reported_time, diff;
+/*	int32_t reported_time, diff;
 	//int32_t reported_time;
 
 	if(dcf_time_ok == 0 && _sec != 59) {
@@ -315,7 +315,7 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 		dbg[6] = _sec;
 		debug_tx(dbg);
 
-	}/* else if(_sec != 59) {
+	}*//* else if(_sec != 59) {
 		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
 		diff = ms_timer_corr() - reported_time;
 		if(diff < 0)
@@ -343,12 +343,12 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 	}*/
 }
 
+//int32_t slot_start, last_minute;
+
 int main() {
 	uint8_t last_state = bit_is_set(PIND, PD7);
-	int16_t fb;
+	int32_t old_time = 0, diff, last_sec = 0, reported_time;
 	int8_t tfb;
-	int32_t reported_time, ct, last_sec = 0, diff;
-	uint8_t dcf_minute = 0;
 
 	init();
 	sei();
@@ -356,54 +356,30 @@ int main() {
 	while(1) {
 		// sync seconds
 		if(!last_state && bit_is_set(PIND, PD7)) {
-			ct = ms_timer_corr();
 			diff = ms_timer_local() - last_sec;
 			if((diff > 990 && diff < 1010) || (diff > 1990 && diff < 2010)) { // spike filter
 
 				if(dcf_minute) {
 					reported_time = 3600000UL * hour + 60000UL * min;
-					diff = ms_timer_corr() - reported_time;
-					if(diff < 0)
-						diff = -diff;
-					if(dcf_time_ok == 0 || (diff > 6000)) {
+					if(dcf_time_ok == 0) {
 						cli();
 						timer_local = reported_time;
 						timer_corr = timer_local;
 						old_time = timer_local;
-						ts_tick(timer_local % 60000, 1); // reset tick
 						lyear = year;
 						sei();
 						lmonth = month;
 						lday = day;
 						lhour = hour;
 						lmin = min;
-						lsec = 0; // outside? (every minute) TODO: sanity sync
+						lsec = 0;
 						dcf_msg = 0x03;
 					}
 					dcf_time_ok = 1;
 					dcf_minute = 0;
 				}
-				reported_time = 3600000UL * hour + 60000UL * min + 1000UL * lsec;
 
-				if(dcf_time_ok) {
-					diff = ms_timer_local();
-					fb = ts_slot(diff, ct, reported_time);
-					dbg[0] = ((uint8_t *) (&fb))[1];
-					dbg[1] = ((uint8_t *) (&fb))[0];
-					dbg[2] = lsec;
-					dbg[3] = 0x00;
-					*((int32_t*)(&dbg[4])) = diff;
-					yc_prepare(798);
-					debug_tx(dbg);
-					yc_dispatch_auto();
-					*((int32_t*)(&dbg[0])) = ct;
-					*((int32_t*)(&dbg[4])) = reported_time;
-					yc_prepare(798);
-					debug_tx(dbg);
-					yc_dispatch_auto();
-				}
-
-				advance_time();
+				advance_time(); // ???
 			} else {
 				dcf_msg = 0x04;
 			}
@@ -412,7 +388,7 @@ int main() {
 		last_state = bit_is_set(PIND, PD7);
 
 		if(ms_timer_local() != old_time) {
-			tfb = ts_tick(ms_timer_corr() % 60000, 0);
+			tfb = ts_tick(ms_timer_corr() % 60000, 0); // TODO
 			if(tfb == 1) {
 				cli();
 				timer_corr++;
