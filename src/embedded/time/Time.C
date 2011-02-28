@@ -46,11 +46,10 @@ uint8_t min, hour, day, month, dcf_time_ok = 0;
 uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
 uint16_t year, lyear;
 volatile uint32_t timer_local = 0, timer_corr = 0;
-volatile uint8_t skip_corr = 0, timer_dms = 0, timer_tms = 0;
-int32_t slot_start, last_minute;
+volatile uint8_t skip_corr = 0, timer_dms = 0;
+int32_t slot_start, last_minute, vts_next = 0;
 
 volatile uint8_t dbg[8];
-volatile uint8_t second_passed = 1;
 
 void debug_tx(volatile uint8_t *p) {
 	yc_send(Time, Debug(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]));
@@ -297,6 +296,7 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 
 		cli();
 		timer_local = reported_time;
+		vts_next = timer_local;
 		timer_corr = timer_local;
 		ts_tick(timer_local % 60000, 1); // reset tick
 		lyear = year;
@@ -320,33 +320,28 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 }
 
 int main() {
-	int32_t last_sec = 0;
-	int32_t vts_dist = 60000, vts_rem = 0, vts_missing = 1000, vts_next = 0;
-	int8_t vts_sign = 1;
+	int32_t t = 0, ct, next_sec = 0;
+	int32_t vts_dist = 2270;
 
 	init();
 	sei();
 
 	while(1) {
-		if(ms_timer_local() >= vts_next && dcf_time_ok) {
+		if(ms_timer_local() >= vts_next) {
 			vts_next += vts_dist;
-			vts_dist = (60000000UL + vts_rem) / vts_missing;
-			vts_rem = (60000000UL + vts_rem) % vts_missing;
-			if(vts_sign == 1) {
-				cli();
-				timer_corr++;
-				sei();
-			} else {
-				skip_corr = 1;
-			}
+			cli();
+			timer_corr++;
+			sei();
 		}
 
-		if(second_passed) {
+		ct = ms_timer_corr();
+		if(ct >= next_sec) {
 			yc_prepare(790);
-			last_sec = ms_timer_local();
-			memcpy((void *)dbg, &last_sec, 4);
+			t = ms_timer_local();
+			memcpy((void *)dbg, &t, 4);
+			memcpy((void *)&dbg[4], &ct, 4);
 			debug_tx(dbg);
-			second_passed = 0;
+			next_sec = ct + 1000;
 		}
 
 		if(bit_is_set(PIND, PD7))
@@ -386,11 +381,6 @@ ISR(TIMER1_COMPA_vect) {
 		return;
 
 	timer_dms = 0;
-
-	if(++timer_tms == 100) {
-		second_passed = 1;
-		timer_tms = 0;
-	}
 
 	if(bit_is_set(PIND, PD7)) {
 		if(dcf_ticks == 0) {
