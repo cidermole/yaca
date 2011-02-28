@@ -282,21 +282,21 @@ void advance_time() {
 }
 
 void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t _month, uint8_t _day, uint8_t flags)) {
-/*	int32_t reported_time, diff;
-	//int32_t reported_time;
+	//int32_t reported_time, diff;
+	int32_t reported_time;
+	static uint8_t sync = 0;
 
-	if(dcf_time_ok == 0 && _sec != 59) {
+	if(dcf_time_ok == 0 && !sync) {
 		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
 		year = _year;
 		month = _month;
 		day = _day;
 		hour = _hour;
-		min = _min;
+		min = _min + 1;
 
 		cli();
 		timer_local = reported_time;
 		timer_corr = timer_local;
-		old_time = timer_local;
 		ts_tick(timer_local % 60000, 1); // reset tick
 		lyear = year;
 		sei();
@@ -304,18 +304,20 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 		lday = day;
 		lhour = hour;
 		lmin = min;
-		lsec = _sec + 1;
-
-		dcf_time_ok = 1;
+//		lsec = _sec;
 
 		yc_prepare(797);
 		*((int32_t*)(&dbg[0])) = reported_time;
 		dbg[4] = _hour;
 		dbg[5] = _min;
-		dbg[6] = _sec;
 		debug_tx(dbg);
+		sync = 1;
 
-	}*//* else if(_sec != 59) {
+	} else if(sync && _sec == 50 && min != _min + 1) {
+		min = _min + 1;
+	}
+
+/* else if(_sec != 59) {
 		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
 		diff = ms_timer_corr() - reported_time;
 		if(diff < 0)
@@ -358,9 +360,10 @@ int main() {
 		// sync seconds
 		if(!last_state && bit_is_set(PIND, PD7)) {
 			diff = ms_timer_local() - last_sec;
-			if((diff > 990 && diff < 1010) || (diff > 1990 && diff < 2010)) { // spike filter
+			minutes = (ms_timer_local() - last_minute) % 60000;
+			if((diff > 990 && diff < 1010) || (diff > 1990 && diff < 2010 && (minutes >= 55000 || minutes <= 5000))) { // spike filter
 				slot_start = ms_timer_local();
-				if(dcf_minute) {
+				if(dcf_minute || (diff > 1990 && diff < 2010)) { // -> if no dcf_minute, single variables will count wrong
 					reported_time = 3600000UL * hour + 60000UL * min;
 					if(dcf_time_ok == 0) {
 						cli();
@@ -396,6 +399,7 @@ int main() {
 						dcf_msg = 0x05;
 						dbg[1] = ((uint8_t*)(&diff))[1];
 						dbg[2] = ((uint8_t*)(&diff))[0];
+						dbg[3] = min;
 					}
 					last_minute = slot_start;
 
