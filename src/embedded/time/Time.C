@@ -275,46 +275,10 @@ void DM(AddTimeOffset(int16_t ms)) {
 	sei();
 }
 
-void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t _month, uint8_t _day, uint8_t flags)) {
-/*	static uint8_t sync = 0;
-	int32_t reported_time;
-
-	if(dcf_time_ok == 0 && !sync) {
-		reported_time = 3600000UL * _hour + 60000UL * _min + 1000UL * _sec;
-		year = _year;
-		month = _month;
-		day = _day;
-		hour = _hour;
-		min = _min + 1;
-
-		cli();
-		timer_local = reported_time;
-		vts_next = timer_local;
-		timer_corr = timer_local;
-		lyear = year;
-		sei();
-		lmonth = month;
-		lday = day;
-		lhour = hour;
-		lmin = min;
-		lsec = _sec;
-
-		yc_prepare(797);
-		*((int32_t*)((void*)dbg)) = reported_time;
-		dbg[4] = _hour;
-		dbg[5] = _min;
-		debug_tx(dbg);
-		sync = 1;
-
-	} else if(sync && _sec == 50 && min != _min + 1) {
-		min = _min + 1;
-	}*/
-}
-
 int main() {
-	int32_t t = 0, ct, next_sec = 0;
+	int32_t ct, next_sec = 0;
 	int32_t vts_dist = 2270;
-	uint8_t data[8];
+	uint8_t old_time_ok = 0;
 
 	init();
 	sei();
@@ -328,25 +292,31 @@ int main() {
 		}
 
 		// TODO: test if this timing is accurate enough (will we be here the right ms? what about high bus load?)
-		// TODO: check if this can be united with the if below
+		// TODO: check if this can be united with the if below (ct >= next_sec)
 
 		// midnight counter reset
-		if(ms_timer_corr() >= (3600L * 1000L * 24L)) {
+		ct = ms_timer_corr();
+		if(ct >= (3600L * 1000L * 24L)) {
 			cli();
 			timer_corr = 0;
+			ct = 0;
 			timer_local = 0;
 			vts_next = 0; // or vts_dist; - we either lose or gain an ms
 			next_sec = 0;
 			sei();
 		}
 
-		ct = ms_timer_corr();
-		if(ct >= next_sec) {
-			yc_prepare(790);
-			t = ms_timer_local();
-			memcpy((void *)data, &t, 4);
-			memcpy((void *)&data[4], &ct, 4);
-			debug_tx((volatile uint8_t *) data);
+		if(!old_time_ok && dcf_time_ok) {
+			next_sec = ct - (ct % 1000) + 1000UL;
+			old_time_ok = 1;
+		}
+
+		if(ct >= next_sec && dcf_time_ok) {
+			advance_time();
+
+			yc_prepare_ee(YC_EE_TIME_ID);
+			yc_send(Time, Time(lhour, lmin, lsec, lyear, lmonth, lday, 0));
+
 			next_sec = ct + 1000;
 		}
 

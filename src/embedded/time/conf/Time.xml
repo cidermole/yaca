@@ -1,12 +1,11 @@
 <node-config id="805">
 	<messages>
-		<message name="Time">
-			<id>401</id>
-		</message>
 		<message name="AddTimeOffset">
 			<id>795</id>
 		</message>
 	</messages>
-	<settings/>
+	<settings>
+		<setting name="time_id" value="790" />
+	</settings>
 	<build/>
 </node-config>
