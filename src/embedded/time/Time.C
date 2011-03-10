@@ -355,6 +355,19 @@ int main() {
 			sei();
 		}
 
+		// TODO: test if this timing is accurate enough (will we be here the right ms? what about high bus load?)
+		// TODO: check if this can be united with the if below
+
+		// midnight counter reset
+		if(ms_timer_corr() >= (3600L * 1000L * 24L)) {
+			cli();
+			timer_corr = 0;
+			timer_local = 0;
+			vts_next = 0; // or vts_dist; - we either lose or gain an ms
+			next_sec = 0;
+			sei();
+		}
+
 		ct = ms_timer_corr();
 		if(ct >= next_sec) {
 			yc_prepare(790);
