@@ -1,0 +1,33 @@
+GPL
+
+
+
+/************************************************************************/
+/*                                                                      */
+/*                     Bootloader Programmer                            */
+/*      Linux-portation by Sascha Biedermann, sascha@coder-area.de      */
+/*      Port version 1.4 by Andreas Butti, andreasbutti@bluewin.ch      */
+/*         Originally written by Peter Dannegger, danni@specs.de        */
+/*                                                                      */
+/*                  TAB-Size : 3 Spaces                                 */
+/************************************************************************/
+
+Autor: Peter Dannegger (peda)
+Datum: 21.04.2008 14:16
+
+Bernhard wrote:
+
+> FRAGE: Wie sieht es mit der Lizenz aus?
+> Habe deinen Bootloader mal experimentell für mein Diplomarbeitsthema mir
+> eingebunden, aber ist das überhaupt rechtens oder unter welcher Lizenz
+> läuft er?
+
+Der Bootloader ist im Sinne der GPL frei verwendbar.
+
+http://www.gnu.org/licenses/gpl.html
+
+
+Peter
+
+
+see http://www.mikrocontroller.net/topic/73196#848377

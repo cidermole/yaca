@@ -233,6 +233,19 @@ int main() {
 		if(yc_poll_receive()) {
 			yc_receive(&msg);
 			uart_put_message(&msg);
+
+			if(msg.id == CANID_TIME && msg.rtr == 0) {
+				ntp = 1;
+				sub_count = 0;
+				hour = msg.data[0];
+				min = msg.data[1];
+				sec = msg.data[2];
+				year = msg.data[4];
+				year += ((uint16_t) msg.data[3]) << 8;
+				month = msg.data[5];
+				day = msg.data[6];
+				dst = msg.data[7] & 0x01;
+			}
 		}
 		
 		if(state == 3) {

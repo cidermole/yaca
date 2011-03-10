@@ -8,6 +8,8 @@ BUGS
 TODO
 
 -> negative °C for PHP
+-> enable brownout detector for all nodes
+-> clean up git repo (ignores, remove unused files, etc)
 
 -> log (write) revisions and CRC at flashing (to be able to check the current version in flash)
 -> flow control, at least remove the current one from yaca-serial

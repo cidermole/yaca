@@ -1,6 +1,6 @@
-TARGETS=yaca-c yaca-flash yaca-program yaca-hexmerge yaca-cached yaca-tr mpmon yaca-timed yaca-logd yaca-ppp yaca-gw
+TARGETS=yaca-c yaca-flash yaca-program yaca-hexmerge yaca-cached yaca-tr mpmon yaca-timed yaca-logd yaca-ppp yaca-gw bootloader-yaca-serial
 NAS_DEPLOY_TARGETS=yaca-cached yaca-timed yaca-logd
-WRT_DEPLOY_TARGETS=yaca-gw yaca-ppp
+WRT_DEPLOY_TARGETS=yaca-gw yaca-ppp bootloader-yaca-serial
 
 all:
 	for target in $(TARGETS); do \
