@@ -220,7 +220,6 @@ void dcf_dispatch_bit() {
 	dcf_handle_bit = 0;
 }
 
-// TODO: dst
 void advance_time() {
 	lsec++;
 	if(lsec >= 60) {
@@ -238,12 +237,20 @@ void advance_time() {
 		if(lmonth == 3 && lhour == 2 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
 			ldst = 1;
 			lhour = 3;
+
+			cli();
+			timer_corr += 3600UL * 1000UL;
+			sei();
 		}
 		
 		// CEST ends on the last Sunday of October at 03:00 CEST
 		if(ldst == 1 && lmonth == 10 && lhour == 3 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
 			ldst = 0;
 			lhour = 2;
+
+			cli();
+			timer_corr -= 3600UL * 1000UL;
+			sei();
 		}
 	} else {
 		return;
@@ -315,7 +322,7 @@ int main() {
 			advance_time();
 
 			yc_prepare_ee(YC_EE_TIME_ID);
-			yc_send(Time, Time(lhour, lmin, lsec, lyear, lmonth, lday, 0));
+			yc_send(Time, Time(lhour, lmin, lsec, lyear, lmonth, lday, ldst));
 
 			next_sec = ct + 1000;
 		}
@@ -367,6 +374,7 @@ ISR(TIMER1_COMPA_vect) {
 			lhour = hour;
 			lmin = min;
 			lsec = 0;
+			ldst = dst;
 			dcf_time_ok = 1;
 		}
 
