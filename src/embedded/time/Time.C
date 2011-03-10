@@ -19,6 +19,9 @@ PD7: DCF77 input (needs pull-up)
 #define LED_on() set_bit(PORTC, PC0)
 #define LED_off() clear_bit(PORTC, PC0)
 
+#define DCF_Z1_CEST 2 // Z1: CEST
+#define DCF_Z2_CET 3 // Z2: CET
+
 typedef enum {
 	DCF_RESET,
 	DCF_SYNC
@@ -41,8 +44,8 @@ volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
 volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
 volatile uint8_t dcf_msg = 0, dcf_minutemarker_valid = 0;
-uint8_t min, hour, day, month, dcf_time_ok = 0;
-uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
+uint8_t min, hour, day, month, dst, dcf_time_ok = 0;
+uint8_t lsec, lmin, lhour, lday, lmonth, ldst = 0;
 uint16_t year, lyear;
 volatile uint32_t timer_local = 0, timer_corr = 0;
 volatile uint8_t skip_corr = 0, timer_dms = 0;
@@ -114,7 +117,6 @@ uint8_t dcf_parity(uint8_t symbol) {
 void dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t date_par = 0;
-	//int32_t reported_time;
 
 	if(dcf_state == DCF_INIT) {
 		dcf_init_symbol();
@@ -136,6 +138,10 @@ void dcf_dispatch_bit() {
 		break;
 	case DCF_STATUS:
 		if(dcf_shift_count == 6) {
+			if(bit_is_set(dcf_symbol, DCF_Z1_CEST) && bit_is_clear(dcf_symbol, DCF_Z2_CET))
+				dst = 1;
+			else if(bit_is_set(dcf_symbol, DCF_Z2_CET) && bit_is_clear(dcf_symbol, DCF_Z1_CEST))
+				dst = 0;
 			dcf_state = DCF_MINUTE;
 			dcf_init_symbol();
 		}
@@ -203,26 +209,6 @@ void dcf_dispatch_bit() {
 		dbg[6] = year - 2000;
 		dcf_state = DCF_BULK;
 
-/*		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
-		reported_time += (dcf_symbol & 1 ? 200 : 100);
-		reported_time -= 2000UL;
-
-		if(reported_time < 0)
-			reported_time += (3600UL * 1000UL * 24UL);
-
-		reported_time = ms_timer_corr() - reported_time;
-		dbg[7] = ((uint8_t *) (&reported_time))[0];
-
-		if(reported_time > 0) { // are we too fast?
-			cli();
-			skip_corr = 1;
-			sei();
-		} else { // are we too slow?
-			cli();
-			timer_corr++;
-			sei();
-		}*/
-
 		cli();
 		dcf_minutemarker_valid = 1;
 		sei();
@@ -250,13 +236,13 @@ void advance_time() {
 		
 		// CEST starts on the last Sunday of March at 02:00 CET
 		if(lmonth == 3 && lhour == 2 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
-			dst = 1;
+			ldst = 1;
 			lhour = 3;
 		}
 		
 		// CEST ends on the last Sunday of October at 03:00 CEST
-		if(dst == 1 && lmonth == 10 && lhour == 3 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
-			dst = 0;
+		if(ldst == 1 && lmonth == 10 && lhour == 3 && (lday + 7) > 31 && day_of_week(lyear, lmonth, lday) == 0) {
+			ldst = 0;
 			lhour = 2;
 		}
 	} else {
@@ -290,7 +276,7 @@ void DM(AddTimeOffset(int16_t ms)) {
 }
 
 void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t _month, uint8_t _day, uint8_t flags)) {
-	static uint8_t sync = 0;
+/*	static uint8_t sync = 0;
 	int32_t reported_time;
 
 	if(dcf_time_ok == 0 && !sync) {
@@ -322,7 +308,7 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 
 	} else if(sync && _sec == 50 && min != _min + 1) {
 		min = _min + 1;
-	}
+	}*/
 }
 
 int main() {
@@ -399,9 +385,22 @@ ISR(TIMER1_COMPA_vect) {
 	timer_local++;
 
 	if(!last_state && bit_is_set(PIND, PD7) && dcf_minutemarker_valid && dcf_count >= 199 && dcf_count <= 201) {
-		// sync to minute
-
 		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
+
+		if(dcf_time_ok == 0) {
+			timer_local = reported_time;
+			vts_next = timer_local;
+			timer_corr = timer_local;
+			lyear = year;
+			lmonth = month;
+			lday = day;
+			lhour = hour;
+			lmin = min;
+			lsec = 0;
+			dcf_time_ok = 1;
+		}
+
+		// sync to minute
 		reported_time = timer_corr - reported_time;
 
 		*((int32_t *)(&((uint8_t *)dbg)[1])) = reported_time;
