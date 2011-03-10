@@ -1,6 +1,5 @@
 #include "RTime.h"
 #include "Time.h"
-#include "libtimesync/timesync.h"
 #include "../yaca-serial/calendar.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -41,7 +40,7 @@ typedef enum {
 volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
 volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
-volatile uint8_t dcf_msg = 0, dcf_minute = 0;
+volatile uint8_t dcf_msg = 0;
 uint8_t min, hour, day, month, dcf_time_ok = 0;
 uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
 uint16_t year, lyear;
@@ -59,8 +58,6 @@ void init() {
 	set_bit(DDRC, PC0); // set LED output
 	clear_bit(DDRD, PD7);
 	set_bit(PORTD, PD7); // enable DCF77 pull-up
-
-	ts_init();
 
 	TCCR1B = (1 << WGM12) | (1 << CS10); // CTC mode, top = OCR1A, prescaler 1
 	OCR1A = 2000;
@@ -114,10 +111,9 @@ uint8_t dcf_parity(uint8_t symbol) {
 	return parity % 2;
 }
 
-uint8_t dcf_dispatch_bit() {
+void dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t date_par = 0;
-	uint8_t rv = 0;
 	int32_t reported_time;
 
 	if(dcf_state == DCF_INIT) {
@@ -227,31 +223,11 @@ uint8_t dcf_dispatch_bit() {
 			sei();
 		}
 
-		rv = 1;
-
-
-/*		diff = ms_timer_corr() - reported_time;
-		if(diff < 0)
-			diff = -diff;
-		if(dcf_time_ok == 0 || (diff > 6000)) {
-			cli();
-			sec = 58;
-			timer_local = reported_time;
-			if(dcf_symbol)
-				timer_local += 100;
-			timer_corr = timer_local;
-			old_time = timer_local;
-			ts_tick(timer_local % 60000, 1); // reset tick
-			sei();
-			dcf_msg = 0x03;
-		}
-		dcf_time_ok = 1;*/
 		dcf_init_symbol();
 		break;
 	}
 
 	dcf_handle_bit = 0;
-	return rv;
 }
 
 // TODO: dst
@@ -325,7 +301,6 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 		timer_local = reported_time;
 		vts_next = timer_local;
 		timer_corr = timer_local;
-		ts_tick(timer_local % 60000, 1); // reset tick
 		lyear = year;
 		sei();
 		lmonth = month;
@@ -397,7 +372,6 @@ int main() {
 		}
 
 		if(dcf_handle_bit) {
-			dcf_minute = dcf_dispatch_bit();
 			dcf_handle_bit = 0;
 		}
 
