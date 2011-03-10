@@ -118,6 +118,7 @@ uint8_t dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t date_par = 0;
 	uint8_t rv = 0;
+	int32_t reported_time;
 
 	if(dcf_state == DCF_INIT) {
 		dcf_init_symbol();
@@ -206,8 +207,28 @@ uint8_t dcf_dispatch_bit() {
 		dbg[6] = year - 2000;
 		dcf_state = DCF_BULK;
 
-		//reported_time = 3600000UL * hour + 60000UL * min + 1000UL + 100UL;
+		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
+		reported_time += (dcf_symbol & 1 ? 200 : 100);
+		reported_time -= 2000UL;
+
+		if(reported_time < 0)
+			reported_time += (3600UL * 1000UL * 24UL);
+
+		reported_time = ms_timer_corr() - reported_time;
+		dbg[7] = ((uint8_t *) (&reported_time))[0];
+
+		if(reported_time > 0) { // are we too fast?
+			cli();
+			skip_corr = 1;
+			sei();
+		} else { // are we too slow?
+			cli();
+			timer_corr++;
+			sei();
+		}
+
 		rv = 1;
+
 
 /*		diff = ms_timer_corr() - reported_time;
 		if(diff < 0)
