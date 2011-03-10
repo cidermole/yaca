@@ -40,7 +40,7 @@ typedef enum {
 volatile dcf_sync_state_t dcf_sync_state = DCF_RESET;
 volatile dcf_state_t dcf_state = DCF_INIT;
 volatile uint8_t dcf_bit = 0, dcf_ticks = 0, dcf_count = 0, dcf_handle_bit = 0;
-volatile uint8_t dcf_msg = 0;
+volatile uint8_t dcf_msg = 0, dcf_minutemarker_valid = 0;
 uint8_t min, hour, day, month, dcf_time_ok = 0;
 uint8_t lsec, lmin, lhour, lday, lmonth, dst = 0;
 uint16_t year, lyear;
@@ -114,7 +114,7 @@ uint8_t dcf_parity(uint8_t symbol) {
 void dcf_dispatch_bit() {
 	static uint8_t dcf_symbol = 0, dcf_shift = 1, dcf_shift_count = 0;
 	static uint8_t date_par = 0;
-	int32_t reported_time;
+	//int32_t reported_time;
 
 	if(dcf_state == DCF_INIT) {
 		dcf_init_symbol();
@@ -203,7 +203,7 @@ void dcf_dispatch_bit() {
 		dbg[6] = year - 2000;
 		dcf_state = DCF_BULK;
 
-		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
+/*		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
 		reported_time += (dcf_symbol & 1 ? 200 : 100);
 		reported_time -= 2000UL;
 
@@ -221,7 +221,11 @@ void dcf_dispatch_bit() {
 			cli();
 			timer_corr++;
 			sei();
-		}
+		}*/
+
+		cli();
+		dcf_minutemarker_valid = 0;
+		sei();
 
 		dcf_init_symbol();
 		break;
@@ -310,7 +314,7 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 		lsec = _sec;
 
 		yc_prepare(797);
-		*((int32_t*)(&dbg[0])) = reported_time;
+		*((int32_t*)((void*)dbg)) = reported_time;
 		dbg[4] = _hour;
 		dbg[5] = _min;
 		debug_tx(dbg);
@@ -383,13 +387,32 @@ int main() {
 
 // tick every ms
 ISR(TIMER1_COMPA_vect) {
-	static uint8_t bits = 0;
+	static uint8_t bits = 0, last_state = 0;
+	int32_t reported_time;
 
 	if(skip_corr)
 		skip_corr = 0;
 	else
 		timer_corr++;
 	timer_local++;
+
+	if(!last_state && bit_is_set(PIND, PD7) && dcf_minutemarker_valid && dcf_count >= 199 && dcf_count <= 201) {
+		// sync to minute
+
+		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
+		reported_time = timer_corr - reported_time;
+
+		*((int32_t *)((void *)dbg)) = reported_time;
+
+		if(reported_time > 0) { // are we too fast?
+			timer_corr--;
+		} else if(reported_time < 0) { // are we too slow?
+			timer_corr++;
+		}
+
+		dcf_minutemarker_valid = 0;
+	}
+	last_state = bit_is_set(PIND, PD7);
 
 	if(++timer_dms != 10) // continue in this function every 10 ms
 		return;
@@ -398,11 +421,12 @@ ISR(TIMER1_COMPA_vect) {
 
 	if(bit_is_set(PIND, PD7)) {
 		if(dcf_ticks == 0) {
-			if(dcf_count >= 198 && dcf_count <= 202) { // minute marker?
+			if(dcf_count >= 199 && dcf_count <= 201) { // minute marker?
 				dcf_sync_state = DCF_SYNC;
 				dcf_state = DCF_INIT;
 				dcf_msg = 0x01;
 				bits = 0;
+				dcf_minutemarker_valid = 0;
 			}
 			dcf_count = 0;
 		}
@@ -419,6 +443,7 @@ ISR(TIMER1_COMPA_vect) {
 		// error
 		dcf_sync_state = DCF_RESET;
 		dcf_msg = 0xFF;
+		dcf_minutemarker_valid = 0;
 	}
 
 	if(bit_is_clear(PIND, PD7))
