@@ -67,14 +67,30 @@ size: ${TARGET}
 	@echo
 	@avr-size ${TARGET}
 
-load: $(TARGET).hex
-	avrdude -q -u -C /usr/local/etc/avrdude.conf -p m8 -c usbasp -U flash:w:bootloader.hex:a -v
-
 ## Clean target
 .PHONY: clean
 clean:
 	-rm -rf $(OBJECTS) $(PROJECT).elf $(PROJECT).hex $(PROJECT).eep $(PROJECT).lss *.d
 
-## Other dependencies
-#-include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
 
+
+
+# deploy needs yaca-daemons (yaca-gw, yaca-ppp) stopped
+# 'make deploy-wrt' for standalone use
+
+before-deploy:
+	ssh root@wrt 'mkdir -p /yaca/hex'
+	scp $(PROJECT).hex root@wrt:/yaca/hex/yaca-serial.hex
+	yaca-tr 3 0 00  # YacaSerial::reset()
+
+deploy:
+	ssh root@wrt '/yaca/bin/fboot /B9600 /D/dev/tts/1 /P/yaca/hex/yaca-serial.hex > /dev/null'
+
+deploy-wrt:
+	make before-deploy
+	ssh yaca@nas '/home/yaca/yaca-daemons stop'
+	ssh root@wrt 'killall yaca-ppp; killall yaca-gw'
+	make deploy
+	ssh root@wrt '/yaca/bin/yaca-gw /yaca/src/x86/yaca-gw/conf/yaca-gw.conf'
+	ssh root@wrt '/yaca/bin/yaca-ppp'
+	ssh yaca@nas '/home/yaca/yaca-daemons start'
