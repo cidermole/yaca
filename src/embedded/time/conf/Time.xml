@@ -3,6 +3,9 @@
 		<message name="Time">
 			<id>401</id>
 		</message>
+		<message name="AddTimeOffset">
+			<id>795</id>
+		</message>
 	</messages>
 	<settings/>
 	<build>

@@ -303,6 +303,12 @@ void advance_time() {
 	}
 }
 
+void DM(AddTimeOffset(int16_t ms)) {
+	cli();
+	timer_corr += ms;
+	sei();
+}
+
 void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t _month, uint8_t _day, uint8_t flags)) {
 	static uint8_t sync = 0;
 	int32_t reported_time;
