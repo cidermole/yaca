@@ -224,7 +224,7 @@ void dcf_dispatch_bit() {
 		}*/
 
 		cli();
-		dcf_minutemarker_valid = 0;
+		dcf_minutemarker_valid = 1;
 		sei();
 
 		dcf_init_symbol();
@@ -328,6 +328,7 @@ void DM(Time(uint8_t _hour, uint8_t _min, uint8_t _sec, uint16_t _year, uint8_t 
 int main() {
 	int32_t t = 0, ct, next_sec = 0;
 	int32_t vts_dist = 2270;
+	uint8_t data[8];
 
 	init();
 	sei();
@@ -357,9 +358,9 @@ int main() {
 		if(ct >= next_sec) {
 			yc_prepare(790);
 			t = ms_timer_local();
-			memcpy((void *)dbg, &t, 4);
-			memcpy((void *)&dbg[4], &ct, 4);
-			debug_tx(dbg);
+			memcpy((void *)data, &t, 4);
+			memcpy((void *)&data[4], &ct, 4);
+			debug_tx((volatile uint8_t *) data);
 			next_sec = ct + 1000;
 		}
 
@@ -376,6 +377,7 @@ int main() {
 		}
 
 		if(dcf_handle_bit) {
+			dcf_dispatch_bit();
 			dcf_handle_bit = 0;
 		}
 
@@ -402,7 +404,7 @@ ISR(TIMER1_COMPA_vect) {
 		reported_time = 60000UL * ((int32_t) (((int16_t) 60) * hour + (int16_t) min));
 		reported_time = timer_corr - reported_time;
 
-		*((int32_t *)((void *)dbg)) = reported_time;
+		*((int32_t *)(&((uint8_t *)dbg)[1])) = reported_time;
 
 		if(reported_time > 0) { // are we too fast?
 			timer_corr--;
