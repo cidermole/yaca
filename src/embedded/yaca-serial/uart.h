@@ -5,7 +5,7 @@
 #include <avr/pgmspace.h>
 #include "fifo.h"
 
-#define BAUDRATE 250000
+#define BAUDRATE 125000
 
 #define WRITE_BUFFER      400
 #define WB_THRESHOLD      300

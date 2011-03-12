@@ -33,7 +33,10 @@
 
 
 // prescaler for clock output of MCP2515, see datasheet p. 58. Be sure to include CLKEN.
-#define CLOCK_PRESCALER_MAGIC 0x07
+#define MCP2515_CLKOUT_2MHZ 0x07
+#define MCP2515_CLKOUT_16MHZ 0x04
+//#define CLOCK_PRESCALER_MAGIC
+// CLOCK_PRESCALER_MAGIC is defined by compiler option
 
 
 #include "mcp2515io.h"

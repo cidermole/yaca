@@ -12,9 +12,12 @@ SRCDIR = ../../../src/embedded/$(PROJECT)
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
 
+F_CPU = 16000000UL
+CLOCK_PRESCALER_MAGIC = MCP2515_CLKOUT_16MHZ
+
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -DF_CPU=2000000UL -Os -fsigned-char -I/usr/lib/yaca/include
+CFLAGS += -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char -I/usr/lib/yaca/include
 CFLAGS += -MD -MP -MT $(*F).o
 
 ## Assembly specific flags
@@ -25,7 +28,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ## Linker flags
 LDFLAGS = $(COMMON)
 LDFLAGS += -L../lib
-LIBS = -lyaca-bl -lyaca
+LIBS = -lyaca-bl
 
 
 ## Intel Hex file production flags
@@ -52,7 +55,13 @@ all: $(TARGET) $(PROJECT).hex $(PROJECT).eep $(PROJECT).lss size
 
 ##Link
 $(TARGET): $(OBJECTS)
-	 $(CC) $(LDFLAGS) $(OBJECTS) $(LINKONLYOBJECTS) $(LIBDIRS) -o $(TARGET) -Wl,-T linkerscript $(LIBS)
+	make -C ../libyaca-bl clean
+	# rebuild libyaca-bl for our purposes (16 MHz)
+	make -C ../libyaca-bl F_CPU=$(F_CPU) CLOCK_PRESCALER_MAGIC=$(CLOCK_PRESCALER_MAGIC)
+	$(CC) $(LDFLAGS) $(OBJECTS) $(LINKONLYOBJECTS) $(LIBDIRS) -o $(TARGET) $(LIBS)
+	make -C ../libyaca-bl clean
+	# rebuild libyaca-bl for others, like it was before
+	make -C ../libyaca-bl
 
 %.hex: $(TARGET)
 	avr-objcopy -O ihex $(HEX_FLASH_FLAGS)  $< $@
