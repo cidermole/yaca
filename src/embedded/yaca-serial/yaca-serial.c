@@ -208,14 +208,14 @@ int main() {
 	uint8_t wb_reported = 0, rb_reported = 0, tr_wb_report_can = 0;
 	Message msg;
 
-	uart_init((uint16_t) (F_CPU / (8.0 * BAUDRATE) - 1));
+	uart_init((uint16_t) (F_CPU / (16.0 * BAUDRATE) - 1));
 	
 	delay_ms(1000); // Wait for EEPROM to warm up (?)
 	
 	yc_init();
 	
 	TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10); // CTC, prescaler 64
-	OCR1A = 3125; // 64 * 3.125 = 200.000 (100 ms ticks)
+	OCR1A = 3125 * 8; // 64 * 3.125 * 8 = 1.600.000 (100 ms ticks)
 	TIMSK = (1 << OCIE1A); // enable output-compare interrupt
 	
 	wdt_enable(WDTO_2S);

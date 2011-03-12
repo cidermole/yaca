@@ -11,6 +11,7 @@ TODO
 -> enable brownout detector for all nodes
 -> clean up git repo (ignores, remove unused files, etc)
 
+-> uart.c init should be called without the baud calculation (move calculation to macro or to init function)
 -> log (write) revisions and CRC at flashing (to be able to check the current version in flash)
 -> flow control, at least remove the current one from yaca-serial
 -> yaca-logd should die if yaca-gw socket dies
