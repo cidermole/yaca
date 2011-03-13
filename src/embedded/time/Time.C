@@ -333,7 +333,7 @@ int main() {
 			LED_off();
 
 		if(dcf_msg) {
-			yc_prepare(799);
+			yc_prepare(796);
 			dbg[0] = dcf_msg;
 			debug_tx(dbg);
 			dcf_msg = 0;
