@@ -21,6 +21,9 @@ volatile uint8_t skip_corr = 0;
 int32_t old_time = 0, helper_clock_diff = 0;
 uint8_t helper_clock_active = 1;
 
+volatile uint8_t dbg_used;
+volatile uint8_t dbg_mem[8];
+
 void DR(TempStatus()) {
 	yc_prepare_ee(YC_EE_TEMPSTATUS_ID);
 	RFM12_INT_master_off();
@@ -158,6 +161,13 @@ int main() {
 			}
 			old_time++;
 		}
+
+		if(dbg_used) {
+			yc_prepare(792);
+			debug_tx(dbg_mem);
+			dbg_used = 0;
+		}
+
 		yc_dispatch_auto();
 	}
 	return 0;

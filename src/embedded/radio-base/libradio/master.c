@@ -13,6 +13,8 @@ extern RadioMessage msg_in, buf_out;
 extern uint8_t buf_out_index, msg_in_full;
 extern uint8_t our_radio_id, target_id;
 extern volatile radio_state_t radio_state;
+extern volatile uint8_t dbg_used;
+extern volatile uint8_t dbg_mem[8];
 
 void _radio_rxc(int16_t data);
 int16_t _radio_txc();
@@ -20,7 +22,7 @@ int16_t _radio_txc();
 // TODO: move to EEP
 slot_assign_t slot_assignments[] = {
 	// radio_id, slot
-	{2, 200}
+	{2, 100}
 };
 
 typedef struct {
@@ -101,6 +103,8 @@ void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	msg.data[1] = (uint8_t) (time_offset_feedback >> 8);
 	msg.data[2] = (uint8_t) time_length_feedback;
 	msg.data[3] = (uint8_t) (time_length_feedback >> 8);
+	memcpy((void *) dbg_mem, &msg.data[0], 4);
+	dbg_used = 1;
 
 	if(retr != RETRY) {
 		slot->tx_fc++;
