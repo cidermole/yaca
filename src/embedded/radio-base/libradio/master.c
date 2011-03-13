@@ -141,7 +141,7 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 	} else if(msg->fc == slot->rx_fc + 1 || msg->fc == 1) { // TODO: || msg->fc == 1 is only for debug purposes (TODO rethink, won't receive stuff otherwise)
 		if(radio_crc(radio_id, msg) == msg->crc16) {
 			if(msg->fc == 1)
-				slot->rx_fc = 0;
+				slot->rx_fc = 1;
 			else
 				slot->rx_fc++;
 
