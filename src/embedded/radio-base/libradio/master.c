@@ -29,7 +29,7 @@ typedef struct {
 	retr_e retr;
 } deferred_ack_t;
 
-slot_t slots[5]; // size: 51 bytes * elements
+slot_t slots[5];
 
 
 #define RFM12_select()          PORTB &= ~(1 << PB1)
@@ -55,7 +55,7 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 	RFM12_LLC_registerType(&_radio_rxc, &_radio_txc);
 	our_radio_id = radio_id_node;
 
-	memset(slots, 0, sizeof(slots)); // set fc to 0
+	memset(slots, 0, sizeof(slots)); // set fc and last_message to 0
 
 	// configure SPI
 	DDRB |=                         _BV(DDB1);
@@ -78,20 +78,29 @@ extern uint16_t ms_timer(); // implement this!
 
 void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	RadioMessage msg;
-	int32_t target_time, cur_time = ms_timer();
+	int32_t target_time, cur_time = ms_timer(); // note that we measure the END of the message here
 	slot_assign_t *sa = &slot_assignments[slot - slots];
-	int16_t time_feedback;
+	int16_t time_offset_feedback, time_length_feedback;
 
 	target_time = ((int32_t) sa->slot) * SLOT_LENGTH - cur_time;
 	if(target_time < -30000)
 		target_time += 60000;
-	time_feedback = (int16_t) target_time;
+	time_offset_feedback = (int16_t) target_time;
+
+	if(slot->last_message && slot->last_message < cur_time) { // last_message valid and no midnight reset?
+		time_length_feedback = 60000 - (cur_time - slot->last_message);
+	} else {
+		time_length_feedback = 0;
+	}
+	slot->last_message = cur_time;
 
 	memset(&msg, 0, sizeof(msg));
 	msg.flags.ack = 1;
-	msg.length = 2;
-	msg.data[0] = (uint8_t) time_feedback;
-	msg.data[1] = (uint8_t) (time_feedback >> 8);
+	msg.length = 4;
+	msg.data[0] = (uint8_t) time_offset_feedback;
+	msg.data[1] = (uint8_t) (time_offset_feedback >> 8);
+	msg.data[2] = (uint8_t) time_length_feedback;
+	msg.data[3] = (uint8_t) (time_length_feedback >> 8);
 
 	if(retr != RETRY) {
 		slot->tx_fc++;
@@ -129,9 +138,13 @@ void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
 		// An attacker could hereby make us send the same ACK
 		// which we've already transmitted (no big deal).
 		_defer_ack(radio_id, slot, RETRY);
-	} else if(msg->fc == slot->rx_fc + 1) {
+	} else if(msg->fc == slot->rx_fc + 1 || msg->fc == 1) { // TODO: || msg->fc == 1 is only for debug purposes (TODO rethink, won't receive stuff otherwise)
 		if(radio_crc(radio_id, msg) == msg->crc16) {
-			slot->rx_fc++;
+			if(msg->fc == 1)
+				slot->rx_fc = 0;
+			else
+				slot->rx_fc++;
+
 			if(!msg_in_full) {
 				memcpy(&msg_in, msg, sizeof(RadioMessage));
 				msg_in_full = 1;
