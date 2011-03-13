@@ -150,7 +150,7 @@ int main() {
 
 		if(ms_timer_local() != old_time) {
 			fb = ts_tick(ms_timer_corr() % 60000, 0);
-			if(fb == 1) {
+/*			if(fb == 1) {
 				cli();
 				timer_corr++;
 				sei();
@@ -158,7 +158,7 @@ int main() {
 				cli();
 				skip_corr = 1;
 				sei();
-			}
+			}*/
 			old_time++;
 		}
 
