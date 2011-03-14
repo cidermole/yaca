@@ -94,10 +94,10 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 
 // for libradio-master
 uint16_t ms_timer() {
-	// always use more accurate time base
+/*	// always use more accurate time base
 	if(helper_clock_active)
 		return ms_timer_local() + helper_clock_diff;
-	else
+	else*/
 		return ms_timer_corr() % 60000;
 }
 
