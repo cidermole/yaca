@@ -32,7 +32,8 @@ void DR(TempStatus()) {
 }
 
 extern "C" {
-	uint16_t ms_timer();
+//	uint16_t ms_timer();
+	int32_t ms_timer_corr();
 }
 int32_t ms_timer_local();
 int32_t ms_timer_corr();
@@ -92,6 +93,7 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 }
 
 
+#if 0
 // for libradio-master
 uint16_t ms_timer() {
 /*	// always use more accurate time base
@@ -100,6 +102,7 @@ uint16_t ms_timer() {
 	else*/
 		return ms_timer_corr() % 60000;
 }
+#endif
 
 int32_t ms_timer_local() {
 	int32_t t;

@@ -76,15 +76,15 @@ slot_t *find_slot(uint8_t radio_id) {
 	return NULL;
 }
 
-extern uint16_t ms_timer(); // implement this!
+extern int32_t ms_timer_corr(); // implement this!
 
 void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	RadioMessage msg;
-	int32_t target_time, cur_time = ms_timer(); // note that we measure the END of the message here
+	int32_t target_time, cur_time = ms_timer_corr(); // note that we measure the END of the message here
 	slot_assign_t *sa = &slot_assignments[slot - slots];
 	int16_t time_offset_feedback, time_length_feedback;
 
-	target_time = ((int32_t) sa->slot) * SLOT_LENGTH - cur_time;
+	target_time = ((int32_t) sa->slot) * SLOT_LENGTH - cur_time % 60000;
 	if(target_time < -30000)
 		target_time += 60000;
 	time_offset_feedback = (int16_t) target_time;
