@@ -13,6 +13,7 @@ TODO
 -> make non-global variables static (i.e. remove visibility)
 -> implement a deploy-log to see what has been programmed, when and with which revision
 -> sender2: turn off RFM12 for busy-waits (i.e. only turn it on for Tx)
+-> sanity checks into Time to prevent wrong time from being Tx-ed
 
 -> uart.c init should be called without the baud calculation (move calculation to macro or to init function)
 -> log (write) revisions and CRC at flashing (to be able to check the current version in flash)
