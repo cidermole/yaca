@@ -72,7 +72,7 @@ _disabled_decoders = {
 	799: ignore       # RadioBase: time sync feedback
 }
 decoders = {
-	401: ignore,
+	401: htime,
 	404: ignore,
 	405: ignore,
 	796: hdebugtime,
