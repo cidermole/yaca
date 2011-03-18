@@ -16,18 +16,13 @@ def unhex(s):
 		hexsum = hexsum * 16 + digit
 	return hexsum
 
-#def hex2ascii(s):
-#	str = ''
-#	for i in range(0, len(s), 2):
-#		str = str + chr(unhex(s[i:i+2]))
-#	return str
-#print hex2ascii(sys.argv[1])
-
 # data offset, i.e. where hex starts in line
 DATA_OFFSET = 38
 
-def htime(s):
-	hl = s[DATA_OFFSET:]
+##################################################################################################
+##################################################################################################
+
+def htime(s, hl):
 	reported_time = datetime.datetime(unhex(hl[6:10]), unhex(hl[10:12]), unhex(hl[12:14]), unhex(hl[0:2]), unhex(hl[2:4]), unhex(hl[4:6]))
 	flags = unhex(hl[14:16])
 	if (flags & 1) != 0:
@@ -38,11 +33,19 @@ def htime(s):
 		bt = ', backup source'
 	else:
 		bt = ''
-	return 'Time: %s (%s%s)' % (reported_time.isoformat(), tz, bt)
+	return 'Time::Time %s (%s%s)' % (reported_time.isoformat(), tz, bt)
+
+def hindoor(s, hl):
+	decigrades = str(unhex(hl[0:4]))
+	return 'ControlPanel::TempStatus %s.%s °C' % (decigrades[0:len(decigrades)-1], decigrades[len(decigrades)-1])
 
 decoders = {
-	401: htime
+	401: htime,
+	404: hindoor
 }
+
+##################################################################################################
+##################################################################################################
 
 def decode_line(s):
 	canid = int(s[25:30])
@@ -57,7 +60,7 @@ def decode_line(s):
 		return False
 
 	if canid in decoders:
-		print('V %s %s' % (timestamp.isoformat(), decoders[canid](s)))
+		print('V %s %s' % (timestamp.isoformat(), decoders[canid](s, s[DATA_OFFSET:])))
 		return True
 
 	print('C %s [%d] %s' % (timestamp.isoformat(), canid, s[34:]))
