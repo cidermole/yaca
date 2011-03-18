@@ -39,9 +39,26 @@ def hindoor(s, hl):
 	decigrades = str(unhex(hl[0:4]))
 	return 'ControlPanel::TempStatus %s.%s °C' % (decigrades[0:len(decigrades)-1], decigrades[len(decigrades)-1])
 
+def hdebugtime(s, hl):
+	flag = unhex(hl[0:2])
+
+	if flag == 0xFF:
+		return 'Time::Debug DCF77 error'
+	elif flag == 0x01:
+		return 'Time::Debug DCF77 minute marker'
+	elif flag == 0x02:
+		return 'Time::Debug DCF77 complete message (date parity)'
+	else:
+		return 'Time::Debug unknown debug message'
+
+def ignore(s, hl):
+	return ''
+
 decoders = {
 	401: htime,
-	404: hindoor
+	404: hindoor,
+	796: hdebugtime,
+	799: ignore
 }
 
 ##################################################################################################
@@ -60,7 +77,9 @@ def decode_line(s):
 		return False
 
 	if canid in decoders:
-		print('V %s %s' % (timestamp.isoformat(), decoders[canid](s, s[DATA_OFFSET:])))
+		result = decoders[canid](s, s[DATA_OFFSET:])
+		if len(result) > 0:
+			print('V %s %s' % (timestamp.isoformat(), result))
 		return True
 
 	print('C %s [%d] %s' % (timestamp.isoformat(), canid, s[34:]))

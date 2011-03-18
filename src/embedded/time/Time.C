@@ -199,7 +199,7 @@ void dcf_dispatch_bit() {
 	case DCF_DATEPAR:
 		date_par += dcf_parity(dcf_symbol);
 		if(date_par % 2 != 0)
-			dcf_sync_state = DCF_RESET;
+			dcf_sync_state = DCF_RESET; // TODO break if an error has occured... :/
 		dcf_msg = 0x02;
 		dbg[1] = dcf_sync_state;
 		dbg[2] = hour;
