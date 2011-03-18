@@ -101,7 +101,8 @@ def decode_line(s):
 			print('V %s %s' % (fdate(timestamp), result))
 		return True
 
-	print('C %s [%d] %s' % (fdate(timestamp), canid, s[34:]))
+	# TODO DEBUG
+	#print('C %s [%d] %s' % (fdate(timestamp), canid, s[34:]))
 	return False
 
 linenr = 1

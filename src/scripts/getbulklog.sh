@@ -24,7 +24,7 @@ numfiles=$i
 echo Found $numfiles logfiles, concatenating...
 
 rm -f $outfile
-for i in {$numfiles..1}; do
+for (( i=$numfiles; $i>0; i-- )); do
 	gzip -c -d yaca/bulk.log.$i.gz >> $outfile
 done
 cat yaca/bulk.log >> $outfile
