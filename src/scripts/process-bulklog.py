@@ -16,6 +16,9 @@ def unhex(s):
 		hexsum = hexsum * 16 + digit
 	return hexsum
 
+def fdate(d):
+	return '%04d-%02d-%02d %02d:%02d:%02d.%03d' % (d.year, d.month, d.day, d.hour, d.minute, d.second, d.microsecond / 1000)
+
 # data offset, i.e. where hex starts in line
 DATA_OFFSET = 38
 
@@ -33,7 +36,7 @@ def htime(s, hl):
 		bt = ', backup source'
 	else:
 		bt = ''
-	return 'Time::Time %s (%s%s)' % (reported_time.isoformat(), tz, bt)
+	return 'Time::Time %s (%s%s)' % (fdate(reported_time), tz, bt)
 
 def hindoor(s, hl):
 	decigrades = str(unhex(hl[0:4]))
@@ -47,17 +50,33 @@ def hdebugtime(s, hl):
 	elif flag == 0x01:
 		return 'Time::Debug DCF77 minute marker'
 	elif flag == 0x02:
-		return 'Time::Debug DCF77 complete message (date parity)'
+		state = unhex(hl[2:4])
+		nhour = unhex(hl[4:6])
+		nmin = unhex(hl[6:8])
+		nday = unhex(hl[8:10])
+		nmonth = unhex(hl[10:12])
+		nyear = 2000 + unhex(hl[12:14])
+		return 'Time::Debug DCF77 complete message (syncstate %d, %d-%02d-%02d %02d:%02d)' % (state, nyear, nmonth, nday, nhour, nmin)
 	else:
 		return 'Time::Debug unknown debug message'
 
 def ignore(s, hl):
 	return ''
 
-decoders = {
+_disabled_decoders = {
 	401: htime,
 	404: hindoor,
+	405: ignore,      # RadioBase: outdoor temp
 	796: hdebugtime,
+	798: ignore,      # RadioBase: hard resync
+	799: ignore       # RadioBase: time sync feedback
+}
+decoders = {
+	401: ignore,
+	404: ignore,
+	405: ignore,
+	796: hdebugtime,
+	798: ignore,
 	799: ignore
 }
 
@@ -79,10 +98,10 @@ def decode_line(s):
 	if canid in decoders:
 		result = decoders[canid](s, s[DATA_OFFSET:])
 		if len(result) > 0:
-			print('V %s %s' % (timestamp.isoformat(), result))
+			print('V %s %s' % (fdate(timestamp), result))
 		return True
 
-	print('C %s [%d] %s' % (timestamp.isoformat(), canid, s[34:]))
+	print('C %s [%d] %s' % (fdate(timestamp), canid, s[34:]))
 	return False
 
 linenr = 1
@@ -92,7 +111,7 @@ for s in sys.stdin:
 	s = s.rstrip('\n')
 	typechar = s[24]
 
-	print(s)
+	#print(s)
 	
 	if typechar == '[':
 		decode_line(s)
