@@ -12,6 +12,5 @@
 	</settings>
 	<build>
 		<link lib="radio-master" path="libradio" />
-		<link lib="timesync" path="libtimesync" />
 	</build>
 </node-config>
