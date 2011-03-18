@@ -18,6 +18,9 @@
 uint16_t voltage;
 int16_t temperature;
 
+volatile uint8_t send_time = 0, send_time_min = 0;
+uint8_t cur_min = 0;
+
 volatile uint8_t dbg_used;
 volatile uint8_t dbg_mem[8];
 volatile uint16_t timer_local = 0;
@@ -50,6 +53,12 @@ void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t mont
 	uint16_t t = 1000 * sec;
 	ATOMIC_BLOCK(ATOMIC_FORCEON)
 		timer_local = t;
+	if(sec == 0 && min != send_time_min) {
+		send_time = 1;
+		send_time_min = min;
+	}
+	if(sec != 0)
+		cur_min = min;
 }
 
 void enter_bootloader_hook() {
@@ -60,7 +69,9 @@ void enter_bootloader_hook() {
 }
 
 int main() {
-	RadioMessage rmsg;
+	RadioMessage rmsg, rtime;
+
+	memset(&rtime, 0, sizeof(rtime));
 
 	TCCR2 = (1 << CS21) | (1 << WGM21); // CTC mode, prescaler = 8
 	OCR2 = (uint16_t)((125UL * F_CPU) / 1000000UL); // 8 * 125 = 1000 ticks/s.
@@ -87,12 +98,29 @@ int main() {
 		}
 */
 
+		// "beacon" for timeslot sync of slaves, transmitted every minute
+		// we could send data (time/date) here, but what the heck
+		if(send_time) {
+			rtime.info = 0;
+			radio_transmit(0, &rtime); // radio-id 0
+			// we don't check the transmission result - we shouldn't be transmitting an ACK (no-one should be in a nearby slot) or anything else
+			// retransmission / wait for transmission would cause delays anyway
+			send_time = 0;
+		}
+
 		yc_dispatch_auto();
 	}
 	return 0;
 }
 
 ISR(TIMER2_COMP_vect) {
-	timer_local++;
+	if(++timer_local == 60000) {
+		timer_local = 0;
+
+		if(cur_min == send_time_min) { // send
+			send_time = 1;
+			send_time_min = (cur_min + 1) % 60;
+		}
+	}
 }
 

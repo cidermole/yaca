@@ -22,6 +22,7 @@ int16_t _radio_txc();
 // TODO: move to EEP
 slot_assign_t slot_assignments[] = {
 	// radio_id, slot
+	{0, 0},
 	{2, 100}
 };
 
