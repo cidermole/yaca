@@ -77,34 +77,25 @@ slot_t *find_slot(uint8_t radio_id) {
 	return NULL;
 }
 
-extern int32_t ms_timer_corr(); // implement this!
+extern uint16_t ms_timer(); // implement this!
 
 void _send_ack(uint8_t radio_id, slot_t *slot, retr_e retr) {
 	RadioMessage msg;
-	int32_t target_time, cur_time = ms_timer_corr(); // note that we measure the END of the message here
+	int32_t target_time, cur_time = ms_timer(); // note that we measure the END of the message here
 	slot_assign_t *sa = &slot_assignments[slot - slots];
-	int16_t time_offset_feedback, time_length_feedback;
+	int16_t time_offset_feedback;
 
-	target_time = ((int32_t) sa->slot) * SLOT_LENGTH - cur_time % 60000;
+	target_time = ((int32_t) sa->slot) * SLOT_LENGTH - cur_time;
 	if(target_time < -30000)
 		target_time += 60000;
 	time_offset_feedback = (int16_t) target_time;
 
-	if(slot->last_message && slot->last_message < cur_time) { // last_message valid and no midnight reset?
-		time_length_feedback = 60000 - (cur_time - slot->last_message);
-	} else {
-		time_length_feedback = 0;
-	}
-	slot->last_message = cur_time;
-
 	memset(&msg, 0, sizeof(msg));
 	msg.flags.ack = 1;
-	msg.length = 4;
+	msg.length = 2;
 	msg.data[0] = (uint8_t) time_offset_feedback;
 	msg.data[1] = (uint8_t) (time_offset_feedback >> 8);
-	msg.data[2] = (uint8_t) time_length_feedback;
-	msg.data[3] = (uint8_t) (time_length_feedback >> 8);
-	memcpy((void *) dbg_mem, &msg.data[0], 4);
+	memcpy((void *) dbg_mem, &msg.data[0], 2);
 	dbg_used = 1;
 
 	if(retr != RETRY) {

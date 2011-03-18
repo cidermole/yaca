@@ -13,7 +13,6 @@ typedef struct {
 
 typedef struct {
 	uint8_t rx_fc, tx_fc; // framecounter
-	int32_t last_message;
 } slot_t;
 
 typedef enum {
