@@ -58,13 +58,14 @@ void radio_init(uint8_t radio_id_node) { // we will only receive this ID
 }
 
 void protocol_dispatch(uint8_t radio_id, RadioMessage *msg) {
-	// not for us?
-	if(radio_id != our_radio_id)
+	// not for us? (0 is broadcast)
+	if(radio_id != our_radio_id && radio_id != 0)
 		return;
 
 	// verify CRC
 	if(radio_crc(radio_id, msg) == msg->crc16) {
-		rx_fc++;
+		if(radio_id != 0)
+			rx_fc++;
 		memcpy(&msg_in, msg, sizeof(msg_in));
 		msg_in_full = 1;
 	}
