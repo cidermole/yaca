@@ -28,4 +28,5 @@
 		<setting name="pump_from_hour" value="9"/>
 		<setting name="pump_to_hour" value="21"/>
 	</settings>
+	<build/>
 </node-config>

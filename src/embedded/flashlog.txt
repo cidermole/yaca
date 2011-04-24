@@ -1,4 +1,4 @@
-date       node        head                                     remarks
------------------------------------------------------------------------
-2011-04-24 PoolControl 387ebabee7d5a9179881bced1fc7165aa9da4892 (hand-flashed)
+date        time   node         head                                      remarks
+---------------------------------------------------------------------------------
+2011-04-24  17:29  PoolControl  387ebabee7d5a9179881bced1fc7165aa9da4892  (hand-flashed)
 
