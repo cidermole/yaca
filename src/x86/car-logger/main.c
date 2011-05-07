@@ -1,24 +1,9 @@
 #include "config.h"
 #include "serial.h"
 #include <stdio.h>
-
 #include <stdlib.h>
 #include <string.h>
-#ifdef _WIN32
-	/* Windows */
-	#include <winsock.h>
-	#include <io.h>
-#else
-	/* *ix */
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <netdb.h>
-	#include <unistd.h>
-#endif
 #include <signal.h>
-#include <assert.h>
-#include <errno.h>
 
 int state = 0, quit = 0, uart;
 
