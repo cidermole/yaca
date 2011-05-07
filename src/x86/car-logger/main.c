@@ -41,7 +41,7 @@ void read_line(int fd, char *buf, int size) {
 void write_str(int fd, char *s) {
 	int l = strlen(s);
 	write(fd, s, l);
-	tcdrain(uart);
+	//tcdrain(uart);
 }
 
 int main(int argc, char **argv) {
@@ -89,7 +89,9 @@ example count output:
 		usleep(1000*1000*2);
 
 		state = 1;
-		write_str(uart, "\x1B" "C"); // ESC, C (get count)
+		write_str(uart, "\x1B"); // ESC
+		usleep(1000*100);
+		write_str(uart, "C"); // get count
 
 		for(i = 0; i < 3; i++) {
 			read_line(uart, line, sizeof(line));
