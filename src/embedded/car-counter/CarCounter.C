@@ -34,7 +34,7 @@ int main() {
 
 	// init timer for debounce
 	TCCR0 = (1 << CS02); // prescaler 256
-	TIMSK |= TOIE1; // enable overflow interrupt. 2 MHz / (256 * 256) => ~ 32 ms ticks for debounce
+	TIMSK |= TOIE0; // enable overflow interrupt. 2 MHz / (256 * 256) => ~ 32 ms ticks for debounce
 
 	sei();
 
