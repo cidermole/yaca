@@ -15,6 +15,7 @@ Nodes
 803 ControlPanel: PocketPC serial <-> CAN
 804 RadioBase: RFM12 base station in living room
 805 Time: DCF77 receiver
+806 CarCounter
 
 RPCs
 ----
@@ -40,5 +41,6 @@ Bulk Status
 403 PoolControl::TempStatus(int16_t temp_deci)
 404 ControlPanel::TempStatus(int16_t temp_deci)
 405 RadioBase::TempStatus(int16_t temp_deci, uint16_t millivolt)
+406 CarCounter::Count(uint32_t count)
 
 1024, 1025: TCP/IP to/from ControlPanel

@@ -1,4 +1,9 @@
-<node-config id="803">
-	<messages/>
+<node-config id="806">
+	<messages>
+		<message name="Test">
+			<id>799</id>
+		</message>
+	</messages>
 	<settings/>
+	<build/>
 </node-config>
