@@ -6,5 +6,7 @@
 namespace CarCounter {
 	void HDS(Count(uint32_t count));
 	void HDR(Count());
+
+	void HDM(SetCount(uint32_t count));
 }
 

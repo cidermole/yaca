@@ -26,8 +26,13 @@ void DR(Count()) {
 	yc_send(CarCounter, Count(count));
 }
 
+void DM(SetCount(uint32_t c)) {
+	count = c;
+	yc_status(Count);
+}
+
 int main() {
-	uint8_t state = 0, dbg_cnt = 0;
+	uint8_t state = 0;
 
 	set_bit(PORTD, PD7); // PD7: input with pullup
 	clear_bit(DDRD, PD7);
@@ -40,12 +45,6 @@ int main() {
 
 	while(1) {
 		if(timer_ovf) {
-			if(++dbg_cnt == 100) {
-				yc_status(Count);
-				dbg_cnt = 0;
-				yc_dispatch_auto();
-			}
-
 			switch(state) {
 			case 0:
 				if(bit_is_clear(PIND, PD7))

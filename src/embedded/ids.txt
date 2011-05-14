@@ -24,6 +24,7 @@ RPCs
 3 YacaSerial::Reset()
 4 PoolControl::SetMode(uint8_t mode) // filtered (64 secs and measurements mean value): 0, raw: 1
 5 PoolControl::SetRelay(uint8_t status)
+6 CarCounter::SetCount(uint32_t count)
 
 Status
 ------
