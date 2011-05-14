@@ -28,9 +28,15 @@ void read_line(int fd, char *buf, int size) {
 		select(fd + 1, &fds, NULL, NULL, NULL); // wait for data
 		bytes = read(fd, &c, 1);
 	}
-	for(i = 0; bytes != 0 && c != '\n' && i < size; i++) {
+	for(i = 0; c != '\n' && i < size; i++) {
 		*buf++ = c;
 		bytes = read(fd, &c, 1);
+		if(bytes == 0) {
+			FD_ZERO(&fds);
+			FD_SET(fd, &fds);
+			select(fd + 1, &fds, NULL, NULL, NULL); // wait for data
+			bytes = read(fd, &c, 1);
+		}
 	}
 	if(i > 0)
 		*(--buf) = '\0'; // overwrite '\r' with end of string
