@@ -27,19 +27,25 @@ void DR(Count()) {
 }
 
 int main() {
-	uint8_t state = 0;
+	uint8_t state = 0, dbg_cnt = 0;
 
 	set_bit(PORTD, PD7); // PD7: input with pullup
 	clear_bit(DDRD, PD7);
 
 	// init timer for debounce
 	TCCR0 = (1 << CS02); // prescaler 256
-	TIMSK |= TOIE0; // enable overflow interrupt. 2 MHz / (256 * 256) => ~ 32 ms ticks for debounce
+	TIMSK |= (1 << TOIE0); // enable overflow interrupt. 2 MHz / (256 * 256) => ~ 32 ms ticks for debounce
 
 	sei();
 
 	while(1) {
 		if(timer_ovf) {
+			if(++dbg_cnt == 100) {
+				yc_status(Count);
+				dbg_cnt = 0;
+				yc_dispatch_auto();
+			}
+
 			switch(state) {
 			case 0:
 				if(bit_is_clear(PIND, PD7))
