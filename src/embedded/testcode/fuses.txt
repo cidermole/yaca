@@ -1,2 +1,13 @@
 HFUSE: D8
 LFUSE: E2
+
+
+(d8 -> d0: eesave)
+
+# BOD @ 4 V enabled
+hfuse: D0
+lfuse: 22
+
+# no BOD
+hfuse: D0
+lfuse: 62
