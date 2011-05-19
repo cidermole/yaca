@@ -60,9 +60,16 @@ def hdebugtime(s, hl):
 	else:
 		return 'Time::Debug unknown debug message'
 
+ccbefore = 0
 def hcarcount(s, hl):
 	timestamp = datetime.datetime(int(s[0:4]), int(s[5:7]), int(s[8:10]), int(s[11:13]), int(s[14:16]), int(s[17:19]), int(s[20:23]) * 1000)
 	count = unhex(hl[0:8])
+	if ccbefore == 0:
+		ccbefore = count - 1
+	if ccbefore + 1 != count:
+		print('E carcount skip, missing count at %d, next is %d' % (ccbefore + 1, count))
+	ccbefore = count
+	return 'CarCounter::Count %d' % count
 
 def ignore(s, hl):
 	return ''
@@ -76,10 +83,11 @@ _disabled_decoders = {
 	799: ignore       # RadioBase: time sync feedback
 }
 decoders = {
-	401: htime,
+	401: ignore,
 	404: ignore,
 	405: ignore,
-	796: hdebugtime,
+	406: hcarcount,
+	796: ignore,
 	798: ignore,
 	799: ignore
 }
