@@ -12,21 +12,27 @@ $data = array();
 $sql = mysql_connect("127.0.0.1", "yaca", "UdxYzj34");
 mysql_select_db("yaca");
 
+
 if($_GET['mode'] == 'week') {
 	$now = new DateTime();
 	$now->setTime($now->format("H"), 0); // current day, hour
-	$till = clone $now;
-	$till->sub(new DateInterval("P7D")); // subtract one week
-	$i = clone $now;
+	$from = clone $now;
+	$from->sub(new DateInterval("P7D")); // subtract one week
+	$i = clone $from;
 	$j = clone $now;
 	$j->add(new DateInterval("PT1H"));
 
-	for(; $i < $till; $i->add(new DateInterval("PT1H")), $j->add(new DateInterval("PT1H"))) {
+	for(; $i < $now; $i->add(new DateInterval("PT1H")), $j->add(new DateInterval("PT1H"))) {
 		$q = mysql_query("select count(*) from cars where timestamp >= '" . $i->format("Y-m-d H:i:s") . "' and timestamp < '" . $j->format("Y-m-d H:i:s") . "'");
 		$res = mysql_fetch_row($q);
 		$data[] = $res[0];
 		$abscissa[] = array($i->format("H"), "");
 	}
+
+	$picTitle = "Letzte Woche (" . $from->format("Y-m-d H:i:s") . " - " . $now->format("Y-m-d H:i:s") . ")";
+} else {
+	echo "BBQ";
+	exit();
 }
 
 
@@ -116,7 +122,7 @@ $myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>50,"G"=>50,"B"=>50,"Alpha"=>
 $myPicture->setFontProperties(array("FontName"=>"fonts/Forgotte.ttf","FontSize"=>14));
 $TextSettings = array("Align"=>TEXT_ALIGN_MIDDLEMIDDLE
 , "R"=>255, "G"=>255, "B"=>255);
-$myPicture->drawText(350,25,"Autos",$TextSettings);
+$myPicture->drawText(350,25,$picTitle,$TextSettings);
 
 $myPicture->setShadow(FALSE);
 $myPicture->setGraphArea(50,50,675,190);
