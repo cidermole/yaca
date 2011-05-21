@@ -9,7 +9,7 @@ $abscissa = array();
 $data = array();
 
 
-$sql = mysql_connect("127.0.0.1", "yaca", "UdxYzj34");
+$sql = mysql_connect("192.168.1.3", "yaca", "UdxYzj34");
 mysql_select_db("yaca");
 
 
@@ -19,61 +19,24 @@ if($_GET['mode'] == 'week') {
 	$from = clone $now;
 	$from->sub(new DateInterval("P7D")); // subtract one week
 	$i = clone $from;
-	$j = clone $now;
+	$j = clone $from;
 	$j->add(new DateInterval("PT1H"));
+
+	$date_at_hour = $now->format("H") % 4;
 
 	for(; $i < $now; $i->add(new DateInterval("PT1H")), $j->add(new DateInterval("PT1H"))) {
 		$q = mysql_query("select count(*) from cars where timestamp >= '" . $i->format("Y-m-d H:i:s") . "' and timestamp < '" . $j->format("Y-m-d H:i:s") . "'");
 		$res = mysql_fetch_row($q);
 		$data[] = $res[0];
-		$abscissa[] = array($i->format("H"), "");
+		$date = ($i->format("H") == $date_at_hour ? $i->format("d.m.") : "");
+		$abscissa[] = array($i->format("H"), $date);
 	}
 
-	$picTitle = "Letzte Woche (" . $from->format("Y-m-d H:i:s") . " - " . $now->format("Y-m-d H:i:s") . ")";
+	$picTitle = "Letzte Woche (" . $from->format("Y-m-d") . " - " . $now->format("Y-m-d") . ")";
 } else {
 	echo "BBQ";
 	exit();
 }
-
-
-
-/*
-
-$lines = file("/bulk/temp/yaca-log/cars");
-
-// V 2011-05-14 20:46:07.068 CarCounter::Count 1
-
-function lineDate($line) {
-	return substr($line, 2, 19);
-}
-
-// V 2011-05-14 21:02:11.058
-
-$i = new DateTime("20110514T210000");
-$sum = 0;
-$abscissa = array();
-$data = array();
-
-foreach($lines as $line) {
-	if(substr($line, 0, 1) != "V")
-		continue;
-	$d = DateTime::createFromFormat("Y-m-d H:i:s", lineDate($line));
-
-	if($d > $i) {
-		$day = $i->format("H") == 1 ? $i->format("d.m.") : "";
-		//$abscissa[] = $i->format("m-d H");
-		$abscissa[] = array($i->format("H"), $day);
-		$data[] = $sum;
-		//echo $i->format("Y-m-d H:i:s") . " " . $sum . "<br/>";
-		while($d > $i)
-			$i->add(new DateInterval("PT3600S"));
-		$sum = 0;
-	}
-	$sum++;
-}
-*/
-
-//exit();
 
 // ==========================================================================
 // ==========================================================================
