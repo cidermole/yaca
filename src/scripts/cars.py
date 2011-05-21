@@ -37,7 +37,7 @@ def fdate(d):
 	return '%04d-%02d-%02d %02d:%02d:%02d' % (d.year, d.month, d.day, d.hour, d.minute, d.second)
 
 while True:
-	msg = get_message(s)
+	msg = get_message(sock)
 	if msg[M_ID] == CAR_COUNT_CANID and msg[M_RTR] == 0:
 		count = msg[M_DATA] * (256**3) + msg[M_DATA + 1] * (256**2) + msg[M_DATA + 2] * (256**1) + msg[M_DATA + 3]
 		stamp = datetime.today()
