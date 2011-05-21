@@ -69,6 +69,7 @@ ccbefore = 0
 
 def hcarcount(s, hl):
 	global ccbefore
+	global cursor
 	timestamp = datetime.datetime(int(s[0:4]), int(s[5:7]), int(s[8:10]), int(s[11:13]), int(s[14:16]), int(s[17:19]), int(s[20:23]) * 1000)
 	count = unhex(hl[0:8])
 	if ccbefore == 0:
@@ -76,6 +77,7 @@ def hcarcount(s, hl):
 	if ccbefore + 1 != count:
 		print('E carcount skip, missing count at %d, next is %d' % (ccbefore + 1, count))
 	ccbefore = count
+	cursor.execute('insert into cars values (\'%s\', %d, %d)' % (fdate(timestamp)[0:19], timestamp.microsecond / 1000, count))
 	return 'CarCounter::Count %d' % count
 
 def ignore(s, hl):
