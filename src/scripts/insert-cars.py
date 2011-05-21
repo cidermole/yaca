@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import datetime
 import sys
 import MySQLdb
 
-conn = MySQLdb.connect(host="127.0.0.1", user="yaca", passwd="UdxYzj34", db="yaca")
+conn = MySQLdb.connect(host="192.168.1.3", user="yaca", passwd="UdxYzj34", db="yaca")
 cursor = conn.cursor()
 
 
