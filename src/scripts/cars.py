@@ -31,7 +31,7 @@ def get_message(s):
 	str = ''
 	while len(str) < 15:
 		str += s.recv(15 - len(str))
-	return struct.unpack('BIBBBBBBBBBB', str)
+	return struct.unpack('<BIBBBBBBBBBB', str)
 
 def fdate(d):
 	return '%04d-%02d-%02d %02d:%02d:%02d' % (d.year, d.month, d.day, d.hour, d.minute, d.second)
