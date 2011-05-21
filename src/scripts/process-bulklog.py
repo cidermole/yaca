@@ -61,7 +61,9 @@ def hdebugtime(s, hl):
 		return 'Time::Debug unknown debug message'
 
 ccbefore = 0
+
 def hcarcount(s, hl):
+	global ccbefore
 	timestamp = datetime.datetime(int(s[0:4]), int(s[5:7]), int(s[8:10]), int(s[11:13]), int(s[14:16]), int(s[17:19]), int(s[20:23]) * 1000)
 	count = unhex(hl[0:8])
 	if ccbefore == 0:
