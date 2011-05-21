@@ -5,7 +5,33 @@ include("class/pData.class.php");
 include("class/pDraw.class.php");
 include("class/pImage.class.php");
 
+$abscissa = array();
+$data = array();
 
+
+$sql = mysql_connect("127.0.0.1", "yaca", "UdxYzj34");
+mysql_select_db("yaca");
+
+if($_GET['mode'] == 'week') {
+	$now = new DateTime();
+	$now->setTime($now->format("H"), 0); // current day, hour
+	$till = clone $now;
+	$till->sub(new DateInterval("P7D")); // subtract one week
+	$i = clone $now;
+	$j = clone $now;
+	$j->add(new DateInterval("PT1H"));
+
+	for(; $i < $till; $i->add(new DateInterval("PT1H")), $j->add(new DateInterval("PT1H"))) {
+		$q = mysql_query("select count(*) from cars where timestamp >= '" . $i->format("Y-m-d H:i:s") . "' and timestamp < '" . $j->format("Y-m-d H:i:s") . "'");
+		$res = mysql_fetch_row($q);
+		$data[] = $res[0];
+		$abscissa[] = array($i->format("H"), "");
+	}
+}
+
+
+
+/*
 
 $lines = file("/bulk/temp/yaca-log/cars");
 
@@ -39,6 +65,7 @@ foreach($lines as $line) {
 	}
 	$sum++;
 }
+*/
 
 //exit();
 
