@@ -9,7 +9,7 @@ conn = MySQLdb.connect(host="127.0.0.1", user="yaca", passwd="UdxYzj34", db="yac
 cursor = conn.cursor()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect(('192.168.1.1', '1222'))
+sock.connect(('192.168.1.1', 1222))
 
 CAR_COUNT_CANID = 406
 
