@@ -33,10 +33,32 @@ if($_GET['mode'] == 'week') {
 	}
 
 	$picTitle = "Letzte Woche (" . $from->format("Y-m-d") . " - " . $now->format("Y-m-d") . ")";
+} else if($_GET['mode'] == 'month') {
+	$now = new DateTime();
+	$now->setTime($now->format("H"), 0); // current day, hour
+	$from = clone $now;
+	$from->sub(new DateInterval("P30D")); // subtract one week
+	$i = clone $from;
+	$j = clone $from;
+	$step = new DateInterval("PT24H");
+	$j->add($step);
+
+	$date_at_hour = $now->format("H") % (4*24);
+
+	for(; $i < $now; $i->add($step), $j->add($step)) {
+		$q = mysql_query("select count(*) from cars where timestamp >= '" . $i->format("Y-m-d H:i:s") . "' and timestamp < '" . $j->format("Y-m-d H:i:s") . "'");
+		$res = mysql_fetch_row($q);
+		$data[] = $res[0];
+		$date = ($i->format("H") == $date_at_hour ? $i->format("d.m.") : "");
+		$abscissa[] = array($i->format("H"), $date);
+	}
+
+	$picTitle = "Letzter Monat (" . $from->format("Y-m-d") . " - " . $now->format("Y-m-d") . ")";
 } else {
 	echo "BBQ";
 	exit();
 }
+// TODO: Kalenderwoche, Kalendermonat
 
 // ==========================================================================
 // ==========================================================================
