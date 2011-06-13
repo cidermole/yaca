@@ -40,18 +40,21 @@ class PoolControl extends Plugin {
 
 		$problem = "";
 		$diff = 0;
+		$corr_diff = 0;
 		if($ph < 7) {
-			$diff = 7.2 - $ph;
+			$corr_diff = 7 - $ph;
+			$diff = 7 - $ph;
 			$problem = "niedrig";
 			$what = "Plus";
 		} else if($ph > 7.4) {
-			$diff = $ph - 7.2;
+			$corr_diff = $ph - 7.2;
+			$diff = $ph - 7.4;
 			$problem = "hoch";
 			$what = "Minus";
 		}
 
-		$amount = round(1600 * $diff, -1);
-		$class = $diff > 0.2 + 0.15 ? "error" : "warning";
+		$amount = round(1600 * $corr_diff, -1);
+		$class = $diff > 0.15 ? "error" : "warning";
 
 		if($problem != "") {
 			echo "<br/><div id=\"" . $class . "\">pH-Wert zu " . $problem . ", " . $amount . " g pH-" . $what . " zugeben.</div>";
