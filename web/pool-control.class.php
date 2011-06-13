@@ -40,11 +40,11 @@ class PoolControl extends Plugin {
 		$problem = "";
 		$diff = 0;
 		if($ph < 7) {
-			$diff = 7 - $ph;
+			$diff = 7.2 - $ph;
 			$problem = "niedrig";
 			$what = "Plus";
 		} else if($ph > 7.4) {
-			$diff = $ph - 7.4;
+			$diff = $ph - 7.2;
 			$problem = "hoch";
 			$what = "Minus";
 		}
