@@ -38,22 +38,30 @@ class PoolControl extends Plugin {
 		$relay = ($msg_st->data[0] == 1);
 		echo "Pool: pH " . $ph_display . ", " . $this->getTemp($msg_te) . " &deg;C (" . ($relay ? "Pool" : "Garage") . "), Pumpe " . ($relay ? "ein" : "aus");
 
+		/**
+		 * pH correction instructions
+		 *
+		 * If the pH value is not between the limits (7.0 - 7.4), print an orange/red box containing
+		 * instructions on how to correct the pH value.
+		 **/
 		$problem = "";
-		$diff = 0;
-		$corr_diff = 0;
+		$diff = 0; // difference from maximum / minimum value
+		$corr_diff = 0; // difference from correction target
 		if($ph < 7) {
-			$corr_diff = 7 - $ph;
-			$diff = 7 - $ph;
+			$corr_diff = 7.0 - $ph; // from low pH, only correct up to pH 7.0 (pH usually rises over time)
+			$diff = 7.0 - $ph;
 			$problem = "niedrig";
 			$what = "Plus";
 		} else if($ph > 7.4) {
-			$corr_diff = $ph - 7.2;
+			$corr_diff = $ph - 7.2; // from high pH, correct down to pH 7.2 (so there is some time for it rising again)
 			$diff = $ph - 7.4;
 			$problem = "hoch";
 			$what = "Minus";
 		}
 
-		$amount = round(1600 * $corr_diff, -1);
+		// Pool: 13.7 m^3 (~ 14)
+		// pH-Plus as well as pH-Minus say: "100 g per 10 m^3 leads to 0.1 pH change" --> 1400 g per pH
+		$amount = round(1400 * $corr_diff, -1); // round amount to 10 g
 		$class = $diff > 0.15 ? "error" : "warning";
 
 		if($problem != "") {
