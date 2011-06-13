@@ -35,7 +35,7 @@ class PoolControl extends Plugin {
 
 		$ph = $this->getPh($msg_ph);
 		$relay = ($msg_st->data[0] == 1);
-		echo "Pool: pH = " . $ph . ", T = " . $this->getTemp($msg_te) . " &deg;C (" . ($relay ? "Pool" : "Garage") . "), Pumpe = " . ($relay ? "ein" : "aus");
+		echo "Pool: pH = " . $ph . ", " . $this->getTemp($msg_te) . " &deg;C (" . ($relay ? "Pool" : "Garage") . "), Pumpe " . ($relay ? "ein" : "aus");
 
 		$problem = "";
 		$diff = 0;
@@ -53,7 +53,7 @@ class PoolControl extends Plugin {
 		$class = $diff > 0.15 ? "error" : "warning";
 
 		if($problem != "") {
-			echo "<div id=\"" . $class . "\">pH-Wert zu " . $problem . ", " . $amount . " g pH-" . $what . " zugeben.</div>";
+			echo "<br/><div id=\"" . $class . "\">pH-Wert zu " . $problem . ", " . $amount . " g pH-" . $what . " zugeben.</div>";
 		}
 
 		return true;
