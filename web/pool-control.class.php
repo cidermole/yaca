@@ -33,7 +33,29 @@ class PoolControl extends Plugin {
 			return false;
 		}
 
-		echo "{PoolControl: pH = " . $this->getPh($msg_ph) . ", T = " . $this->getTemp($msg_te) . " &deg;C, relay = " . ($msg_st->data[0] == 1 ? "on" : "off") . " }";
+		$ph = $this->getPh($msg_ph);
+		$relay = ($msg_st->data[0] == 1);
+		echo "Pool: pH = " . $ph . ", T = " . $this->getTemp($msg_te) . " &deg;C (" . ($relay ? "Pool" : "Garage") . "), Relais = " . ($relay ? "ein" : "aus");
+
+		$problem = "";
+		$diff = 0;
+		if($ph < 7) {
+			$diff = 7 - $ph;
+			$problem = "niedrig";
+			$what = "Plus";
+		} else if($ph > 7.4) {
+			$diff = $ph - 7.4;
+			$problem = "hoch";
+			$what = "Minus";
+		}
+
+		$amount = round(1600 * $diff, -1);
+		$class = $diff > 0.15 ? "error" : "warning";
+
+		if($problem != "") {
+			echo "<div id=\"" . $class . "\">pH-Wert zu " . $problem . ", " . $amount . " g pH-" . $what . " zugeben.</div>";
+		}
+
 		return true;
 	}
 }

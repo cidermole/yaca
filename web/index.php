@@ -137,20 +137,29 @@ div {
 	top: 0px;
 }
 
-#pool {
+#panel {
 	left: 0px;
 	top: 40px;
 }
 
-#panel {
+#outdoor {
+	left: 0px;
+	top: 60px;
+}
+
+#pool {
 	left: 0px;
 	top: 80px;
 }
 
-#outdoor {
-	left: 0px;
-	top: 100px;
+#warning {
+	background: #ff8000;
 }
+
+#error {
+	background: #ff0000;
+}
+
 <?php } ?>
 
 </style>
