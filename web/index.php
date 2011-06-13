@@ -153,7 +153,7 @@ div {
 }
 
 #warning {
-	background: #ff8000;
+	background: #ffb050;
 }
 
 #error {

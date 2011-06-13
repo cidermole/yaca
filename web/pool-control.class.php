@@ -8,7 +8,7 @@ class PoolControl extends Plugin {
 	
 	function getPh($msg) {
 		$raw_data = $msg->data[0] * 0x100 + $msg->data[1];
-		return number_format($raw_data / 100.0, 2, ',', '.');
+		return $raw_data / 100.0;
 	}
 	
 	function getTemp($msg) {
@@ -34,8 +34,9 @@ class PoolControl extends Plugin {
 		}
 
 		$ph = $this->getPh($msg_ph);
+		$ph_display = number_format($ph, 2, ',', '.');
 		$relay = ($msg_st->data[0] == 1);
-		echo "Pool: pH = " . $ph . ", " . $this->getTemp($msg_te) . " &deg;C (" . ($relay ? "Pool" : "Garage") . "), Pumpe " . ($relay ? "ein" : "aus");
+		echo "Pool: pH " . $ph_display . ", " . $this->getTemp($msg_te) . " &deg;C (" . ($relay ? "Pool" : "Garage") . "), Pumpe " . ($relay ? "ein" : "aus");
 
 		$problem = "";
 		$diff = 0;
@@ -50,7 +51,7 @@ class PoolControl extends Plugin {
 		}
 
 		$amount = round(1600 * $diff, -1);
-		$class = $diff > 0.15 ? "error" : "warning";
+		$class = $diff > 0.2 + 0.15 ? "error" : "warning";
 
 		if($problem != "") {
 			echo "<br/><div id=\"" . $class . "\">pH-Wert zu " . $problem . ", " . $amount . " g pH-" . $what . " zugeben.</div>";
