@@ -64,7 +64,7 @@ class PoolControl extends Plugin {
 		$amount = round(1400 * $corr_diff, -1); // round amount to 10 g
 		$class = $diff > 0.15 ? "error" : "warning";
 
-		if($problem != "") {
+		if($problem != "" && $relay) {
 			echo "<br/><div id=\"" . $class . "\">pH-Wert zu " . $problem . ", " . $amount . " g pH-" . $what . " zugeben.</div>";
 		}
 
