@@ -14,8 +14,8 @@ void __attribute__ ((naked, signal, __INTR_ATTRS)) INT0_vect(void);
 #endif
 void __attribute__ ((weak)) _Z4initv(void);
 
-extern fpt_t fpt[] PROGMEM;
-extern uint8_t fpt_size PROGMEM;
+extern const fpt_t fpt[] PROGMEM;
+extern const uint8_t fpt_size PROGMEM;
 
 volatile uint16_t _time = 0;
 

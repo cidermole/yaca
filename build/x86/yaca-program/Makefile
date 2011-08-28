@@ -9,7 +9,7 @@ SRCDIR = ../../../src/x86/yaca-program
 #
 EXE = main
 #INCDIRS +=
-#CFLAGS +=
+CFLAGS = -fpermissive
 
 CC = g++
 

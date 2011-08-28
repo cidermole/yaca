@@ -12,9 +12,11 @@ SRCDIR = ../../../src/embedded/$(PROJECT)
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
 
+YACA_PATH = $(shell cat /etc/yaca.path)
+
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -DF_CPU=2000000UL -Os -fsigned-char -I/usr/lib/yaca/include
+CFLAGS += -Wall -gdwarf-2 -DF_CPU=2000000UL -Os -fsigned-char -I$(YACA_PATH)/build/include
 CFLAGS += -MD -MP -MT $(*F).o
 
 ## Assembly specific flags

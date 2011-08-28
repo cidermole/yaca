@@ -15,9 +15,11 @@ COMMON = -mmcu=$(MCU)
 F_CPU = 16000000UL
 CLOCK_PRESCALER_MAGIC = MCP2515_CLKOUT_16MHZ
 
+YACA_PATH = $(shell cat /etc/yaca.path)
+
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char -I/usr/lib/yaca/include
+CFLAGS += -Wall -gdwarf-2 -DF_CPU=$(F_CPU) -Os -fsigned-char -I$(YACA_PATH)/build/include
 CFLAGS += -MD -MP -MT $(*F).o
 
 ## Assembly specific flags

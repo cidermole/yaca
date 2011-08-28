@@ -5,7 +5,7 @@
 
 // Initialization register values for MCP2515
 //
-mcp2515_init_t mcp2515_values[] PROGMEM = {
+const mcp2515_init_t mcp2515_values[] PROGMEM = {
 
 	// BRP = 0 -> TQ = 2 * (BRP + 1) / Fosc = 2 / 8MHz = 250ns
 	{CNF1, 7},
