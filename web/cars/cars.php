@@ -33,6 +33,7 @@ if($_GET['mode'] == 'week') {
 	}
 
 	$picTitle = "Letzte Woche (" . $from->format("Y-m-d") . " - " . $now->format("Y-m-d") . ")";
+	$mydesc = "Autos / h";
 } else if($_GET['mode'] == 'month') {
 	$now = new DateTime();
 	$now->setTime($now->format("H"), 0); // current day, hour
@@ -54,6 +55,30 @@ if($_GET['mode'] == 'week') {
 	}
 
 	$picTitle = "Letzter Monat (" . $from->format("Y-m-d") . " - " . $now->format("Y-m-d") . ")";
+	$mydesc = "Autos / Tag";
+} else if($_GET['mode'] == 'all') {
+	$now = new DateTime();
+	$now->setTime(0, 0); // current day, hour
+	$from = new DateTime();
+	$from->setDate(2011, 05, 15);
+	$from->setTime(0, 0);
+	$i = clone $from;
+	$j = clone $from;
+	$step = new DateInterval("PT24H");
+	$j->add($step);
+
+	$date_at_hour = $now->format("H") % (4*24);
+
+	for(; $i < $now; $i->add($step), $j->add($step)) {
+		$q = mysql_query("select count(*) from cars where timestamp >= '" . $i->format("Y-m-d H:i:s") . "' and timestamp < '" . $j->format("Y-m-d H:i:s") . "'");
+		$res = mysql_fetch_row($q);
+		$data[] = $res[0];
+		$date = ($i->format("H") == $date_at_hour ? $i->format("d.m.") : "");
+		$abscissa[] = array($i->format("H"), $date);
+	}
+
+	$picTitle = "Alles (" . $from->format("Y-m-d") . " - " . $now->format("Y-m-d") . ")";
+	$mydesc = "Autos / Tag";
 } else {
 	echo "BBQ";
 	exit();
@@ -81,14 +106,14 @@ $myData->addPoints(array("January","February","March","April","May","June","July
 $myData->setAbscissa("Absissa");*/
 
 $myData->addPoints($data, "Autos");
-$myData->setSerieDescription("Autos", "Autos / h");
+$myData->setSerieDescription("Autos", $mydesc);
 $myData->setSerieOnAxis("Autos", 0);
 
 $myData->addPoints($abscissa, "Abscissa");
 $myData->setAbscissa("Abscissa");
 
 $myData->setAxisPosition(0,AXIS_POSITION_LEFT);
-$myData->setAxisName(0,"Autos / h");
+$myData->setAxisName(0,$mydesc);
 $myData->setAxisUnit(0,"");
 $autoSettings = array("R"=>229,"G"=>11,"B"=>11); // set series 0 to red
 $myData->setPalette("Autos", $autoSettings);
