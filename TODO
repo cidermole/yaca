@@ -63,3 +63,7 @@ LONG-TERM
 ^^^^^^^^^
 -> fuses: enter them into makefile (??)
 -> mcu type option
+
+
+-> node type (mhz (atmega clock) + mcp2515 quarz mhz for now, atmega type later) into EEPROM -> bootloader could auto init mcp2515
+
