@@ -1,0 +1,18 @@
+<node-config id="807">
+	<messages>
+<!--
+		<message name="Count">
+			<id>406</id>
+		</message>
+		<message name="SetCount">
+			<id>6</id>
+		</message>
+-->
+	</messages>
+	<settings>
+<!--
+		<setting name="count_id" value="406" />
+-->
+	</settings>
+	<build/>
+</node-config>

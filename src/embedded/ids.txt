@@ -16,6 +16,7 @@ Nodes
 804 RadioBase: RFM12 base station in living room
 805 Time: DCF77 receiver
 806 CarCounter
+807 EntryBox
 
 RPCs
 ----
