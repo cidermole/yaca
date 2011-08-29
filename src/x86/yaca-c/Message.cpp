@@ -156,9 +156,9 @@ string Message::createFunctionTable(Source* src) {
 	code << "\t} fpt_t;\n";
 	code << "}\n\n";
 	
-	code << "extern fpt_t fpt[] PROGMEM;\n" << "extern uint8_t fpt_size PROGMEM;\n\n";
+	code << "extern const fpt_t fpt[" << l.size() << "] PROGMEM;\n" << "extern const uint8_t fpt_size PROGMEM;\n\n";
 	
-	code << "fpt_t fpt[] = {\n";
+	code << "const fpt_t fpt[" << l.size() << "] = {\n";
 
 	for(i = l.begin(), count = 0; i != l.end(); i++, count++) {
 		code << (count ? ",\n\t" : "\t") << "{0x" << itoh((*i).getPackStyle()) << ", " << ((i->getType() == RTR) ? "0x01" : "0x00")
@@ -166,7 +166,7 @@ string Message::createFunctionTable(Source* src) {
 	}
 
 	code << "\n};\n";
-	code << "uint8_t fpt_size = " << count << ";" << endl;
+	code << "const uint8_t fpt_size = " << l.size() << ";" << endl;
 
 	return code.str();
 }
