@@ -90,7 +90,8 @@ int16_t adc_convert(uint8_t channel) {
 }
 
 int16_t ibat_offset = 512;
-int16_t isol, vbat, ibat;
+int16_t ibat;
+uint16_t vbat, isol;
 int32_t sum_punit = 0;
 uint32_t sum_punit_solar = 0;
 uint32_t joule_battery = JOULE_BATTERY_FULL;
@@ -101,12 +102,12 @@ void time_tick();
 void conversion_tick() {
 	static uint8_t time = 0;
 	int32_t power;
-	/*int16_t*/ vbat = adc_convert(ADC_VBAT);
+	/*uint16_t*/ vbat = adc_convert(ADC_VBAT);
 	/*int16_t*/ ibat = adc_convert(ADC_IBAT) - ibat_offset;
 
 	power = ((int32_t) vbat) * ibat;
 	sum_punit += power;
-	sum_punit_solar += (uint32_t) ((int32_t) vbat) * isol;
+	sum_punit_solar += (uint32_t) ((uint32_t) vbat) * isol;
 
 	isol = adc_convert(ADC_ISOL);
 
@@ -162,7 +163,7 @@ void DR(JouleStatus()) {
 
 void DR(PowerStatus()) {
 	yc_prepare_ee(YC_EE_POWERSTATUS_ID);
-	yc_send(EntryBox, PowerStatus(sum_punit, sum_punit_solar));
+	yc_send(EntryBox, PowerStatus((uint16_t) vbat, ibat, (uint16_t) isol));
 }
 
 volatile uint8_t start_conversion = 0;

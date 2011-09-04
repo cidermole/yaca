@@ -7,7 +7,7 @@
 namespace EntryBox {
 	void HDS(JouleStatus(uint32_t joule_battery, uint32_t joule_solar));
 	void HDR(JouleStatus());
-	void HDS(PowerStatus(int32_t spu_battery, uint32_t spu_solar));
+	void HDS(PowerStatus(uint16_t vbat, int16_t ibat, uint16_t isol));
 	void HDR(PowerStatus());
 
 	//void HDM(SetCount(uint32_t count));

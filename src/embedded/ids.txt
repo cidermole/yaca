@@ -45,6 +45,6 @@ Bulk Status
 405 RadioBase::TempStatus(int16_t temp_deci, uint16_t millivolt)
 406 CarCounter::Count(uint32_t count)
 407 EntryBox::JouleStatus(uint32_t joule_battery, uint32_t joule_solar)
-408 EntryBox::PowerStatus(int32_t spu_battery, uint32_t spu_solar)
+408 EntryBox::PowerStatus(uint16_t vbat, int16_t ibat, uint16_t isol)
 
 1024, 1025: TCP/IP to/from ControlPanel
