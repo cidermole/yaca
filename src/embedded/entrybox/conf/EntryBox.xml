@@ -10,9 +10,8 @@
 -->
 	</messages>
 	<settings>
-<!--
-		<setting name="count_id" value="406" />
--->
+		<setting name="joulestatus_id" value="407" />
+		<setting name="powerstatus_id" value="408" />
 	</settings>
 	<build/>
 </node-config>
