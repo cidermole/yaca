@@ -184,6 +184,7 @@ int main(int argc, char** argv) {
 		system((es + "rm -f R" + nodeName + ".*").c_str());
 		system((es + "rm -f " + nodeName + "*.o").c_str());
 		system("rm -f ftable.*");
+		system("rm -f Messages.h");
 	}
 	
 	if(cleanMode) {
@@ -192,7 +193,6 @@ int main(int argc, char** argv) {
 			system((es + "rm -f " + nodeName + "-full.hex").c_str());
 		system((es + "rm -f " + nodeName + "-app.eep").c_str());
 		system((es + "rm -f " + nodeName + ".nds").c_str());
-		system((es + "rm -f Messages.h").c_str());
 	}
 
 	return 0;
