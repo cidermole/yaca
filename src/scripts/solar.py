@@ -40,9 +40,9 @@ while True:
 		vbat = msg[M_DATA] * (256**1) + msg[M_DATA + 1]
 		ibat = msg[M_DATA + 2] * (256**1) + msg[M_DATA + 3]
 		if ibat >= 2**15:
-			ibat = 2**16 - ibat
+			ibat = -(2**16 - ibat)
 		isol = msg[M_DATA + 4] * (256**1) + msg[M_DATA + 5]
-		print('                                                     Vbat: %5.3lf V, Ibat: %4.3lf A, Isol: %4.3lf A, Pbat: %5.3lf W, Psol: %5.3lf W' % (0.015 * vbat, 0.0065 * ibat, 0.0065 * isol, 0.015 * vbat * 0.0065 * ibat, 0.015 * vbat * 0.0065 * isol))
+		print('                                                     Vbat: %5.3lf V, Ibat: %4.3lf A, Isol: %4.3lf A, Pbat: %5.3lf W, Psol: %5.3lf W' % (0.015 * vbat, 0.0065 * ibat, 0.0065 / 2.0 * isol, 0.015 * vbat * 0.0065 * ibat, 0.015 * vbat * 0.0065 / 2.0 * isol))
 
 sock.close()
 

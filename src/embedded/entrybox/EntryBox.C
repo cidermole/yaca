@@ -17,7 +17,7 @@ PD6: dummy load (N-channel MOSFET gate)
 
 ADC0: IBAT (battery current), 6.5 mA resolution
 ADC1: VBAT (battery voltage), 15 mV resolution
-ADC2: ISOL (solar [charge] current), 6.5 mA resolution
+ADC2: ISOL (solar [charge] current), 3.25 mA resolution  TODO: update in code (double resolution, because of double the resistance)
 
   |
   v IBAT
@@ -56,6 +56,7 @@ ADC low-pass filter tau = 2 ms -> 10 ms changes relevant -> 100 Hz samplerate
 void enter_bootloader_hook() {
 	TCCR1A = 0;
 	TCCR1B = 0;
+	TCCR2 = 0;
 	TIMSK = 0;
 	cli();
 	yc_bld_reset();
@@ -120,7 +121,7 @@ void conversion_tick() {
 void calibrate() {
 	// TODO: turn off all power consumers, restore afterwards
 
-	ibat_offset = adc_convert(ADC_IBAT); // measure zero current offset
+	ibat_offset = adc_convert(ADC_IBAT) + 2; // measure zero current offset (2: 2*6.5 = 13 mA ~ uC circuit current)
 }
 
 void time_tick() {
@@ -164,6 +165,13 @@ void DR(JouleStatus()) {
 void DR(PowerStatus()) {
 	yc_prepare_ee(YC_EE_POWERSTATUS_ID);
 	yc_send(EntryBox, PowerStatus((uint16_t) vbat, ibat, (uint16_t) isol));
+}
+
+void DM(SetDummy(uint8_t status)) {
+	if(status)
+		PORTD |= (1 << PD6);
+	else
+		PORTD &= ~(1 << PD6);
 }
 
 volatile uint8_t start_conversion = 0;

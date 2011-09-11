@@ -10,6 +10,6 @@ namespace EntryBox {
 	void HDS(PowerStatus(uint16_t vbat, int16_t ibat, uint16_t isol));
 	void HDR(PowerStatus());
 
-	//void HDM(SetCount(uint32_t count));
+	void HDM(SetDummy(uint8_t status));
 }
 

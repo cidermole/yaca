@@ -1,13 +1,8 @@
 <node-config id="807">
 	<messages>
-<!--
-		<message name="Count">
-			<id>406</id>
+		<message name="SetDummy">
+			<id>7</id>
 		</message>
-		<message name="SetCount">
-			<id>6</id>
-		</message>
--->
 	</messages>
 	<settings>
 		<setting name="joulestatus_id" value="407" />
