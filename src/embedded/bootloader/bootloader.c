@@ -148,6 +148,18 @@ _from_app:
 					bootApp();
 					break;
 				}
+
+				case TID_BLD_GETSIG: // Get device signature
+					msg.length = 4;
+					//msg.id = tempid; // this is already the case
+					msg.info = 0;
+					msg.data[0] = TID_BLD_SIG;
+					msg.data[1] = SIGNATURE_0;
+					msg.data[2] = SIGNATURE_1;
+					msg.data[3] = SIGNATURE_2;
+					// we can assume the message always works out OK as we send replies in a sequential protocol
+					yc_transmit(&msg);
+					break;
 			}
 			break;
 

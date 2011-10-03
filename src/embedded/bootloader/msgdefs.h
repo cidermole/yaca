@@ -17,6 +17,8 @@
 #define TID_BLD_PGDONE	0x0D	// Msg#23: Bootloader page done
 #define TID_BLD_BOOT	0x0E	// Msg#24: Boot application
 #define TID_BLD_EE_WR	0x0F
+#define TID_BLD_GETSIG	0x10
+#define TID_BLD_SIG	0x11
 
 
 // TODO: Docu:: enter Master-ID, 0xFE, 0x03 error as "unknown TID/MID msg."
