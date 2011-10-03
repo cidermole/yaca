@@ -19,17 +19,11 @@ const mcp2515_init_t mcp2515_values[] PROGMEM = {
 	// enable Rx buffer interrupts
 	{CANINTE, (1 << RX1IE) | (1 << RX0IE)},
 
-	// only receive extended frames, BUKT: rollover of messages to RXB1
-	{RXB0CTRL, (1 << RXM1) | (1 << BUKT)},
+	// BUKT: rollover of messages to RXB1
+	{RXB0CTRL, (1 << BUKT)},
 
-	// only receive extended frames
-	{RXB1CTRL, (1<<RXM1)},
-
-	// deactivate RXnBF pins (set to high-Z), unused
-	{BFPCTRL, 0},
-
-	// TXnRTS as inputs (unused)
-	{TXRTSCTRL, 0},
+	// set device to normal mode
+	{CANCTRL, CLOCK_PRESCALER_MAGIC},
 
 	// end marker of init sequence
 	{0xFF, 0}
@@ -102,9 +96,6 @@ void mcp2515_init() {
 		mcp2515_wrreg(d.asinit.reg, d.asinit.val);
 		d.asint = (uint16_t) pgm_read_word(p++);
 	}
-
-	mcp2515_wrreg(CANCTRL, CLOCK_PRESCALER_MAGIC); // set device to normal mode
-//	mcp2515_wrreg(CANCTRL, 0x40 | CLOCK_PRESCALER_MAGIC); // set device to loopback mode
 
 #ifdef YACA_INT1
 	MCUCR &= ~((1 << ISC11) | (1 << ISC10)); // Set INT1 to active low

@@ -135,13 +135,6 @@ uint8_t _read_frame(Message* f, uint8_t read_cmd) {
 	bytewise(f->id, 2) |= ((temp & 0xE0) >> 3);
 	bytewise(f->id, 2) |= (temp & 0x03);
 
-	// if not extended ID, this is an ERROR!! Recoverable, but record it.
-	if(bit_is_clear(temp, IDE)) {
-		seterror(YCERR_CAN_STD_FRAME);
-		_spi_stop();
-		return 0;
-	}
-
 	bytewise(f->id, 1) = _spi_getc();
 	bytewise(f->id, 0) = _spi_getc();
 
