@@ -6,10 +6,10 @@ extern "C" {
 #endif
 
 
-#define YCERR_CAN_STD_FRAME		(1 << 0) // We have received a CAN frame with standard (11-bit) ID. This bus is extended-ID only!
+#define YCERR_CAN_STD_FRAME		(1 << 0) // We have received a CAN frame with standard (11-bit) ID. This bus is extended-ID only! - obsolete
 #define YCERR_MCU_RX_OVERRUN	(1 << 1) // Our 1-message "buffer" has overflowed!
 #define YCERR_BLD_FSM			(1 << 2) // The bootloader FSM reached an invalid state
-#define YCERR_CRC				(1 << 3) // The bootloader has detected a CRC error in the application
+#define YCERR_CRC				(1 << 3) // The bootloader has detected a CRC error in the application - obsolete, see CAN message
 #define YCERR_PAGE_OVERRUN		(1 << 4) // The bootloader reached an invalid page
 #define YCERR_MULTI				(1 << 7) // Multiple errors (EEPROM error flags already used)
 

@@ -22,6 +22,7 @@
 #define TID_BLD_EE_WROK	0x12
 #define TID_BLD_EE_RD	0x13
 #define TID_BLD_EE_DATA	0x14
+#define TID_BLD_CRC_ERR	0x15
 
 
 // TODO: Docu:: enter Master-ID, 0xFE, 0x03 error as "unknown TID/MID msg."

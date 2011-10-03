@@ -32,6 +32,26 @@ void _error(uint8_t ec) {
 	while(1);
 }
 
+/**
+ * \brief Code-squeezing method for setting info = 0, id, length, data[0] and calling yc_transmit().
+ * 
+ * XXX: yc_transmit() return value is not checked, i.e. this method is not suitable for transmitting when the TX buffer may be full.
+ * 
+ **/
+void txMessageWithStatusAndLength(Message *msg, uint8_t status, uint8_t length) {
+	msg->id = tempid;
+	msg->info = 0;
+	msg->length = length;
+	msg->data[0] = status;
+	// we can assume the message always works out OK as we send replies in a sequential protocol
+	yc_transmit(msg);
+}
+
+void txCrcError(Message *msg) {
+	msg->data[0] = TID_BLD_CRC_ERR;
+	txMessageWithStatusAndLength(msg, TID_BLD_CRC_ERR, 1);
+}
+
 int __attribute__((noreturn)) main() {
 	Message msg;
 	uint8_t state = 0;
@@ -91,6 +111,8 @@ int __attribute__((noreturn)) main() {
 			if(_time > timeout) {
 				sei();
 				bootApp();
+				txCrcError(&msg); // if bootApp() returned, we have a CRC error
+				state = 1;
 			}
 			sei();
 
@@ -125,12 +147,7 @@ _from_app:
 					if(bldByte == BLD_PAGE_SIZE) { // if the whole page is loaded, flash it
 						flashPage(bldPage++, pageBuffer);
 						bldByte = 0;
-						msg.data[0] = TID_BLD_PGDONE;
-						msg.length = 1;
-						//msg.id = tempid; // this is already the case
-						msg.info = 0;
-						// we can assume the message always works out OK as we send replies in a sequential protocol
-						yc_transmit(&msg);
+						txMessageWithStatusAndLength(&msg, TID_BLD_PGDONE, 1);
 					}
 					break;
 
@@ -142,40 +159,25 @@ _from_app:
 
 					yc_init();
 					sei();
-					
-					msg.length = 1;
-					//msg.id = tempid; // this is already the case
-					msg.info = 0;
-					msg.data[0] = TID_BLD_EE_WROK;
-					// we can assume the message always works out OK as we send replies in a sequential protocol
-					yc_transmit(&msg);
+					txMessageWithStatusAndLength(&msg, TID_BLD_EE_WROK, 1);
 					break;
 				
 				case TID_BLD_EE_RD: // Read a byte from EEPROM
-					msg.length = 2;
-					//msg.id = tempid; // this is already the case
-					msg.info = 0;
-					msg.data[0] = TID_BLD_EE_DATA;
 					msg.data[1] = eeprom_read_byte((uint8_t *)(*((uint16_t *)(&msg.data[1]))));
-					// we can assume the message always works out OK as we send replies in a sequential protocol
-					yc_transmit(&msg);
+					txMessageWithStatusAndLength(&msg, TID_BLD_EE_DATA, 2);
 					break;
 
 				case TID_BLD_BOOT: // Boot the app
 					bootApp();
+					txCrcError(&msg); // if bootApp() returned, we have a CRC error
 					break;
 				}
 
 				case TID_BLD_GETSIG: // Get device signature
-					msg.length = 4;
-					//msg.id = tempid; // this is already the case
-					msg.info = 0;
-					msg.data[0] = TID_BLD_SIG;
 					msg.data[1] = SIGNATURE_0;
 					msg.data[2] = SIGNATURE_1;
 					msg.data[3] = SIGNATURE_2;
-					// we can assume the message always works out OK as we send replies in a sequential protocol
-					yc_transmit(&msg);
+					txMessageWithStatusAndLength(&msg, TID_BLD_SIG, 4);
 					break;
 			}
 			break;
@@ -190,6 +192,9 @@ _from_app:
 	}
 }
 
+/**
+ * \brief Check CRC and start application if CRC is OK, return otherwise.
+ **/
 void bootApp() {
 	void (*fp)() = (void (*)())0;
 	
@@ -199,9 +204,8 @@ void bootApp() {
 	for(p = NULL; p < ((uint8_t *)(BLD_APP_PAGE_COUNT * BLD_PAGE_SIZE)); p++)
 		crc = _crc16_update(crc, pgm_read_byte(p));
 	
-	if(eeprom_read_word(EE_CRC16) != crc) {
-		_error(YCERR_CRC);
-	}
+	if(eeprom_read_word(EE_CRC16) != crc)
+		return;
 
 	// deactivate Timer1
 	cli();
