@@ -35,7 +35,6 @@ void _error(uint8_t ec) {
 int __attribute__((noreturn)) main() {
 	Message msg;
 	uint8_t state = 0;
-	uint8_t nextState = 0;
 	uint16_t timeout = BLD_TIMEOUT;
 	uint16_t bldPage = 0;
 	uint8_t bldByte = 0;
@@ -130,11 +129,8 @@ _from_app:
 						msg.length = 1;
 						//msg.id = tempid; // this is already the case
 						msg.info = 0;
-						// TODO: optimization potential: we can assume the message works out OK as we send replies in a sequential protocol
-						if(yc_transmit(&msg) == PENDING) { // (no FAILURE in mcp driver atm)
-							state = 2;
-							nextState = 1;
-						}
+						// we can assume the message always works out OK as we send replies in a sequential protocol
+						yc_transmit(&msg);
 					}
 					break;
 				
@@ -153,17 +149,6 @@ _from_app:
 					break;
 				}
 			}
-			break;
-
-		/*
-		 * State 2
-		 * Wait for a message to be sent
-		 */
-		case 2:
-			//_delay_us(100);
-			delay_ms(1); // save some bytes of flash
-			if(yc_poll_transmit(&msg) != PENDING) // (no FAILURE in mcp driver atm)
-				state = nextState;
 			break;
 
 		default:
