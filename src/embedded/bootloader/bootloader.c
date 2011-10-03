@@ -37,7 +37,7 @@ int __attribute__((noreturn)) main() {
 	uint8_t state = 0;
 	uint8_t nextState = 0;
 	uint16_t timeout = BLD_TIMEOUT;
-	uint8_t bldPage = 0; // for Atmega8 only (for devices with <= 128 pages)
+	uint16_t bldPage = 0;
 	uint8_t bldByte = 0;
 	uint8_t pageBuffer[BLD_PAGE_SIZE];
 	uint8_t i;
@@ -51,6 +51,8 @@ int __attribute__((noreturn)) main() {
 	delay_ms(EEPROM_WARMUP_DELAY);
 	yc_init();
 
+	// PORTABILITY: timer will need to be adapted
+	// TODO: some EEPROM config value for CPU MHz
 	// 1.000.000 / 8 = 125.000 / (125 * MHz) = 1.000 ticks/sec.
 	TCCR1B = (1 << CS11) | (1 << WGM12); // Timer1 presc. = 8, CTC mode
 	OCR1A = (uint16_t)((125UL * F_CPU) / 1000000UL);
@@ -128,6 +130,7 @@ _from_app:
 						msg.length = 1;
 						//msg.id = tempid; // this is already the case
 						msg.info = 0;
+						// TODO: optimization potential: we can assume the message works out OK as we send replies in a sequential protocol
 						if(yc_transmit(&msg) == PENDING) { // (no FAILURE in mcp driver atm)
 							state = 2;
 							nextState = 1;
@@ -199,8 +202,8 @@ void bootApp() {
 	fp();
 }
 
-void flashPage(uint8_t page, uint8_t* buffer) {
-	uint8_t i; // for Atmega8 only
+void flashPage(uint16_t page, uint8_t* buffer) {
+	uint16_t i;
 
 	// this cli() means 3.7 - 4.5 ms of disabled interrupts, according to the data sheet (programming time)
 	// 125 kbps on CAN + min. CAN frame length of (64 + 3IFS) -> 0,536 ms for a frame :(

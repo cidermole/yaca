@@ -15,8 +15,11 @@
 // page count for Atmega8 = 128
 #define BLD_PAGE_COUNT ((FLASHEND + 1) / SPM_PAGESIZE)
 
-// app page count for Atmega8 while using 2K (the largest setting) for bootloader section
-#define BLD_APP_PAGE_COUNT 96
+// boot section size in bytes
+#define BLD_SECTION_SIZE 2048
+
+// app page count while using 2K for bootloader section (for Atmega8 this equals 96)
+#define BLD_APP_PAGE_COUNT (BLD_PAGE_COUNT - (BLD_SECTION_SIZE / SPM_PAGESIZE))
 
 // page size in bytes, for Atmega8 = 64
 #define BLD_PAGE_SIZE SPM_PAGESIZE
@@ -32,7 +35,7 @@
 #define bytewise(var, b) (((uint8_t*)&(var))[b])
 
 void bootApp();
-void flashPage(uint8_t page, uint8_t* buffer);
+void flashPage(uint16_t page, uint8_t* buffer);
 uint8_t receiveValidateTempidMsg(Message* msg);
 
 #endif /* _BOOTLOADER_H_ */
