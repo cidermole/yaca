@@ -8,6 +8,8 @@
 
 #include "eeprom.h"
 
+// bootloader version reported after the MCU signature in the message TID_BLD_SIG
+#define BOOTLOADER_VERSION 2
 
 // time to wait after power-up before booting app in ms
 #define BLD_TIMEOUT 3000

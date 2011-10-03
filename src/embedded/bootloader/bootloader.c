@@ -177,7 +177,8 @@ _from_app:
 					msg.data[1] = SIGNATURE_0;
 					msg.data[2] = SIGNATURE_1;
 					msg.data[3] = SIGNATURE_2;
-					txMessageWithStatusAndLength(&msg, TID_BLD_SIG, 4);
+					msg.data[4] = BOOTLOADER_VERSION;
+					txMessageWithStatusAndLength(&msg, TID_BLD_SIG, 5);
 					break;
 			}
 			break;
