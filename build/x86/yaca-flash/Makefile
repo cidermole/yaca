@@ -10,6 +10,7 @@ SRCDIR = ../../../src/x86/yaca-flash
 EXE = main
 #INCDIRS +=
 CFLAGS = -fpermissive
+LDFLAGS += -lrt
 
 CC = g++
 
@@ -26,7 +27,7 @@ mrproper: clean
 	rm -f ../../bin/yaca-flash
 
 $(EXE):	$(OBJS)
-	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS)
+	$(CC) -o $@ $(SRCDIR)/$(EXE).cpp $(OBJS) $(CFLAGS) $(LDFLAGS)
 	cp $(EXE) ../../bin/yaca-flash
 
 %.o: $(SRCDIR)/%.cpp

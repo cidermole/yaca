@@ -6,6 +6,7 @@
 #define compare(a, b) (!strncmp(a, b, strlen(b)))
 
 conf_t conf;
+common_conf_t common_conf;
 
 BOOL _readline(char *buffer, int size, FILE *f) {
 	char c;
@@ -24,17 +25,57 @@ BOOL _readline(char *buffer, int size, FILE *f) {
 }
 
 void process_key(const char *key, const char *val) {
-	if(compare(key, "server")) {
-		strcpy(conf.server, val);
-	} else if(compare(key, "port")) {
-		conf.port = atoi(val);
-	} else if(compare(key, "flash_size")) {
+	if(compare(key, "flash_size")) {
 		conf.flash_size = atoi(val);
 	} else if(compare(key, "page_size")) {
 		conf.page_size = atoi(val);
 	} else if(compare(key, "boot_size")) {
 		conf.boot_size = atoi(val);
+	} else if(compare(key, "mcu")) {
+		strcpy(conf.mcu, val);
 	}
+}
+
+void process_common_key(const char *key, const char *val) {
+	if(compare(key, "server")) {
+		strcpy(common_conf.server, val);
+	} else if(compare(key, "port")) {
+		common_conf.port = atoi(val);
+	}
+}
+
+void load_common_conf(const char *file) {
+	FILE *f = fopen(file, "r");
+	char buffer[LINE_BUFFER];
+	char *key, *val;
+	int i, line = 0;
+
+	// default values
+	strcpy(common_conf.server, "192.168.1.1");
+	common_conf.port = 1222;
+	
+	if(!f) {
+		fprintf(stderr, "can't open config file \"%s\"\n", file);
+		return;
+	}
+
+	while(_readline(buffer, LINE_BUFFER, f)) {
+		if(buffer[0] == '#' || !strlen(buffer)) // skip #comments and empty lines
+			continue;
+
+		for(i = 0; i < strlen(buffer) && buffer[i] != '='; i++);
+		if(i != strlen(buffer)) {
+			buffer[i] = '\0';
+			key = buffer;
+			val = &buffer[i+1];
+			process_common_key(key, val);
+		} else {
+			fprintf(stderr, "line %d of %s is not a key (format: key=val)\n", line, file);
+			exit(0);
+		}
+		line++;
+	}
+	fclose(f);
 }
 
 void load_conf(const char *file) {
@@ -44,9 +85,8 @@ void load_conf(const char *file) {
 	int i, line = 0;
 
 	// default values
-	strcpy(conf.server, "192.168.1.1");
-	conf.port = 1222;
-	conf.flash_size = 8192;
+	strcpy(conf.mcu, "UNDEFINED");
+	conf.flash_size = 1; // should hopefully trigger an error if nothing is specified
 	conf.page_size = 64;
 	conf.boot_size = 2048;
 	

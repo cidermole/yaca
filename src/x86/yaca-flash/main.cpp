@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/time.h>
 
 #include "ihex.h"
 #include "config.h"
@@ -11,9 +15,48 @@
 #include "../../embedded/bootloader/eeprom.h"
 #include "../yaca-path.h"
 
+#define ATMEGA8_SIGNATURE "1E9307"
+
+// returns bootloader version
+int get_mcu_signature(char *signature, int sock, int tid) {
+	fd_set fds;
+	struct timeval tv;
+	struct timespec t, till;
+	struct Message msg;
+	
+	// try to get MCU signature (works from bootloader version 2)
+	write_message(sock, tid, 1, TID_BLD_GETSIG);
+	
+	// wait for response
+	clock_gettime(CLOCK_REALTIME, &till);
+	clock_gettime(CLOCK_REALTIME, &t);
+	till.tv_sec += 2; // 1-2 sec. timeout
+	
+	while(t.tv_sec < till.tv_sec) {
+		FD_ZERO(&fds);
+		FD_SET(sock, &fds);
+		tv.tv_sec = 1; // select() timeout
+		tv.tv_usec = 0;
+		select(sock + 1, &fds, NULL, NULL, &tv);
+		if(FD_ISSET(sock, &fds)) {
+			read_message(sock, &msg);
+			if(msg.id == tid && msg.data[0] == TID_BLD_SIG) {
+				sprintf(signature, "%02X%02X%02X", msg.data[1], msg.data[2], msg.data[3]);
+				return msg.data[4];
+			} else if(msg.id == tid) {
+				fprintf(stderr, "unexpected message type %d received while getting MCU signature\n", (int) msg.data[0]);
+			}
+		}
+		clock_gettime(CLOCK_REALTIME, &t);
+	}
+	
+	// timeout
+	return 0;
+}
 
 int main(int argc, char **argv) {
 	int sock = 0;
+	char common_config_file[1024];
 	char config_file[1024];
 	bool crc_only = false, app = false;
 	
@@ -26,23 +69,40 @@ int main(int argc, char **argv) {
 	if(argc == 4 && !strncmp(argv[3], "-app", strlen("-app")))
 		app = true;
 	init_yaca_path();
-	sprintf(config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
-	load_conf(config_file);
-	if(!crc_only && (sock = connect_socket(conf.server, conf.port)) == -1)
+	sprintf(common_config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
+	load_common_conf(common_config_file);
+	if(!crc_only && (sock = connect_socket(common_conf.server, common_conf.port)) == -1)
 		return 1;
 
 	int tid = atoi(argv[1]);
-	int d_flash_size = conf.flash_size;
-	int d_page_size = conf.page_size;
-	int d_bld_size = conf.boot_size;
+	int d_flash_size;
+	int d_page_size;
+	int d_bld_size;
 	char str[4];
 
-	int _d_app_pages = ((d_flash_size - d_bld_size) / d_page_size);
+	int _d_app_pages;
 
 	char buffer[10 * 1024];
+	char signature[1024];
+	int version;
 	char *current = buffer;
 	int size, i, j, lastcount;
 	uint16_t crc = 0xFFFF;
+
+	printf("Auto-detecting MCU type...\n");
+	if(!(version = get_mcu_signature(signature, sock, tid))) {
+		fprintf(stderr, "WARNING: MCU signature detection failed. We could assume the bootloader version is too old.\n");
+		fprintf(stderr, "Enter MCU signature (" ATMEGA8_SIGNATURE " for ATmega8): \n");
+		fflush(stdin);
+		scanf("%6s", signature);
+	}
+	sprintf(config_file, "%s/src/x86/yaca-flash/conf/avr_%s.conf", yaca_path, signature);
+	load_conf(config_file);
+	printf("Loaded config file for MCU signature %s (%s bootloader version %d)\n", signature, conf.mcu, version);
+	d_flash_size = conf.flash_size;
+	d_page_size = conf.page_size;
+	d_bld_size = conf.boot_size;
+	_d_app_pages = ((d_flash_size - d_bld_size) / d_page_size);
 
 	if(size = ihex_parse(buffer, sizeof(buffer), argv[2])) {
 		if(size > _d_app_pages * d_page_size && !crc_only) {
@@ -83,6 +143,7 @@ int main(int argc, char **argv) {
 		}
 		printf("\n");
 		
+		// TODO: check for reply if bootloader version transmits ACKs
 		printf("Rewriting target EEPROM (clearing error flags, setting CRC = 0x%04X)...\n", crc);
 		target_eeprom_write(tid, sock, ((int) EE_CRC16), crc & 0xFF);
 		target_eeprom_write(tid, sock, ((int) EE_CRC16) + 1, crc >> 8);
@@ -100,3 +161,4 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+
