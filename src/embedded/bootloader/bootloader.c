@@ -133,7 +133,7 @@ _from_app:
 						yc_transmit(&msg);
 					}
 					break;
-				
+
 				case TID_BLD_EE_WR: // Write a byte to EEPROM
 					yc_close();
 					cli();
@@ -142,6 +142,23 @@ _from_app:
 
 					yc_init();
 					sei();
+					
+					msg.length = 1;
+					//msg.id = tempid; // this is already the case
+					msg.info = 0;
+					msg.data[0] = TID_BLD_EE_WROK;
+					// we can assume the message always works out OK as we send replies in a sequential protocol
+					yc_transmit(&msg);
+					break;
+				
+				case TID_BLD_EE_RD: // Read a byte from EEPROM
+					msg.length = 2;
+					//msg.id = tempid; // this is already the case
+					msg.info = 0;
+					msg.data[0] = TID_BLD_EE_DATA;
+					msg.data[1] = eeprom_read_byte((uint8_t *)(*((uint16_t *)(&msg.data[1]))));
+					// we can assume the message always works out OK as we send replies in a sequential protocol
+					yc_transmit(&msg);
 					break;
 
 				case TID_BLD_BOOT: // Boot the app
