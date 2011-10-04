@@ -2,7 +2,14 @@
 #define SPI_H
 
 #include <inttypes.h>
+
+#if defined(__AVR_ATmega8__)
 #include "spi_atmega8.h"
+#elif defined(__AVR_ATmega1284P__)
+#include "spi_atmega1284p.h"
+#else
+#error "No SPI implementation for the current MCU, at the very least for AVR, the SPI pins need to be defined."
+#endif
 
 /**
 
