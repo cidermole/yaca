@@ -38,7 +38,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Objects that must be built in order to link
-OBJECTS = mcp2515.o yaca-bl.o
+OBJECTS = mcp2515.o yaca-bl.o spi.o
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 

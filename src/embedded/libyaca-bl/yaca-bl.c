@@ -1,5 +1,6 @@
 #include "yaca-bl.h"
 #include "mcp2515.h"
+#include "spi.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -53,6 +54,7 @@ void yc_init() {
 }
 
 // TODO: check error codes to see whether the message has caused an error
+// TODO: _frame_transmit and _read_frame should be moved to MCP2515 driver as they are extremely specific (we shouldn't need to access SPI in here)
 tstatus _frame_transmit(Message* f) {
 	uint8_t status, i, len;
 
