@@ -16,7 +16,7 @@ class Temp extends Plugin {
 	function render() {
 		$msg_te = new Message($this->common);
 		if(!$msg_te->request($this->config['canid_tempstatus'])) {
-			echo "{Temp: request " . $this->config['canid_tempstatus'] . " failed}";
+			echo "ID" . $this->config['canid_tempstatus'];
 			return false;
 		}
 
