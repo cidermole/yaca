@@ -7,6 +7,7 @@ $ppc = (strpos($_SERVER['HTTP_USER_AGENT'], 'NetFront') !== FALSE);
 
 ?><html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Yaca</title>
 <script>
 
@@ -121,35 +122,45 @@ function clock() {
 </script>
 <style>
 
-<?php if($ppc) { ?>
-div {
+<?php // if($ppc) { ?>
+body div {
 	position: absolute;
 }
 
 #time {
-	font-size: 20pt;
+	font-size: 40pt;
 	left: 0px;
 	top: 0px;
 }
 
 #date {
-	left: 230px;
+	font-size: 30pt;
+	left: 395px;
 	top: 0px;
 }
 
-#panel {
-	left: 0px;
-	top: 40px;
+body div.temp, body div.temp div {
+	font-size: 30pt;
 }
 
-#outdoor {
+#panel_outer {
 	left: 0px;
-	top: 60px;
+	top: 80px;
+}
+
+#outdoor_outer {
+	left: 300px;
+	top: 80px;
+}
+
+body div.temp img {
+	vertical-align: middle;
 }
 
 #pool {
 	left: 0px;
 	top: 80px;
+	visibility: hidden;
 }
 
 #warning {
@@ -160,7 +171,7 @@ div {
 	background: #ff0000;
 }
 
-<?php } ?>
+<?php // } ?>
 
 </style>
 </head>
@@ -172,11 +183,11 @@ div {
 <div id="pool">
 <?php $pool->render(); ?>
 </div>
-<div id="panel">
-<?php $controlpanel_temp->render(); ?>
+<div id="panel_outer" class="temp">
+<img src="img/house.png" id="house" alt="Innen:" /> <span id="panel"><?php $controlpanel_temp->render(); ?></span>
 </div>
-<div id="outdoor">
-<?php $outdoor_temp->render(); ?>
+<div id="outdoor_outer" class="temp">
+<img src="img/clouds.png" id="clouds" alt="Außen:" /> <span id="outdoor"><?php $outdoor_temp->render(); ?></span>
 </div>
 </body>
 </html>
