@@ -8,6 +8,8 @@ class Temp extends Plugin {
 	
 	function getTemp($msg) {
 		$raw_data = $msg->data[0] * 0x100 + $msg->data[1];
+		if($raw_data > 32767)
+			$raw_data = -(65536 - $raw_data);
 		return number_format($raw_data / 10.0, 1, ',', '.');
 	}
 	
