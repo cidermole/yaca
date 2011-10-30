@@ -89,7 +89,8 @@ int main(int argc, char **argv) {
 	int size, i, j, lastcount;
 	uint16_t crc = 0xFFFF;
 
-	printf("Auto-detecting MCU type...\n");
+	if(!crc_only)
+		printf("Auto-detecting MCU type...\n");
 	if(!(version = get_mcu_signature(signature, sock, tid))) {
 		fprintf(stderr, "WARNING: MCU signature detection failed. We could assume the bootloader version is too old.\n");
 		fprintf(stderr, "Enter MCU signature (" ATMEGA8_SIGNATURE " for ATmega8): \n");
@@ -98,7 +99,8 @@ int main(int argc, char **argv) {
 	}
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/avr_%s.conf", yaca_path, signature);
 	load_conf(config_file);
-	printf("Loaded config file for MCU signature %s (%s bootloader version %d)\n", signature, conf.mcu, version);
+	if(!crc_only)
+		printf("Loaded config file for MCU signature %s (%s bootloader version %d)\n", signature, conf.mcu, version);
 	d_flash_size = conf.flash_size;
 	d_page_size = conf.page_size;
 	d_bld_size = conf.boot_size;
