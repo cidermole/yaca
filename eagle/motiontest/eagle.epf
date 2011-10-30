@@ -1,0 +1,25 @@
+[Eagle]
+Version="05 04 00"
+Platform="Linux"
+Serial="62191E841E-LSR-WLM-1EL"
+Globals="Globals"
+Desktop="Desktop"
+
+[Globals]
+AutoSaveProject=1
+UsedLibrary="/home/david/progs/eagle-5.4.0-private/lbr/atmel.lbr"
+UsedLibrary="/home/david/progs/eagle-5.4.0-private/lbr/con-3m.lbr"
+UsedLibrary="/home/david/progs/eagle-5.4.0-private/lbr/pinhead.lbr"
+UsedLibrary="/home/david/progs/eagle-5.4.0-private/lbr/rcl.lbr"
+UsedLibrary="/home/david/progs/eagle-5.4.0-private/lbr/supply1.lbr"
+UsedLibrary="/home/david/elektronik/eagle/motion.lbr"
+
+[Win_1]
+Type="Control Panel"
+Loc="399 261 1170 660"
+State=1
+Number=0
+
+[Desktop]
+Screen="1280 800"
+Window="Win_1"
