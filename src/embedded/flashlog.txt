@@ -4,3 +4,5 @@ date        time   node         head                                      remark
 2011-08-29  21:00  EntryBox     f9b225981921cfd8ff60b916692fdd989130ee55  (hand-flashed)  fuse: 2 MHz internal
 2011-10-09  14:30  RadioBase    0fa1f2cb497b5f86cdd64e69e249ce9e5db4dfe6  branch radio-base-old-stable
 2011-10-09  14:30  temp sender  0fa1f2cb497b5f86cdd64e69e249ce9e5db4dfe6  branch radio-base-old-stable
+2011-10-30  15:00  Time         0024260f4389543646aacdeaee71021b7ea7d7aa  (hand-flashed) bootloader v2, fuses: hfuse D8, lfuse E0
+2011-10-30  15:01  Time         0024260f4389543646aacdeaee71021b7ea7d7aa
