@@ -12,36 +12,11 @@ $ppc = (strpos($_SERVER['HTTP_USER_AGENT'], 'NetFront') !== FALSE);
 <script>
 
 var cur_date = new Date(<?php $time->renderJS(); ?>);
-var onl, netfront = false, aj_wait = false;
+var onl, aj_wait = false;
 
 function el(n) {
-	if(document.getElementById) {
-		// standard browser
-		return document.getElementById(n);
-	} else {
-		// Pocket IE
-		return document[n];
-	}
-}
-
-function FramedRequest() {
-	this.readyState = 0;
-	this.responseText = '';
-	onl = function() {}
-}
-
-FramedRequest.prototype.open = function(method, url, async) {
-	this.url = url;
-}
-
-FramedRequest.prototype.send = function() {
-	var This = this;
-	onl = function(t) {
-		This.readyState = 4;
-		This.responseText = t;
-		This.onreadystatechange();
-	}
-	parent.exec.location.href = this.url;
+	// standard browser
+	return document.getElementById(n);
 }
 
 function createAjax() {
@@ -58,10 +33,6 @@ function createAjax() {
 				x = null;
 			}
 		}
-	}
-	if(!x) {
-		netfront = true;
-		x = new FramedRequest();
 	}
 	return x;
 }
@@ -95,7 +66,7 @@ function clock() {
 	if(cur_date.getSeconds() == 0) {
 		var aj = createAjax();
 		if(aj) {
-			aj.open('GET', (netfront ? 'update_f.php?x=' : 'update.php?x=') + (ajax_num++), true);
+			aj.open('GET', 'update.php?x=' + (ajax_num++), true);
 			aj.onreadystatechange = function() {
 				if(aj.readyState == 4) {
 					aj_wait = false;
@@ -122,7 +93,6 @@ function clock() {
 </script>
 <style>
 
-<?php // if($ppc) { ?>
 body div {
 	position: absolute;
 }
@@ -170,8 +140,6 @@ body div.temp img {
 #error {
 	background: #ff0000;
 }
-
-<?php // } ?>
 
 </style>
 </head>
