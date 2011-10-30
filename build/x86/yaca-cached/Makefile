@@ -12,7 +12,7 @@ EXE = main
 CFLAGS += -g
 LDFLAGS += -lrt
 
-CROSS_COMPILE ?= /bulk/yaca-toolchains/arm-none-linux-gnueabi/bin/arm-none-linux-gnueabi-
+CROSS_COMPILE ?= /bulk/Build/yaca-toolchains/arm-none-linux-gnueabi/bin/arm-none-linux-gnueabi-
 CC = $(CROSS_COMPILE)g++
 
 #########################################################################

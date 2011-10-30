@@ -11,7 +11,7 @@ EXE = main
 #INCDIRS +=
 #CFLAGS +=
 
-CROSS_COMPILE ?= /bulk/yaca-toolchains/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-
+CROSS_COMPILE ?= /bulk/Build/yaca-toolchains/staging_dir/toolchain-mipsel_gcc3.4.6/bin/mipsel-linux-
 CC = $(CROSS_COMPILE)gcc
 
 #########################################################################
