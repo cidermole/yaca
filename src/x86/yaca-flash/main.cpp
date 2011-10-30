@@ -24,7 +24,7 @@ int get_mcu_signature(char *signature, int sock, int tid) {
 	struct timespec t, till;
 	struct Message msg;
 	
-	// try to get MCU signature (works from bootloader version 2)
+	// try to get MCU signature (works with bootloader version 2 or above)
 	write_message(sock, tid, 1, TID_BLD_GETSIG);
 	
 	// wait for response
@@ -84,18 +84,26 @@ int main(int argc, char **argv) {
 
 	char buffer[10 * 1024];
 	char signature[1024];
-	int version;
+	int version = 0;
 	char *current = buffer;
 	int size, i, j, lastcount;
 	uint16_t crc = 0xFFFF;
 
-	if(!crc_only)
-		printf("Auto-detecting MCU type...\n");
-	if(!(version = get_mcu_signature(signature, sock, tid))) {
-		fprintf(stderr, "WARNING: MCU signature detection failed. We could assume the bootloader version is too old.\n");
-		fprintf(stderr, "Enter MCU signature (" ATMEGA8_SIGNATURE " for ATmega8): \n");
-		fflush(stdin);
-		scanf("%6s", signature);
+	if(!crc_only) {
+		printf("Starting bootloader and auto-detecting MCU type...\n");
+
+		write_message(sock, tid, 1, TID_BLD_ENTER);
+		if(app) {
+			printf("-app given, waiting for application to enter bootloader...\n");
+			usleep(1500 * 1000);
+		}
+
+		if(!(version = get_mcu_signature(signature, sock, tid))) {
+			fprintf(stderr, "WARNING: MCU signature detection failed. Assuming the bootloader version is too old.\n");
+			fprintf(stderr, "Enter MCU signature (" ATMEGA8_SIGNATURE " for ATmega8): \n");
+			fflush(stdin);
+			scanf("%6s", signature);
+		}
 	}
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/avr_%s.conf", yaca_path, signature);
 	load_conf(config_file);
@@ -122,11 +130,6 @@ int main(int argc, char **argv) {
 			return 0;
 		}
 		
-		write_message(sock, tid, 1, TID_BLD_ENTER);
-		if(app) {
-			printf("-app given, waiting for application to enter bootloader...\n");
-			usleep(1000 * 1000);
-		}
 		write_message(sock, tid, 3, TID_BLD_PAGESEL, 0, 0);
 
 		for(i = 0; i < 49; i++)
