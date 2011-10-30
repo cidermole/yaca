@@ -171,7 +171,6 @@ _from_app:
 					bootApp();
 					txCrcError(&msg); // if bootApp() returned, we have a CRC error
 					break;
-				}
 
 				case TID_BLD_GETSIG: // Get device signature
 					msg.data[1] = SIGNATURE_0;
@@ -180,6 +179,7 @@ _from_app:
 					msg.data[4] = BOOTLOADER_VERSION;
 					txMessageWithStatusAndLength(&msg, TID_BLD_SIG, 5);
 					break;
+				}
 			}
 			break;
 
