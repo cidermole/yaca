@@ -1,69 +1,39 @@
 BUGS
 
--> pool-control: hangup (old: related to random messages? [yaca-gw get_sender() bug])
--> control-panel: hangup (related to yaca-gw SIGPIPE bug?)
 -> yaca-c missing <build> bug
 
 
 TODO
 
--> negative °C for PHP
--> enable brownout detector for all nodes
--> clean up git repo (ignores, remove unused files, etc)
+!> enable brownout detector for all nodes
 -> make non-global variables static (i.e. remove visibility)
--> implement a deploy-log to see what has been programmed, when and with which revision
--> sender2: turn off RFM12 for busy-waits (i.e. only turn it on for Tx)
+-> implement an automatic deploy-log to see what has been programmed, when and with which revision
 -> sanity checks into Time to prevent wrong time from being Tx-ed
 
 -> uart.c init should be called without the baud calculation (move calculation to macro or to init function)
--> log (write) revisions and CRC at flashing (to be able to check the current version in flash)
--> flow control, at least remove the current one from yaca-serial
--> yaca-logd should die if yaca-gw socket dies
--> fix message length problem in yaca-ppp, yaca-gw
--> check PoolControl for switching reliability
+!> yaca-logd should die if yaca-gw socket dies
+-> fix message length problem in yaca-gw
 -> daemons should try to re-open socket connections if they go down
 -> yaca-cached: currently serves 1 client only
 
 -> yaca-c: add MCU type option
--> yaca-timed, yaca-cached, (yaca-ppp?) should be integrated into yaca-gw
+-> should yaca-cached be integrated into yaca-gw?
 -> yaca-cached: fixed bug introduced by merging in new network.cpp (needs further elaboration)
 
+!> create a CAN tx timeout to prevent lockups when not on bus, this is critical for stable bus-off operation, whether caused by a cable problem or by MCP2515 is irrelevant
+-> set 'info' of Message struct to 0 in yc_transmit() - prevents a lot of nasty 'info' bugs easily
 
-CHECK / should be fixed
+?> yaca-cached: if socket to yaca-serial dies, endless loop - fix
 
--> yaca-gw: dies after some time
-	-> FIXED: get_sender() could return other fd's like UART...
-	-> FIXED: SIGPIPE killed process
+-> fuses: enter them into makefile
+-> Makefiles for all yaca-c compiled embedded src
+
+-> yaca-serial FIFO 'count' might need an atomic access
 
 
 HEIZUNG
 
--> Temperatursensoren: Vorlauf, Rücklauf, Warmwasser, Keller (main-power?) (KG), Wohnzimmer (EG), OG
+-> Temperatursensoren: Vorlauf, Rücklauf, Warmwasser, Keller (main-power?) (KG), OG
 -> Mindestlaufzeit für Brenner
 -> Status-Anzeige: Sonne (Dauerheizung), Mond (Nachtbetrieb), Uhr (Programm)
-
-
-=========================================================================
-
-
--> take apart a node (e.g. cut mcp2515 pins) and see what happens (app should continue without bus)
-	-> enable INT pull-up!
-
--> "Read eeprom message" into libyaca
-O> CHECK: 'info' of Message struct in yaca-serial?
-O> "Enter bootloader message" into libyaca
-O> libyaca: call init _Z4initv
-0> yaca-serial: dead (no incoming msgs)
-O> pool-control: timing problems
-	0> libyaca register bug
-
-?> yaca-cached: if socket to yaca-serial dies, endless loop - fix
-
-LONG-TERM
-^^^^^^^^^
--> fuses: enter them into makefile (??)
--> mcu type option
-
-
--> node type (mhz (atmega clock) + mcp2515 quarz mhz for now, atmega type later) into EEPROM -> bootloader could auto init mcp2515
 
