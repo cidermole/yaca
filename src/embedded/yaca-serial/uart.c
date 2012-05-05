@@ -48,7 +48,7 @@ int uart_putc(const uint8_t c) {
 	return 1;
 }
 
-int uart_puts_P(const prog_char* p) {
+int uart_puts_P(const char* p) {
 	char c = (char) pgm_read_byte(p++);
 	int r = 1;
 

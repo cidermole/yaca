@@ -25,7 +25,7 @@ uint8_t rb_is_not_full();
 void uart_init(uint16_t ubrr);
 int uart_putc(const uint8_t c);
 int uart_puts(const char* p);
-int uart_puts_P(const prog_char* p);
+int uart_puts_P(const char* p);
 void uart_put_hex(uint8_t number);
 
 #define uart_getc_wait() fifo2_get_wait(&fifo2_read)
