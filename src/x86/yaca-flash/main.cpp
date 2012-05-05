@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 	init_yaca_path();
 	sprintf(common_config_file, "%s/src/x86/yaca-flash/conf/yaca-flash.conf", yaca_path);
 	load_common_conf(common_config_file);
-	if(!crc_only && (sock = connect_socket(common_conf.server, common_conf.port)) == -1)
+	if((sock = connect_socket(common_conf.server, common_conf.port)) == -1)
 		return 1;
 
 	int tid = atoi(argv[1]);
@@ -89,21 +89,24 @@ int main(int argc, char **argv) {
 	int size, i, j, lastcount;
 	uint16_t crc = 0xFFFF;
 
-	if(!crc_only) {
+	if(!crc_only)
 		printf("Starting bootloader and auto-detecting MCU type...\n");
 
-		write_message(sock, tid, 1, TID_BLD_ENTER);
-		if(app) {
-			printf("-app given, waiting for application to enter bootloader...\n");
-			usleep(1500 * 1000);
-		}
+	write_message(sock, tid, 1, TID_BLD_ENTER);
 
-		if(!(version = get_mcu_signature(signature, sock, tid))) {
-			fprintf(stderr, "WARNING: MCU signature detection failed. Assuming the bootloader version is too old.\n");
-			fprintf(stderr, "Enter MCU signature (" ATMEGA8_SIGNATURE " for ATmega8): \n");
-			fflush(stdin);
-			scanf("%6s", signature);
-		}
+	// we wait in -crc mode too - maybe the node is up and running
+	if(app || crc_only) {
+		if(!crc_only)
+			printf("-app given, waiting for application to enter bootloader...\n");
+		usleep(1500 * 1000);
+	}
+
+	// always get the signature, even with -crc - maybe the node is up and running
+	if(!(version = get_mcu_signature(signature, sock, tid))) {
+		fprintf(stderr, "WARNING: MCU signature detection failed. Assuming the bootloader version is too old.\n");
+		fprintf(stderr, "Enter MCU signature (" ATMEGA8_SIGNATURE " for ATmega8): \n");
+		fflush(stdin);
+		scanf("%6s", signature);
 	}
 	sprintf(config_file, "%s/src/x86/yaca-flash/conf/avr_%s.conf", yaca_path, signature);
 	load_conf(config_file);

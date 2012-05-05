@@ -355,3 +355,20 @@ string Source::parseLinkerOptions(string configFile) {
 	return linkerOptions;
 }
 
+string Source::getNodeId(string configFile) {
+	throwable();
+	XmlTree config;
+	list<XmlTree *>::iterator build, el;
+	string linkerOptions;
+
+	try {
+		config.read(configFile.c_str());
+	} catch(XmlError err) {
+		throw_error("Error parsing XML file " + configFile + ": XmlTree error " + itos(err.code) + " (" + string(err.desc) + ")");
+	}
+
+	assert(config.size());
+	assert((*config.begin())->name() == "node-config");
+	return (*config.begin())->attribute("id");
+}
+

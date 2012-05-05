@@ -51,6 +51,7 @@ public:
 
 	static int sizeOf(string type); // throws const char*
 	static string parseLinkerOptions(string configFile); // throws const char*
+	static string getNodeId(string configFile); // throws const char*
 
 };
 

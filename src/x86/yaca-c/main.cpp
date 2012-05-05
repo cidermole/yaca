@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 					cout << "Info: running command \"" << cmd << "\"" << endl;
 				if(system(cmd.c_str()))
 					throw "Hex merge failed";
-				cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash 0 " + nodeName + "-app.hex -crc` " + nodeName + "-app.eep";
+				cmd = es + yaca_path + "/build/bin/yaca-program " + nodeName + ".nds " + configFile + " -new `" + yaca_path + "/build/bin/yaca-flash " + Source::getNodeId(configFile) + " " + nodeName + "-app.hex -crc` " + nodeName + "-app.eep";
 				if(verbose > 1)
 					cout << "Info: running command \"" << cmd << "\"" << endl;
 				if(system(cmd.c_str()))
