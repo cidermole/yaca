@@ -14,6 +14,7 @@
 PB1 (OC1A): charge pump for opamps
 PD5: photo camera (N-channel MOSFET gate)
 PD6: dummy load (N-channel MOSFET gate)
+PD7: motion sensor
 
 ADC0: IBAT (battery current), 6.5 mA resolution
 ADC1: VBAT (battery voltage), 15 mV resolution
