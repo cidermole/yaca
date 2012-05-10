@@ -18,7 +18,7 @@ PD7: motion sensor
 
 ADC0: IBAT (battery current), 6.5 mA resolution
 ADC1: VBAT (battery voltage), 15 mV resolution
-ADC2: ISOL (solar [charge] current), 3.25 mA resolution  TODO: update in code (double resolution, because of double the resistance)
+ADC2: ISOL (solar [charge] current), 3.25 mA resolution
 
   |
   v IBAT
@@ -91,7 +91,7 @@ int16_t adc_convert(uint8_t channel) {
 	return ADCW;
 }
 
-int16_t ibat_offset = 512;
+int16_t ibat_offset = 525; // Ibat offset from calculations
 int16_t ibat;
 uint16_t vbat, isol;
 int32_t sum_punit = 0;
@@ -111,18 +111,12 @@ void conversion_tick() {
 	sum_punit += power;
 	sum_punit_solar += (uint32_t) ((uint32_t) vbat) * isol;
 
-	isol = adc_convert(ADC_ISOL);
+	isol = adc_convert(ADC_ISOL) / 2; // 3.25 mA -> 6.5 mA resolution
 
 	if(++time == 100) {
 		time_tick();
 		time = 0;
 	}
-}
-
-void calibrate() {
-	// TODO: turn off all power consumers, restore afterwards
-
-	ibat_offset = adc_convert(ADC_IBAT) + 2; // measure zero current offset (2: 2*6.5 = 13 mA ~ uC circuit current)
 }
 
 void time_tick() {
@@ -133,7 +127,6 @@ void time_tick() {
 
 	// one-time init
 	if(tick == 0) {
-		calibrate();
 		djoule = 0;
 		djoule_solar = 0;
 		sum_punit = 0;
