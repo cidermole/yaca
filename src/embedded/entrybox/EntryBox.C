@@ -14,7 +14,7 @@
 PB1 (OC1A): charge pump for opamps
 PD5: photo camera (N-channel MOSFET gate)
 PD6: dummy load (N-channel MOSFET gate)
-PD7: motion sensor
+PD7: motion sensor, pulling vs. GND
 
 ADC0: IBAT (battery current), 6.5 mA resolution
 ADC1: VBAT (battery voltage), 15 mV resolution
@@ -82,6 +82,7 @@ void init_adc() {
 void init_ports() {
 	DDRB |= (1 << PB1); // config OC1A as output (charge pump)
 	DDRD |= (1 << PD6) | (1 << PD5); // dummy, camera
+	PORTD |= (1 << PD7); // PD7: motion relay: input with pullup
 }
 
 int16_t adc_convert(uint8_t channel) {
@@ -99,7 +100,40 @@ uint32_t sum_punit_solar = 0;
 uint32_t joule_battery = JOULE_BATTERY_FULL;
 uint32_t joule_solar = 0;
 
+uint32_t count = 0; // car count
+
 void time_tick();
+
+void debounce_count_tick() {
+	static uint8_t state = 0;
+
+	switch(state) {
+	case 0:
+		if(bit_is_clear(PIND, PD7))
+			state = 1;
+		break;
+	case 1: // glitch filter
+		if(bit_is_clear(PIND, PD7)) {
+			state = 2;
+			count++;
+			yc_status(Count);
+		} else
+			state = 0;
+		break;
+	case 2: // relay on
+		if(bit_is_set(PIND, PD7))
+			state = 3;
+		break;
+	case 3: // glitch filter (relay on)
+		if(bit_is_set(PIND, PD7))
+			state = 0;
+		else
+			state = 2;
+		break;
+	default:
+		state = 0;
+	}
+}
 
 void conversion_tick() {
 	static uint8_t time = 0;
@@ -161,6 +195,16 @@ void DR(PowerStatus()) {
 	yc_send(EntryBox, PowerStatus((uint16_t) vbat, ibat, (uint16_t) isol));
 }
 
+void DR(Count()) {
+	yc_prepare_ee(YC_EE_COUNT_ID);
+	yc_send(EntryBox, Count(count));
+}
+
+void DM(SetCount(uint32_t c)) {
+	count = c;
+	yc_status(Count);
+}
+
 void DM(SetDummy(uint8_t status)) {
 	if(status)
 		PORTD |= (1 << PD6);
@@ -180,6 +224,7 @@ int main() {
 			cli();
 			start_conversion--;
 			sei();
+			debounce_count_tick();
 			conversion_tick();
 		}
 		yc_dispatch_auto();
