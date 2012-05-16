@@ -3,8 +3,15 @@
 		<message name="SetDummy">
 			<id>7</id>
 		</message>
+		<message name="Count">
+			<id>406</id>
+		</message>
+		<message name="SetCount">
+			<id>6</id>
+		</message>
 	</messages>
 	<settings>
+		<setting name="count_id" value="406" />
 		<setting name="joulestatus_id" value="407" />
 		<setting name="powerstatus_id" value="408" />
 	</settings>
