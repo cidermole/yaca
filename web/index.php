@@ -129,8 +129,8 @@ body div.temp img {
 
 #pool {
 	left: 0px;
-	top: 80px;
-	visibility: hidden;
+	top: 300px;
+/*	visibility: hidden;*/
 }
 
 #warning {
