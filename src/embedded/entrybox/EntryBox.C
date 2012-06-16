@@ -50,6 +50,9 @@ ADC low-pass filter tau = 2 ms -> 10 ms changes relevant -> 100 Hz samplerate
 
 #define ADMUX_REF ((1 << REFS1) | (1 << REFS0)) // internal AREF = 2.56 V with external cap
 
+#define DUMMY_OFF_THRESHOLD_V ((uint16_t) (12.5 / 0.015))
+#define DUMMY_ON_THRESHOLD_V ((uint16_t) (12.1 / 0.015))
+
 #define JOULE_100_PUNITS 1025641L
 #define JOULE_BATTERY_FULL (12 * 7 * 3600UL)
 #define MAXIMUM_POWER_OUTPUT 42 // 42: 14 V * 3 A, the expected maximum output power
@@ -102,7 +105,11 @@ uint32_t joule_solar = 0;
 
 uint32_t count = 0; // car count
 
+uint8_t dummy_force = 1; // 0: force off, 1: auto, 2: force on
+
 void time_tick();
+void dummy_set(uint8_t status);
+uint8_t dummy_status();
 
 void debounce_count_tick() {
 	static uint8_t state = 0;
@@ -177,6 +184,8 @@ void time_tick() {
 	else if(joule_battery > JOULE_BATTERY_FULL)
 		joule_battery = JOULE_BATTERY_FULL; // battery can never be charged over its full capacity
 
+	dummy_set(((vbat >= DUMMY_OFF_THRESHOLD_V && !dummy_status()) || (vbat >= DUMMY_ON_THRESHOLD_V && dummy_status()) || dummy_force == 2) && dummy_force);
+
 	tick++;
 	if(tick % 2 == 0) {
 		yc_status(JouleStatus);
@@ -206,10 +215,18 @@ void DM(SetCount(uint32_t c)) {
 }
 
 void DM(SetDummy(uint8_t status)) {
+	dummy_force = status;
+}
+
+void dummy_set(uint8_t status) {
 	if(status)
 		PORTD |= (1 << PD6);
 	else
 		PORTD &= ~(1 << PD6);
+}
+
+uint8_t dummy_status() {
+	return (PORTD & (1 << PD6));
 }
 
 volatile uint8_t start_conversion = 0;
