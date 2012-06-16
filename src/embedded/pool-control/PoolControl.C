@@ -225,6 +225,9 @@ void measure_ph() {
 		adc_value += adc_convert(ADC_PH);
 
 	ph_value = (uint16_t) ((((uint32_t) adc_value) * (700 / 20)) / 512);
+	// add additional software offset from EEPROM
+	ph_value += (int16_t) (eeprom_read_word((const uint16_t*) YC_EE_PH_OFFSET));
+
 	ph_raw = ph_value;
 
 	if(ph_buffer_running) {

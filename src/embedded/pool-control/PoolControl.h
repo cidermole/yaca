@@ -6,6 +6,7 @@
 #define YC_EE_PUMP_FROM_HOUR YE(503) // int8
 #define YC_EE_PUMP_TO_HOUR YE(502) // int8
 #define YC_EE_RELAYSTATUS_ID YE(498) // int32
+#define YC_EE_PH_OFFSET YE(496) // int16
 
 namespace PoolControl {
 	void HDS(PhStatus(uint16_t ph_centi));

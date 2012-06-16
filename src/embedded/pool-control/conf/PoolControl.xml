@@ -27,6 +27,9 @@
 		<!-- Pump working hours (e.g. 09:00 - 21:00 -> from 9, to 21) -->
 		<setting name="pump_from_hour" value="9"/>
 		<setting name="pump_to_hour" value="21"/>
+
+		<!-- software additionally adds this signed value (pH * 100) to the measurement -->
+		<setting name="ph_offset" value="-14"/>
 	</settings>
 	<build/>
 </node-config>
