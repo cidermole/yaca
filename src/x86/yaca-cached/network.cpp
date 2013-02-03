@@ -68,7 +68,6 @@ void write_message(int sock, unsigned int id, int length, char d0, char d1, char
 
 int read_message(int sock, struct Message *buffer) {
 	ssize_t rv = 0;
-	char* buf = new char[sizeof(struct Message)];
 	int sum = 0;
 	fd_set fds;
 	struct timeval timeout = {1, 0};
