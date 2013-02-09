@@ -95,7 +95,7 @@ int16_t adc_convert(uint8_t channel) {
 	return ADCW;
 }
 
-int16_t ibat_offset = 525; // Ibat offset from calculations
+int16_t ibat_offset = 512; // Ibat offset from calculations
 int16_t ibat;
 uint16_t vbat, isol;
 int32_t sum_punit = 0;

@@ -1,6 +1,7 @@
 BUGS
 
 -> yaca-c missing <build> bug
+-> yaca-cached memory leak
 
 
 TODO
