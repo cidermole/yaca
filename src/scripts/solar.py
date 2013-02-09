@@ -9,6 +9,8 @@ sock.connect(('192.168.1.1', 1222))
 JOULESTATUS_CANID = 407
 POWERSTATUS_CANID = 408
 
+VBAT_REL_ERROR = -0.0215
+
 #   struct Message {
 #           uint8_t info;
 #           uint32_t id;
@@ -42,7 +44,7 @@ while True:
 		if ibat >= 2**15:
 			ibat = -(2**16 - ibat)
 		isol = msg[M_DATA + 4] * (256**1) + msg[M_DATA + 5]
-		print('                                                     Vbat: %5.3lf V, Ibat: %4.3lf A, Isol: %4.3lf A, Pbat: %5.3lf W, Psol: %5.3lf W' % (0.015 * vbat, 0.0065 * ibat, 0.0065 * isol, 0.015 * vbat * 0.0065 * ibat, 0.015 * vbat * 0.0065 * isol))
+		print('                                                     Vbat: %5.3lf V, Ibat: %4.3lf A, Isol: %4.3lf A, Pbat: %5.3lf W, Psol: %5.3lf W' % (0.015 * vbat / (VBAT_REL_ERROR + 1.0), 0.0065 * ibat, 0.0065 * isol, 0.015 * vbat * 0.0065 * ibat, 0.015 * vbat * 0.0065 * isol))
 
 sock.close()
 

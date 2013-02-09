@@ -50,8 +50,9 @@ ADC low-pass filter tau = 2 ms -> 10 ms changes relevant -> 100 Hz samplerate
 
 #define ADMUX_REF ((1 << REFS1) | (1 << REFS0)) // internal AREF = 2.56 V with external cap
 
-#define DUMMY_OFF_THRESHOLD_V ((uint16_t) (12.5 / 0.015))
-#define DUMMY_ON_THRESHOLD_V ((uint16_t) (12.1 / 0.015))
+#define VBAT_REL_ERROR (-0.0215) // measured and calculated
+#define DUMMY_OFF_THRESHOLD_V ((uint16_t) (12.9 / 0.015 * (1+VBAT_REL_ERROR)))
+#define DUMMY_ON_THRESHOLD_V ((uint16_t) (12.5 / 0.015 * (1+VBAT_REL_ERROR)))
 
 #define JOULE_100_PUNITS 1025641L
 #define JOULE_BATTERY_FULL (12 * 7 * 3600UL)
@@ -95,7 +96,30 @@ int16_t adc_convert(uint8_t channel) {
 	return ADCW;
 }
 
-int16_t ibat_offset = 512; // Ibat offset from calculations
+/**
+ * This might be overkill, but group 4 reads together, and poll CAN inbetween (4 * 14 < 67) (shortest CAN frame: 67 bit times of 125 kHz CAN bitrate)
+ */
+int16_t adc_convert_avg(uint8_t channel) {
+	uint8_t i, j;
+	int16_t sum = 0; // 2^10 ADC resolution * (2^5 = 32 reads) possible before overrun in 16-bit signedness
+
+	// instead of using adc_convert(), just select the channel once here.
+	ADMUX = (channel & 0x07) | ADMUX_REF; // select channel (+ keep reference)
+
+	for(j = 0; j < 8; j++) {
+		for(i = 0; i < 4; i++) {
+			// 8 * 4 = 32 samples average
+			ADCSRA |= (1 << ADSC) | (1 << ADIF); // start conversion, clear int flag
+			while(!(ADCSRA & (1 << ADIF))); // wait for conversion
+			sum += ADCW;
+		}
+		yc_dispatch_auto();
+	}
+
+	return sum / 32;
+}
+
+int16_t ibat_offset = 538; // Ibat offset from calculations
 int16_t ibat;
 uint16_t vbat, isol;
 int32_t sum_punit = 0;
@@ -145,14 +169,14 @@ void debounce_count_tick() {
 void conversion_tick() {
 	static uint8_t time = 0;
 	int32_t power;
-	/*uint16_t*/ vbat = adc_convert(ADC_VBAT);
-	/*int16_t*/ ibat = adc_convert(ADC_IBAT) - ibat_offset;
+	/*uint16_t*/ vbat = adc_convert_avg(ADC_VBAT);
+	/*int16_t*/ ibat = adc_convert_avg(ADC_IBAT) - ibat_offset;
 
 	power = ((int32_t) vbat) * ibat;
 	sum_punit += power;
 	sum_punit_solar += (uint32_t) ((uint32_t) vbat) * isol;
 
-	isol = adc_convert(ADC_ISOL) / 2; // 3.25 mA -> 6.5 mA resolution
+	isol = adc_convert_avg(ADC_ISOL) / 2; // 3.25 mA -> 6.5 mA resolution
 
 	if(++time == 100) {
 		time_tick();
