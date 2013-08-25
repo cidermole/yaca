@@ -8,3 +8,4 @@ date        time   node         head                                      remark
 2011-10-30  15:01  Time         0024260f4389543646aacdeaee71021b7ea7d7aa
 2012-01-03  19:50  RadioBase    0fa1f2cb497b5f86cdd64e69e249ce9e5db4dfe6  (hand-flashed) branch radio-base-old-stable, bootloader v2 (c285ea2009c3f5512a29683bd7cd982592462c0a), fuses: hfuse D8, lfuse 22 (2 MHz int., BOD)
 2012-05-05  19:41  PoolControl  9c85094aac64b67b770551e541acbe67f610a001  (hand-flashed) bootloader v2, fuses: hfuse D8, lfuse 22 (2 MHz int., BOD)
+2013-08-15  20:08  EntryBox     0206ce291a39540421258d66bf54fcbcb4b5284f  (hand-flashed) bootloader v2, fuses: hfude D8, lfuse 22 (2 MHz int., BOD)
