@@ -88,7 +88,7 @@ void init_adc() {
 void init_ports() {
 	DDRB |= (1 << PB1); // config OC1A as output (charge pump)
 	DDRD |= (1 << PD6) | (1 << PD5) | (1 << PD1) | (1 << PD0); // dummy, camera, emergency charger, radar power
-	PORTD |= (1 << PD7) | (1 << PD1) | (1 << PD0); // PD7: motion relay: input with pullup, PD1: emergency charger off, PD0: radar power perm. on for now
+	PORTD |= (1 << PD7) | (1 << PD5) | (1 << PD1) | (1 << PD0); // PD7: motion relay: input with pullup, PD5: photo trigger (phone charger), PD1: emergency charger off, PD0: radar power perm. on for now
 	//PORTD &= ~(1 << PD1); // temp: enable charger
 }
 
@@ -133,10 +133,33 @@ uint32_t joule_solar = 0;
 uint32_t count = 0; // car count
 
 uint8_t dummy_force = 1; // 0: force off, 1: auto, 2: force on
+uint8_t photo_trig = 0;
 
 void time_tick();
 void dummy_set(uint8_t status);
 uint8_t dummy_status();
+
+void photo_tick() {
+	static uint8_t state = 0;
+	static uint16_t count = 0;
+
+	switch(state) {
+	case 0:
+		if(photo_trig) {
+			PORTD &= ~(1 << PD5); // turn mobile charger off -> take photo signal
+			count = 0;
+			state = 1;
+		}
+		break;
+	case 1:
+		if(++count == 100) { // 1 second off
+			PORTD |= (1 << PD5); // turn mobile charger on again
+			state = 0;
+			photo_trig = 0;
+		}
+		break;
+	}
+}
 
 void debounce_count_tick() {
 	static uint8_t state = 0;
@@ -149,6 +172,7 @@ void debounce_count_tick() {
 	case 1: // glitch filter
 		if(bit_is_clear(PIND, PD7)) {
 			state = 2;
+			photo_trig = 1;
 			count++;
 			yc_status(Count);
 		} else
@@ -279,6 +303,7 @@ int main() {
 			start_conversion--;
 			sei();
 			debounce_count_tick();
+			photo_tick();
 			conversion_tick();
 		}
 		yc_dispatch_auto();
