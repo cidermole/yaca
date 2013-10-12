@@ -15,5 +15,6 @@ namespace EntryBox {
 
 	void HDM(SetCount(uint32_t count));
 	void HDM(SetDummy(uint8_t status));
+	void HDM(SetCharger(uint8_t status));
 }
 

@@ -12,9 +12,11 @@
 /*
 
 PB1 (OC1A): charge pump for opamps
+PD0: radar sensor supply (N-channel MOSFET gate) TODO: power
+PD1: battery charger from CAN-bus power to battery, /EN of LM2576
 PD5: photo camera (N-channel MOSFET gate)
 PD6: dummy load (N-channel MOSFET gate)
-PD7: motion sensor, pulling vs. GND
+PD7: radar sensor input, pulling vs. GND
 
 ADC0: IBAT (battery current), 6.5 mA resolution
 ADC1: VBAT (battery voltage), 15 mV resolution
@@ -85,8 +87,9 @@ void init_adc() {
 
 void init_ports() {
 	DDRB |= (1 << PB1); // config OC1A as output (charge pump)
-	DDRD |= (1 << PD6) | (1 << PD5); // dummy, camera
-	PORTD |= (1 << PD7); // PD7: motion relay: input with pullup
+	DDRD |= (1 << PD6) | (1 << PD5) | (1 << PD1) | (1 << PD0); // dummy, camera, emergency charger, radar power
+	PORTD |= (1 << PD7) | (1 << PD1) | (1 << PD0); // PD7: motion relay: input with pullup, PD1: emergency charger off, PD0: radar power perm. on for now
+	//PORTD &= ~(1 << PD1); // temp: enable charger
 }
 
 int16_t adc_convert(uint8_t channel) {
@@ -242,11 +245,21 @@ void DM(SetDummy(uint8_t status)) {
 	dummy_force = status;
 }
 
+void DM(SetCharger(uint8_t status)) {
+	if(status)
+		PORTD &= ~(1 << PD1); // enable charger
+	else
+		PORTD |= (1 << PD1); // disable charger
+}
+
 void dummy_set(uint8_t status) {
+/*
 	if(status)
 		PORTD |= (1 << PD6);
 	else
 		PORTD &= ~(1 << PD6);
+*/
+	PORTD &= ~(1 << PD6);
 }
 
 uint8_t dummy_status() {

@@ -3,6 +3,9 @@
 		<message name="SetDummy">
 			<id>7</id>
 		</message>
+		<message name="SetCharger">
+			<id>8</id>
+		</message>
 		<message name="Count">
 			<id>406</id>
 		</message>

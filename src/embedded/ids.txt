@@ -27,6 +27,7 @@ RPCs
 5 PoolControl::SetRelay(uint8_t status)
 6 CarCounter::SetCount(uint32_t count)
 7 EntryBox::SetDummy(uint8_t status) // status: 0: force off, 1: auto, 2: force on
+8 EntryBox::SetCharger(uint8_t status)
 
 Status
 ------

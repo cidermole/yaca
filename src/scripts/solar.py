@@ -9,7 +9,8 @@ sock.connect(('192.168.1.1', 1222))
 JOULESTATUS_CANID = 407
 POWERSTATUS_CANID = 408
 
-VBAT_REL_ERROR = -0.0215
+#VBAT_REL_ERROR = -0.0215
+VBAT_REL_ERROR=-0.01
 
 #   struct Message {
 #           uint8_t info;
