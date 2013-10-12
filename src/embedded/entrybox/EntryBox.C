@@ -132,7 +132,7 @@ uint32_t joule_solar = 0;
 
 uint32_t count = 0; // car count
 
-uint8_t dummy_force = 1; // 0: force off, 1: auto, 2: force on
+uint8_t dummy_force = 0; // 0: force off, 1: auto, 2: force on
 uint8_t photo_trig = 0;
 
 void time_tick();
