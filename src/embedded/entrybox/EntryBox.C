@@ -138,6 +138,7 @@ uint32_t count = 0; // car count
 uint8_t dummy_force = 0; // 0: force off, 1: auto, 2: force on
 uint8_t charger_force = 1; // 0: force off, 1: auto, 2: force on
 uint8_t photo_trig = 0;
+uint8_t daylight = 1; // whether it makes sense to make photos (only when it's bright)
 
 void time_tick();
 void dummy_set(uint8_t status);
@@ -178,7 +179,8 @@ void debounce_count_tick() {
 	case 1: // glitch filter
 		if(bit_is_clear(PIND, PD7)) {
 			state = 2;
-			photo_trig = 1;
+			if(daylight)
+				photo_trig = 1;
 			count++;
 			yc_status(Count);
 		} else
@@ -300,6 +302,10 @@ void DM(SetCharger(uint8_t status)) {
 		PORTD &= ~(1 << PD1); // enable charger
 	else
 		PORTD |= (1 << PD1); // disable charger
+}
+
+void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
+	daylight = (hour >= 7 && hour < 17);
 }
 
 void dummy_set(uint8_t status) {

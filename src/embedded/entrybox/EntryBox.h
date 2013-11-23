@@ -16,5 +16,6 @@ namespace EntryBox {
 	void HDM(SetCount(uint32_t count));
 	void HDM(SetDummy(uint8_t status));
 	void HDM(SetCharger(uint8_t status));
+	void HDM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags));
 }
 

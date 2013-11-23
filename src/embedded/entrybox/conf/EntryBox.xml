@@ -1,5 +1,8 @@
 <node-config id="807">
 	<messages>
+		<message name="Time">
+			<id>401</id>
+		</message>
 		<message name="SetDummy">
 			<id>7</id>
 		</message>
