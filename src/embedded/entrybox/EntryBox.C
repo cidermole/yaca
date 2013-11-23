@@ -52,9 +52,12 @@ ADC low-pass filter tau = 2 ms -> 10 ms changes relevant -> 100 Hz samplerate
 
 #define ADMUX_REF ((1 << REFS1) | (1 << REFS0)) // internal AREF = 2.56 V with external cap
 
-#define VBAT_REL_ERROR (-0.0215) // measured and calculated
+#define VBAT_REL_ERROR (-0.01) // measured and calculated
 #define DUMMY_OFF_THRESHOLD_V ((uint16_t) (12.9 / 0.015 * (1+VBAT_REL_ERROR)))
 #define DUMMY_ON_THRESHOLD_V ((uint16_t) (12.5 / 0.015 * (1+VBAT_REL_ERROR)))
+
+#define CHARGE_OFF_THRESHOLD_V ((uint16_t) (13.6 / 0.015 * (1+VBAT_REL_ERROR)))
+#define CHARGE_ON_THRESHOLD_V ((uint16_t) (12.1 / 0.015 * (1+VBAT_REL_ERROR)))
 
 #define JOULE_100_PUNITS 1025641L
 #define JOULE_BATTERY_FULL (12 * 7 * 3600UL)
@@ -133,6 +136,7 @@ uint32_t joule_solar = 0;
 uint32_t count = 0; // car count
 
 uint8_t dummy_force = 0; // 0: force off, 1: auto, 2: force on
+uint8_t charger_force = 1; // 0: force off, 1: auto, 2: force on
 uint8_t photo_trig = 0;
 
 void time_tick();
@@ -146,13 +150,15 @@ void photo_tick() {
 	switch(state) {
 	case 0:
 		if(photo_trig) {
+			PORTD &= ~(1 << PD6); // turn mobile charger off -> take photo signal
 			PORTD &= ~(1 << PD5); // turn mobile charger off -> take photo signal
 			count = 0;
 			state = 1;
 		}
 		break;
 	case 1:
-		if(++count == 100) { // 1 second off
+		if(++count == 500) { // 1 second off
+			PORTD |= (1 << PD6); // turn mobile charger on again
 			PORTD |= (1 << PD5); // turn mobile charger on again
 			state = 0;
 			photo_trig = 0;
@@ -212,6 +218,7 @@ void conversion_tick() {
 }
 
 void time_tick() {
+	static uint8_t charge_status = 0;
 	static uint8_t tick = 0;
 	// update joule counter and power
 	int16_t djoule = sum_punit / JOULE_100_PUNITS;
@@ -236,6 +243,25 @@ void time_tick() {
 		joule_battery = JOULE_BATTERY_FULL; // battery can never be charged over its full capacity
 
 	dummy_set(((vbat >= DUMMY_OFF_THRESHOLD_V && !dummy_status()) || (vbat >= DUMMY_ON_THRESHOLD_V && dummy_status()) || dummy_force == 2) && dummy_force);
+
+	switch(charge_status) {
+	case 0:
+		if(vbat <= CHARGE_ON_THRESHOLD_V && charger_force == 1) {
+			PORTD &= ~(1 << PD1); // enable charger
+			charge_status = 1;
+		}
+		break;
+	case 1:
+		if(vbat >= CHARGE_OFF_THRESHOLD_V && charger_force == 1) {
+			PORTD |= (1 << PD1); // disable charger
+			charge_status = 0;
+		}
+		break;
+	}
+	if(charger_force == 0)
+		PORTD |= (1 << PD1); // disable charger
+	else if(charger_force == 2)
+		PORTD &= ~(1 << PD1); // enable charger
 
 	tick++;
 	if(tick % 2 == 0) {
