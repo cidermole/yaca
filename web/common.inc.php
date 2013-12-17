@@ -145,7 +145,7 @@ class Message {
 		$this->rtr = 1;
 		$bytes = $this->encode();
 		fwrite($this->common->socket, $bytes);
-		$ret = fread($this->common->socket, 15);
+		$ret = fread($this->common->socket, 15+4);
 		$info = stream_get_meta_data($this->common->socket);
 		if($info['timed_out'])
 			return false;
