@@ -89,7 +89,13 @@ class Message {
 
 	function isCurrent() {
 		// current if reply received less than 5 minutes ago
-		return ($this->timestamp->diff(new DateTime()) < new DateInterval('PT5M'));
+
+		// from PHP 5.3 on
+//		return ($this->getTimestamp()->diff(new DateTime()) < new DateInterval('PT5M'));
+
+		// workaround
+		$dt = new DateTime();
+		return ($dt->format('U') - $this->timestamp) < (5 * 60);
 	}
 
 	function isOK() {
