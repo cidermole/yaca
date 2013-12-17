@@ -14,13 +14,20 @@ class Temp extends Plugin {
 	}
 	
 	function render() {
+		$failspan1 = '<span style="color: #ff0000;">';
+		$failspan2 = '</span>';
+
 		$msg_te = new Message($this->common);
 		if(!$msg_te->request($this->config['canid_tempstatus'])) {
-			echo "ID" . $this->config['canid_tempstatus'];
+			echo $failspan1 . "ID" . $this->config['canid_tempstatus'] . $failspan2;
 			return false;
 		}
 
+		if(!$msg_te->isOK())
+			echo $failspan1;
 		echo $this->config['label'] . $this->getTemp($msg_te) . " &deg;C";
+		if(!$msg_te->isOK())
+			echo $failspan2;
 		return true;
 	}
 }
