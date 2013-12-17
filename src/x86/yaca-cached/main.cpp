@@ -31,12 +31,22 @@ using namespace std;
 #define INFO_FAIL     0x02 // fail reply (multiple timeouts -> MAX_FAILS reached)
 
 
+struct MessageResponse {
+        uint8_t info;
+        uint32_t id;
+        uint8_t rtr;
+        uint8_t length;
+        uint8_t data[8];
+        time_t timestamp;
+} __attribute__((__packed__));
+
 struct Buffer {
 	int canid[BUFFERS_MAX];
 	unsigned char data[BUFFERS_MAX][8];
 	int length[BUFFERS_MAX];
 	bool buf_ok[BUFFERS_MAX];
 	int fail_count[BUFFERS_MAX];
+	time_t timestamp[BUFFERS_MAX];
 	int nused;
 	
 	Buffer(): nused(0) {}
@@ -87,9 +97,10 @@ struct Buffer {
 		memcpy(data[pos], m->data, 8);
 		length[pos] = m->length;
 		buf_ok[pos] = ok;
+		timestamp[pos] = ok ? time(NULL) : 0;
 	}
 	
-	void get(Message *m, int id) {
+	void get(MessageResponse *m, int id) {
 		int i, pos = -1;
 		
 		for(i = 0; i < nused; i++)
@@ -98,6 +109,7 @@ struct Buffer {
 		assert(pos != -1 && buf_ok[pos]);
 		memcpy(m->data, data[pos], 8);
 		m->length = length[pos];
+		m->timestamp = timestamp[pos];
 	}
 };
 
@@ -118,7 +130,7 @@ int main(int argc, char **argv) {
 	size_t pos;
 	fd_set fds;
 	Buffer buffer;
-	Message message;
+	MessageResponse message;
 	struct sockaddr_in server;
 	bool fail;
 	struct timespec query_start, now;
@@ -204,6 +216,7 @@ int main(int argc, char **argv) {
 					message.info = 0; // reply
 				} else if(buffer.fails(message.id) >= MAX_FAILS) { // too many timeouts?
 					message.info = INFO_FAIL;
+					message.timestamp = 0;
 					// variable 'fail' is still false -> actually write fail message
 				} else {
 					// no status info available, query to CAN
@@ -228,11 +241,12 @@ int main(int argc, char **argv) {
 						}
 					}
 					message.info = 0; // reply
+					message.timestamp = fail ? 0 : time(NULL);
 				}
 				message.rtr = 0;
 
 				if(!fail)
-					write(csock, &message, sizeof(Message));
+					write(csock, &message, sizeof(MessageResponse));
 				else
 					buffer.set(id, &message, false); // not OK (set query to listen for later messages on this)
 			} else {

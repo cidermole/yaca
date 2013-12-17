@@ -66,6 +66,7 @@ class Message {
 	var $length;
 	var $data;
 	var $common;
+	var $timestamp;
 
 	function Message(&$common) {
 		$this->common = &$common;
@@ -75,6 +76,24 @@ class Message {
 		$this->length = 0;
 		for($i = 0; $i < 8; $i++)
 			$this->data[$i] = 0;
+		$this->timestamp = 0;
+	}
+
+	function getTimestamp() {
+		return new DateTime('@' . $this->timestamp);
+	}
+
+	function isFail() {
+		return ($this->info & INFO_FAIL);
+	}
+
+	function isCurrent() {
+		// current if reply received less than 5 minutes ago
+		return ($this->timestamp->diff(new DateTime()) < new DateInterval('PT5M'));
+	}
+
+	function isOK() {
+		return (isCurrent() && !isFail());
 	}
 
 	function decode($d) {
@@ -93,6 +112,10 @@ class Message {
 		$this->data = array();
 		for($i = 0; $i < 8; $i++)
 			$this->data[$i] = $bytes[7 + $i];
+		$this->timestamp =	$bytes[15] * 0x00000001 +
+							$bytes[16] * 0x00000100 +
+							$bytes[17] * 0x00010000 +
+							$bytes[18] * 0x01000000;
 	}
 
 	function encode() {
@@ -121,7 +144,7 @@ class Message {
 		if($info['timed_out'])
 			return false;
 		$this->decode($ret);
-		if($this->info & INFO_FAIL)
+		if($this->isFail())
 			return false;
 		return true;
 	}
