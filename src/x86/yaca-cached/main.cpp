@@ -195,16 +195,16 @@ int main(int argc, char **argv) {
 		}
 		if(FD_ISSET(sock, &fds)) {
 			// incoming data from socket, check if the value is buffered and needs to be updated
-			if(!read_message(sock, &message)) {
+			if(!read_message(sock, (Message *) &message)) {
 				fprintf(stderr, "read_message() from yaca-serial socket failed, exiting...\n");
 				return 1;
 			}
 			
-			handle_message(&buffer, &message);
+			handle_message(&buffer, (Message *) &message);
 		}
 		if(FD_ISSET(csock, &fds)) {
 			// incoming data from fifo
-			if(!read_message(csock, &message)) {
+			if(!read_message(csock, (Message *) &message)) {
 				close(csock);
 				csock = 0;
 				continue;
@@ -228,11 +228,11 @@ int main(int argc, char **argv) {
 					write(sock, &message, sizeof(Message));
 					fail = false;
 					while(message.id != id || message.rtr) {
-						if(!read_message(sock, &message)) {
+						if(!read_message(sock, (Message *) &message)) {
 							fail = true;
 							break;
 						}
-						handle_message(&buffer, &message);
+						handle_message(&buffer, (Message *) &message);
 
 						clock_gettime(CLOCK_REALTIME, &now);
 						if(now.tv_sec > query_start.tv_sec && now.tv_nsec > query_start.tv_nsec && (message.id != id || message.rtr)) { // 1 sec passed?
@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
 				if(!fail)
 					write(csock, &message, sizeof(MessageResponse));
 				else
-					buffer.set(id, &message, false); // not OK (set query to listen for later messages on this)
+					buffer.set(id, (Message *) &message, false); // not OK (set query to listen for later messages on this)
 			} else {
 				write(sock, &message, sizeof(Message));
 			}

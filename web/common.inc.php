@@ -93,7 +93,7 @@ class Message {
 	}
 
 	function isOK() {
-		return (isCurrent() && !isFail());
+		return ($this->isCurrent() && !$this->isFail());
 	}
 
 	function decode($d) {
