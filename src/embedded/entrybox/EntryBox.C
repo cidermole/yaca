@@ -135,13 +135,12 @@ uint32_t joule_solar = 0;
 
 uint32_t count = 0; // car count
 
-uint8_t dummy_force = 0; // 0: force off, 1: auto, 2: force on
+uint8_t cam_force = 1; // 0: force off, 1: auto, 2: force on
 uint8_t charger_force = 1; // 0: force off, 1: auto, 2: force on
 uint8_t photo_trig = 0;
 uint8_t daylight = 1; // whether it makes sense to make photos (only when it's bright)
 
 void time_tick();
-void dummy_set(uint8_t status);
 uint8_t dummy_status();
 
 void photo_tick() {
@@ -150,7 +149,7 @@ void photo_tick() {
 
 	switch(state) {
 	case 0:
-		if(photo_trig) {
+		if(photo_trig && cam_force == 1) {
 			PORTD &= ~(1 << PD6); // turn mobile charger off -> take photo signal
 			PORTD &= ~(1 << PD5); // turn mobile charger off -> take photo signal
 			count = 0;
@@ -159,8 +158,10 @@ void photo_tick() {
 		break;
 	case 1:
 		if(++count == 500) { // 1 second off
-			PORTD |= (1 << PD6); // turn mobile charger on again
-			PORTD |= (1 << PD5); // turn mobile charger on again
+			if(cam_force == 1) {
+				PORTD |= (1 << PD6); // turn mobile charger on again
+				PORTD |= (1 << PD5); // turn mobile charger on again
+			}
 			state = 0;
 			photo_trig = 0;
 		}
@@ -244,8 +245,6 @@ void time_tick() {
 	else if(joule_battery > JOULE_BATTERY_FULL)
 		joule_battery = JOULE_BATTERY_FULL; // battery can never be charged over its full capacity
 
-	dummy_set(((vbat >= DUMMY_OFF_THRESHOLD_V && !dummy_status()) || (vbat >= DUMMY_ON_THRESHOLD_V && dummy_status()) || dummy_force == 2) && dummy_force);
-
 	switch(charge_status) {
 	case 0:
 		if(vbat <= CHARGE_ON_THRESHOLD_V && charger_force == 1) {
@@ -294,7 +293,16 @@ void DM(SetCount(uint32_t c)) {
 }
 
 void DM(SetDummy(uint8_t status)) {
-	dummy_force = status;
+	cam_force = status;
+
+	if(cam_force) { // on or auto
+		PORTD |= (1 << PD6); // turn mobile charger on again
+		PORTD |= (1 << PD5); // turn mobile charger on again
+	} else if(cam_force == 0) {
+		// permanent discharge (for resetting phone)
+		PORTD &= ~(1 << PD6); // turn mobile charger off
+		PORTD &= ~(1 << PD5); // turn mobile charger off
+	}
 }
 
 void DM(SetCharger(uint8_t status)) {
@@ -305,17 +313,7 @@ void DM(SetCharger(uint8_t status)) {
 }
 
 void DM(Time(uint8_t hour, uint8_t min, uint8_t sec, uint16_t year, uint8_t month, uint8_t day, uint8_t flags)) {
-	daylight = (hour >= 7 && hour < 17);
-}
-
-void dummy_set(uint8_t status) {
-/*
-	if(status)
-		PORTD |= (1 << PD6);
-	else
-		PORTD &= ~(1 << PD6);
-*/
-	PORTD &= ~(1 << PD6);
+	daylight = (hour >= 6 && hour < 16);
 }
 
 uint8_t dummy_status() {
