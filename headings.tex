@@ -57,8 +57,10 @@
 \titleformat{\section}
   {\gdef\sectionlabel{}
    \normalfont\sffamily\Huge\bfseries} % \scshape needs \usepackage{kpfonts}
-  {\gdef\sectionlabel{\thesection\ }}{0pt}
-  {
+  {\gdef\sectionlabel{\thesection\ #1}}{0pt}
+  {%
+\ifthenelse{\isodd{\arabic{section}}}%
+{%
     %\par\noindent
     \begin{tikzpicture} [remember picture,overlay]
         \node[yshift=0.2em+1em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
@@ -67,17 +69,31 @@
         \begin{tikzpicture}[remember picture, overlay]
           \fill[fill=LightSkyBlue] (0,0) rectangle
             (\paperwidth,0.2cm);
-          \node[anchor=west,yshift=2ex+0.2cm-2.9pt,xshift=-0.8em,rectangle,
+          \node[anchor=west,yshift=2ex+0.2cm-2.9pt,xshift=-0.0em,rectangle,
                 rounded corners=0pt,inner sep=11pt,
                 fill=MidnightBlue]
-                {\hspace*{-11pt}\hspace*{-3pt}\hspace*{2cm}
-                  \ifthenelse{\isodd{\arabic{section}}}
-                  {\color{white}}
-                  {\color{red}}
-                 \sectionlabel#1};
+                {\hspace*{-11pt}\hspace*{2cm}\color{white} \sectionlabel};
          \end{tikzpicture}
         };
     \end{tikzpicture}%
+}%
+{%
+    %\par\noindent
+    \begin{tikzpicture} [remember picture,overlay]
+        \node[yshift=0.2em+1em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
+        {
+        \bfseries\Large\sffamily
+        \begin{tikzpicture}[remember picture, overlay]
+          \fill[fill=LightSkyBlue] (0,0) rectangle
+            (\paperwidth,0.2cm);
+          \node[anchor=east,yshift=2ex+0.2cm-2.9pt,xshift=\paperwidth,rectangle,
+                rounded corners=0pt,inner sep=11pt,
+                fill=MidnightBlue]
+                {\color{white} \sectionlabel \hspace*{-11pt}\hspace*{2cm}};
+         \end{tikzpicture}
+        };
+    \end{tikzpicture}%
+}
     \\[\afterheadingskip]
   }
 
