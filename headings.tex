@@ -1,0 +1,91 @@
+\documentclass[svgnames]{report}
+\usepackage{tikz}
+%\usepackage{kpfonts}
+\usepackage[explicit]{titlesec}
+\usetikzlibrary{calc}
+
+\usepackage[left=2cm,top=2cm,right=2cm]{geometry}
+
+
+
+% Various lengths, vary to taste
+\newlength\tablength        \setlength\tablength{20pt}
+\newlength\ruledepth        \setlength\ruledepth{2pt}
+\newlength\rulelength       \setlength\rulelength{0.95\textwidth}
+\newlength\tabheight        \setlength\tabheight{0.25in} \addtolength\tabheight{-\ruledepth}
+\newlength\raisetitle       \setlength\raisetitle{1ex}
+\newlength\insettitle       \setlength\insettitle{1.5em}
+\newlength\afterheadingskip \setlength\afterheadingskip{9ex}
+
+% \afterheadingskip{6ex}  makes vertical space for the title
+% \node[yshift=-3.5cm  positions the title vertically
+
+\newcommand\problems{%
+  \par\noindent
+  \begin{tikzpicture} [remember picture,overlay]
+      \node[yshift=0.2em-1em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
+      {
+      \bfseries\Large\sffamily
+      \begin{tikzpicture}[remember picture, overlay]
+        \fill[fill=LightSkyBlue] (0,0) rectangle
+          (\paperwidth,0.2cm);
+        \node[anchor=west,yshift=2ex+0.2cm-1.5pt,xshift=2.5pt,rectangle,
+              rounded corners=0pt,inner sep=11pt,
+              fill=MidnightBlue]
+              {\hspace*{-11pt}\hspace*{-3pt}\hspace*{2cm}\color{white} Something in a rect};
+       \end{tikzpicture}
+      };
+
+    %\node [inner sep=0pt] (title) at (0,0) {\bfseries Problems for Section~\thesection};
+    %\coordinate (inner corner) at ($(title.south west) + (-\insettitle,-\raisetitle)$);
+    %\coordinate (outer corner) at ($(inner corner) + (-\tablength,-\ruledepth)$);
+    %\fill [gray] (outer corner) -- +(\rulelength,0) -- +(\rulelength,\ruledepth) 
+    %              -- (inner corner) -- +(0,\tabheight) -- +(-\tablength,\tabheight)
+    %              -- cycle;
+  \end{tikzpicture}%
+  \\[\afterheadingskip]
+}
+
+
+
+
+
+
+
+\newcommand*\sectionlabel{}
+\titleformat{\section}
+  {\gdef\sectionlabel{}
+   \normalfont\sffamily\Huge\bfseries} % \scshape needs \usepackage{kpfonts}
+  {\gdef\sectionlabel{\thesection\ }}{0pt}
+  {\begin{tikzpicture}[remember picture,overlay]
+    %\node[yshift=-3cm] at (current page.north west)
+    \node[yshift=-3cm] at (current page.north west)
+      {\begin{tikzpicture}[remember picture, overlay]
+        \draw[fill=LightSkyBlue] (0,0) rectangle
+          (\paperwidth,3cm);
+        \node[anchor=east,xshift=.9\paperwidth,rectangle,
+              rounded corners=20pt,inner sep=11pt,
+              fill=MidnightBlue]
+              {\color{white}\sectionlabel#1};
+       \end{tikzpicture}
+      };
+   \end{tikzpicture}
+  }
+\titlespacing*{\section}{0pt}{50pt}{-60pt}
+ 
+\begin{document}
+\tableofcontents
+\chapter{Introduction}
+\section{Section in Intro}
+Text
+
+\problems Text immediately following the section heading.
+
+\chapter{Main}
+\section{Section in Main}
+\subsection{Subsection}
+Text
+\begin{thebibliography}{99}
+\bibitem{Test} test reference
+\end{thebibliography}
+\end{document}
