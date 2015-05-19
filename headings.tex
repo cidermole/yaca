@@ -57,29 +57,47 @@
   {\gdef\sectionlabel{}
    \normalfont\sffamily\Huge\bfseries} % \scshape needs \usepackage{kpfonts}
   {\gdef\sectionlabel{\thesection\ }}{0pt}
-  {\begin{tikzpicture}[remember picture,overlay]
-    %\node[yshift=-3cm] at (current page.north west)
-    \node[yshift=-3cm] at (current page.north west)
-      {\begin{tikzpicture}[remember picture, overlay]
-        \draw[fill=LightSkyBlue] (0,0) rectangle
-          (\paperwidth,3cm);
-        \node[anchor=east,xshift=.9\paperwidth,rectangle,
-              rounded corners=20pt,inner sep=11pt,
-              fill=MidnightBlue]
-              {\color{white}\sectionlabel#1};
-       \end{tikzpicture}
-      };
-   \end{tikzpicture}
+  {
+    %\par\noindent
+    \begin{tikzpicture} [remember picture,overlay]
+        \node[yshift=0.2em+1em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
+        {
+        \bfseries\Large\sffamily
+        \begin{tikzpicture}[remember picture, overlay]
+          \fill[fill=LightSkyBlue] (0,0) rectangle
+            (\paperwidth,0.2cm);
+          \node[anchor=west,yshift=2ex+0.2cm-2.9pt,xshift=-0.4em,rectangle,
+                rounded corners=0pt,inner sep=11pt,
+                fill=MidnightBlue]
+                {\hspace*{-11pt}\hspace*{-3pt}\hspace*{2cm}\color{white} \sectionlabel#1};
+         \end{tikzpicture}
+        };
+    \end{tikzpicture}%
+    \\[\afterheadingskip]
   }
-\titlespacing*{\section}{0pt}{50pt}{-60pt}
+
+% ? above below
+\titlespacing*{\section}{0pt}{35pt}{-70pt}
  
 \begin{document}
 \tableofcontents
 \chapter{Introduction}
+There should be text before the section.
+
 \section{Section in Intro}
 Text
 
-\problems Text immediately following the section heading.
+%\problems
+
+Text immediately following the section heading.
+
+A sizable body of recent domain adaptation research focuses on the problem of combining sources of bitext from different domains (potentially several sources of OLD and NEW data) in a way that optimizes performance for a specific NEW domain.
+One approach is estimating phrase tables on each domain corpus separately and linearly interpolating their scores, optimizing the interpolation weights \cite{foster2007mixture}. Another approach includes ranking training sentence pairs by their similarity to the domain and selecting specific domain-similar sentences only for training \cite{axelrod2011domain}. A third approach using comparable corpora (e.g.\ \cite{daume2011domain}), i.e.\ not sentence aligned source- and target-language texts on the same topic, initially sounds promising but may require too similar data.
+
+Apart from using comparable corpora, these approaches suffer from the scarcity and sparsity of the NEW domain bitext. Regardless of the amount of OLD bitext, only the NEW bitext can provide words from the specific domain vocabulary for the phrase table. Also, domains tend to use specific word senses predominantly, but these senses vary across domains, and some senses may not have been observed in other domains at all. % \cite{sennrich2012perplexity}. \cite{irvine2013measuring}. % one sense per discourse?
+With only little NEW domain bitext, performance suffers from unseen words and words being used in a new sense in the NEW domain we are adapting a system to \cite{irvine2013measuring}. %TODO new sense: both unobserved at all, and score.
+
+
 
 \chapter{Main}
 \section{Section in Main}
