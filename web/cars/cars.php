@@ -17,7 +17,8 @@ if($_GET['mode'] == 'week') {
 	$now = new DateTime();
 	$now->setTime($now->format("H"), 0); // current day, hour
 	$from = clone $now;
-	$from->sub(new DateInterval("P7D")); // subtract one week
+	//$from->sub(new DateInterval("P7D")); // subtract one week
+	$from->modify('-7 day'); // subtract one week // TODO
 	$i = clone $from;
 	$j = clone $from;
 	$j->add(new DateInterval("PT1H"));
