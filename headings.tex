@@ -3,6 +3,7 @@
 %\usepackage{kpfonts}
 \usepackage[explicit]{titlesec}
 \usetikzlibrary{calc}
+\usepackage{ifthen}
 
 \usepackage[left=2cm,top=2cm,right=2cm]{geometry}
 
@@ -66,10 +67,14 @@
         \begin{tikzpicture}[remember picture, overlay]
           \fill[fill=LightSkyBlue] (0,0) rectangle
             (\paperwidth,0.2cm);
-          \node[anchor=west,yshift=2ex+0.2cm-2.9pt,xshift=-0.4em,rectangle,
+          \node[anchor=west,yshift=2ex+0.2cm-2.9pt,xshift=-0.8em,rectangle,
                 rounded corners=0pt,inner sep=11pt,
                 fill=MidnightBlue]
-                {\hspace*{-11pt}\hspace*{-3pt}\hspace*{2cm}\color{white} \sectionlabel#1};
+                {\hspace*{-11pt}\hspace*{-3pt}\hspace*{2cm}
+                  \ifthenelse{\isodd{\arabic{section}}}
+                  {\color{white}}
+                  {\color{red}}
+                 \sectionlabel#1};
          \end{tikzpicture}
         };
     \end{tikzpicture}%
@@ -97,6 +102,10 @@ One approach is estimating phrase tables on each domain corpus separately and li
 Apart from using comparable corpora, these approaches suffer from the scarcity and sparsity of the NEW domain bitext. Regardless of the amount of OLD bitext, only the NEW bitext can provide words from the specific domain vocabulary for the phrase table. Also, domains tend to use specific word senses predominantly, but these senses vary across domains, and some senses may not have been observed in other domains at all. % \cite{sennrich2012perplexity}. \cite{irvine2013measuring}. % one sense per discourse?
 With only little NEW domain bitext, performance suffers from unseen words and words being used in a new sense in the NEW domain we are adapting a system to \cite{irvine2013measuring}. %TODO new sense: both unobserved at all, and score.
 
+\section{Section two in Intro}
+Text in section two.
+
+\section{Section three in Intro}
 
 
 \chapter{Main}
