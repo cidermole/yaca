@@ -1,4 +1,5 @@
-\documentclass[svgnames]{report}
+% svgnames: color names (like LightSkyBlue)
+\documentclass[svgnames,12pt]{report}
 \usepackage{tikz}
 %\usepackage{kpfonts}
 \usepackage[explicit]{titlesec}
@@ -19,9 +20,9 @@
   {\begin{tikzpicture}[remember picture,overlay]
     \node[yshift=-3cm] at (current page.north west)
       {\begin{tikzpicture}[remember picture, overlay]
-        \draw[fill=LightSkyBlue] (0,0) rectangle
-          (\paperwidth,3cm);
-        \node[anchor=east,xshift=.9\paperwidth,rectangle,
+        %\fill[fill=LightSkyBlue] (0,0) rectangle
+        %  (\paperwidth,3cm);
+        \node[anchor=center,xshift=.5\paperwidth,rectangle,
               rounded corners=20pt,inner sep=11pt,
               fill=MidnightBlue]
               {\color{white}\chapterlabel#1};
@@ -29,7 +30,7 @@
       };
    \end{tikzpicture}
   }
-\titlespacing*{\chapter}{0pt}{50pt}{-60pt}
+\titlespacing*{\chapter}{0pt}{50pt}{-30pt}
 
 
 
@@ -95,13 +96,13 @@
 {%
     %\par\noindent
     \begin{tikzpicture} [remember picture,overlay]
-        \node[yshift=0.2em+1em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
+        \node[yshift=0.4em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
         {
         \bfseries\Large\sffamily
         \begin{tikzpicture}[remember picture, overlay]
           \fill[fill=LightSkyBlue] (0,0) rectangle
             (\paperwidth,0.2cm);
-          \node[anchor=west,yshift=2ex+0.2cm-2.9pt,xshift=-0.0em,rectangle,
+          \node[anchor=west,yshift=3.5ex-1.36ex,xshift=-0.0em,rectangle,
                 rounded corners=0pt,inner sep=11pt,
                 fill=MidnightBlue]
                 {\hspace*{-11pt}\hspace*{2cm}\color{white} \sectionlabel};
@@ -112,13 +113,13 @@
 {%
     %\par\noindent
     \begin{tikzpicture} [remember picture,overlay]
-        \node[yshift=0.2em+1em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
+        \node[yshift=0.4em-11pt-11pt,xshift=-2cm] at (0,0) % (current page.north west)
         {
         \bfseries\Large\sffamily
         \begin{tikzpicture}[remember picture, overlay]
           \fill[fill=LightSkyBlue] (0,0) rectangle
             (\paperwidth,0.2cm);
-          \node[anchor=east,yshift=2ex+0.2cm-2.9pt,xshift=\paperwidth,rectangle,
+          \node[anchor=east,yshift=3.5ex-1.36ex,xshift=\paperwidth,rectangle,
                 rounded corners=0pt,inner sep=11pt,
                 fill=MidnightBlue]
                 {\color{white} \sectionlabel \hspace*{-11pt}\hspace*{2cm}};
@@ -130,12 +131,12 @@
   }
 
 % ? above below
-\titlespacing*{\section}{0pt}{35pt}{-70pt}
+\titlespacing*{\section}{0pt}{10pt}{-50pt}
  
 \begin{document}
 %\tableofcontents
 \chapter{Curriculum Vitae}
-There should be text before the section.
+%There should be text before the section.
 
 \section{Section in Intro}
 Text
@@ -155,8 +156,9 @@ Text in section two.
 
 \section{Section three in Intro}
 
-
-\chapter{Main}
+\newpage
+%bla
+%\chapter{Main}
 \section{Section in Main}
 \subsection{Subsection}
 Text
