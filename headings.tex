@@ -16,7 +16,8 @@
 \titleformat{\chapter}
   {\gdef\chapterlabel{}
    \normalfont\sffamily\Huge\bfseries\scshape}
-  {\gdef\chapterlabel{\thechapter\ }}{0pt}
+  %{\gdef\chapterlabel{\thechapter\ #1}}{0pt}
+  {\gdef\chapterlabel{#1}}{0pt}
   {\begin{tikzpicture}[remember picture,overlay]
     \node[yshift=-3cm] at (current page.north west)
       {\begin{tikzpicture}[remember picture, overlay]
@@ -25,7 +26,7 @@
         \node[anchor=center,xshift=.5\paperwidth,rectangle,
               rounded corners=20pt,inner sep=11pt,
               fill=MidnightBlue]
-              {\color{white}\chapterlabel#1};
+              {\color{white}\chapterlabel};
        \end{tikzpicture}
       };
    \end{tikzpicture}
@@ -90,7 +91,8 @@
 \titleformat{\section}
   {\gdef\sectionlabel{}
    \normalfont\sffamily\Huge\bfseries} % \scshape needs \usepackage{kpfonts}
-  {\gdef\sectionlabel{\thesection\ #1}}{0pt}
+  %{\gdef\sectionlabel{\thesection\ #1}}{0pt}
+  {\gdef\sectionlabel{#1}}{0pt}
   {%
 \ifthenelse{\isodd{\arabic{section}}}%
 {%
